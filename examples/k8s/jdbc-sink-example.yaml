@@ -1,0 +1,29 @@
+apiVersion: flinkflow.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: jdbc-sink-pipeline
+spec:
+  name: "JDBC Sink Pipeline"
+  parallelism: 1
+  
+  steps:
+    - name: "static-source"
+      type: "source"
+      properties:
+        content: "1,Alice|2,Bob|3,Charlie"
+  
+    - name: "jdbc-sink"
+      type: "sink"
+      properties:
+        url: "jdbc:postgresql://localhost:5432/testdb"
+        username: "postgres"
+        password: "password"
+        driverName: "org.postgresql.Driver"
+        sql: "INSERT INTO users (id, name) VALUES (?, ?)"
+        batchSize: "100"
+        batchIntervalMs: "200"
+        maxRetries: "3"
+      code: |
+        String[] parts = input.split(",");
+        stmt.setInt(1, Integer.parseInt(parts[0]));
+        stmt.setString(2, parts[1]);

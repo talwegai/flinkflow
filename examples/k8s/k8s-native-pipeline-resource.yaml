@@ -1,0 +1,20 @@
+apiVersion: flinkflow.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: k8s-native-test
+spec:
+  name: "K8s Native Flinkflow Job"
+  parallelism: 1
+  steps:
+    - type: source
+      name: static-source
+      properties:
+        content: "k8s-msg-1|k8s-msg-2|k8s-msg-3"
+
+    - type: flowlet
+      name: log-transform
+      with:
+        prefix: "[K8S-NATIVE-PIPELINE]"
+
+    - type: sink
+      name: console-sink

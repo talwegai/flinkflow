@@ -1,0 +1,21 @@
+apiVersion: flinkflow.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: python-flowlet-test
+spec:
+  name: "python-flowlet-test-job"
+  steps:
+    - type: source
+      name: "input"
+      connector: "static-source"
+      properties:
+        content: '{"category": "test", "val": 10}'
+
+    - type: flowlet
+      name: "log-transform"
+      with:
+        prefix: "[PYTHON-LOG]"
+
+    - type: sink
+      name: "print"
+      connector: "console-sink"

@@ -1,0 +1,22 @@
+name: "Side Output Example Pipeline"
+parallelism: 2
+
+steps:
+  - name: "static-source"
+    type: "source"
+    properties:
+      content: "INFO: login|WARN: retry|ERROR: null_pointer|INFO: click|ERROR: timeout"
+
+  - name: "process-sideoutput"
+    type: "sideoutput"
+    properties:
+      outputName: "dlq-errors"
+    code: |
+      if (input.startsWith("ERROR:")) {
+          ctx.output(input);
+      } else {
+          out.collect(input);
+      }
+
+  - name: "console"
+    type: "sink"

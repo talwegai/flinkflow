@@ -1,0 +1,28 @@
+apiVersion: flinkflow.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: datagen-streaming-demo
+  namespace: default
+spec:
+  name: "DataGen Streaming Demo"
+  parallelism: 1
+  steps:
+    # Generates 10 rows per second automatically
+    - type: datagen
+      name: datagen-source
+      properties:
+        rowsPerSecond: "10"
+        payload: "datagen-event"
+
+    # Simple transformation
+    - type: process
+      name: enrich
+      code: |
+        return "[DATAGEN] " + input.toUpperCase() + " | ts=" + System.currentTimeMillis();
+
+    # Write results to Kafka so we can see them (optional, can also use console-sink)
+    - type: sink
+      name: kafka-sink
+      properties:
+        bootstrap.servers: "my-cluster-kafka-bootstrap.kafka.svc:9092"
+        topic: "flinkflow-sink"

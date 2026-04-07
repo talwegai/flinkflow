@@ -1,0 +1,19 @@
+apiVersion: flinkflow.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: http-webhook-sink-pipeline
+spec:
+  name: "HTTP Webhook Sink Pipeline"
+  parallelism: 1
+  
+  steps:
+    - name: "static-source"
+      type: "source"
+      properties:
+        content: "{\"id\":1, \"status\":\"active\"}|{\"id\":2, \"status\":\"inactive\"}"
+  
+    - name: "http-sink"
+      type: "sink"
+      properties:
+        url: "https://httpbin.org/post"
+        method: "POST"

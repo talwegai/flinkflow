@@ -1,0 +1,22 @@
+name: "KeyBy Example Pipeline"
+parallelism: 2
+steps:
+  - name: "static-source"
+    type: "source"
+    properties:
+      content: "user1,login|user2,login|user1,click|user3,login|user2,click"
+
+  - name: "partition-by-user"
+    type: "keyby"
+    code: |
+      // Partition by the first element (user ID)
+      return input.split(",")[0];
+
+  - name: "process-after-keyby"
+    type: "process"
+    code: |
+      // Processing runs on the partitioned stream
+      return "Partitioned Output: " + input;
+
+  - name: "console"
+    type: "sink"

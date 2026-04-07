@@ -1,0 +1,38 @@
+apiVersion: flinkflow.io/v1alpha1
+kind: Flowlet
+metadata:
+  name: log-transform
+  labels:
+    app.kubernetes.io/part-of: flinkflow
+    flinkflow.io/group: utilities
+spec:
+  title: "Log & Pass-Through"
+  description: |
+    An action Flowlet that logs every record to stdout with a configurable
+    prefix and passes the record unchanged downstream.  Useful for debugging
+    pipelines without modifying the data.
+  type: action
+  version: "1.0"
+  labels:
+    group: utilities
+  parameters:
+    prefix:
+      title: "Log Prefix"
+      description: "Text prepended to each logged record."
+      type: string
+      required: false
+      defaultValue: "[FLINKFLOW]"
+  template:
+    - type: process
+      name: log-transform
+      language: python
+      code: |
+        import json
+        try:
+            obj = json.loads(input)
+            log_msg = f"{{prefix}} JSON: {obj.get('category', 'unknown')} -> {obj}"
+            print(log_msg)
+            return input
+        except:
+            print(f"{{prefix}} TEXT: {input}")
+            return input

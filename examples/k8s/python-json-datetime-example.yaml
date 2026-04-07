@@ -1,0 +1,34 @@
+apiVersion: flinkflow.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: python-json-datetime
+spec:
+  name: "K8s Python JSON & Datetime Processing"
+  parallelism: 1
+  steps:
+    - type: source
+      name: static-source
+      properties:
+        content: |
+          {"id": "K8S-101", "amount": 500.25}
+          | {"id": "K8S-102", "amount": 30.00}
+
+    - type: process
+      name: enrich-with-timestamp
+      language: python
+      code: |
+        import json
+        from datetime import datetime
+        
+        # Parse the incoming JSON string
+        order = json.loads(input)
+        
+        # Add processing metadata
+        order["processed_at"] = datetime.now().isoformat()
+        order["environment"] = "kubernetes"
+        
+        # Return the enriched JSON string
+        return json.dumps(order)
+
+    - type: sink
+      name: console-sink

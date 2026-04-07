@@ -1,0 +1,138 @@
+---
+# ─────────────────────────────────────────────────────────────────────────────
+# Flinkflow Flowlet CRD
+#
+# Installs the `Flowlet` custom resource kind into any Kubernetes cluster.
+# Once this CRD is applied, teams can `kubectl apply` individual Flowlet
+# manifests from k8s/flowlets/ to make them available cluster-wide.
+#
+# Apply with:
+#   kubectl apply -f k8s/crd-flowlet.yaml
+# ─────────────────────────────────────────────────────────────────────────────
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: flowlets.flinkflow.io
+  labels:
+    app.kubernetes.io/name: flinkflow
+    app.kubernetes.io/component: flowlet-catalog
+spec:
+  group: flinkflow.io
+  names:
+    kind: Flowlet
+    listKind: FlowletList
+    plural: flowlets
+    singular: flowlet
+    shortNames:
+      - fl
+  scope: Namespaced         # Flowlets are namespace-scoped, just like Kamelets
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      additionalPrinterColumns:
+        - name: Type
+          type: string
+          description: The Flowlet type (source, sink, action)
+          jsonPath: .spec.type
+        - name: Version
+          type: string
+          description: Flowlet version
+          jsonPath: .spec.version
+        - name: Title
+          type: string
+          description: Human-readable title
+          jsonPath: .spec.title
+        - name: Age
+          type: date
+          jsonPath: .metadata.creationTimestamp
+      schema:
+        openAPIV3Schema:
+          type: object
+          description: |
+            A Flowlet is a reusable, parameterised pipeline component for Flinkflow,
+            analogous to an Apache Camel Kamelet.  Flowlets are installed as
+            Kubernetes Custom Resources and are automatically discovered by
+            Flinkflow jobs running in the same namespace.
+          properties:
+            apiVersion:
+              type: string
+            kind:
+              type: string
+            metadata:
+              type: object
+            spec:
+              type: object
+              description: Flowlet specification.
+              required:
+                - type
+                - template
+              properties:
+                title:
+                  type: string
+                  description: Human-readable title displayed in catalogs and UIs.
+                description:
+                  type: string
+                  description: Markdown-capable description of what this Flowlet does.
+                type:
+                  type: string
+                  description: "Flowlet kind: source, sink, or action."
+                  enum: [source, sink, action]
+                version:
+                  type: string
+                  description: Optional semantic version string (e.g. \"1.0\").
+                labels:
+                  type: object
+                  description: Free-form grouping labels (e.g. group, provider).
+                  additionalProperties:
+                    type: string
+                parameters:
+                  type: object
+                  description: |
+                    Declared parameters that callers must (or may) provide via
+                    the `with:` map in their pipeline YAML. Each key is the
+                    parameter name.
+                  additionalProperties:
+                    type: object
+                    properties:
+                      title:
+                        type: string
+                      description:
+                        type: string
+                      type:
+                        type: string
+                        default: string
+                      defaultValue:
+                        type: string
+                      required:
+                        type: boolean
+                        default: false
+                      example:
+                        type: string
+                template:
+                  type: array
+                  description: |
+                    The internal pipeline step(s) that this Flowlet expands into.
+                    Property values and code snippets may contain {{paramName}}
+                    placeholders which are substituted with caller-supplied values.
+                  items:
+                    type: object
+                    required:
+                      - type
+                    properties:
+                      type:
+                        type: string
+                      connector:
+                        type: string
+                        description: "The name of the connector (e.g. kafka-source, static-source)."
+                      name:
+                        type: string
+                      language:
+                        type: string
+                        description: "Code runtime language: 'java' or 'python'."
+                      code:
+                        type: string
+                      properties:
+                        type: object
+                        additionalProperties:
+                          type: string

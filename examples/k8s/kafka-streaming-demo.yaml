@@ -1,0 +1,29 @@
+apiVersion: flinkflow.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: kafka-streaming-demo
+  namespace: default
+spec:
+  name: "Kafka Streaming Demo"
+  parallelism: 1
+  steps:
+    # Continuously reads from Kafka — unbounded, keeps the job running
+    - type: source
+      name: kafka-source
+      properties:
+        bootstrap.servers: "my-cluster-kafka-bootstrap.kafka.svc:9092"
+        topic: "flinkflow-source"
+        group.id: "flinkflow-demo-group"
+
+    # Simple enrichment — prefix + uppercase
+    - type: process
+      name: enrich
+      code: |
+        return "[FLINKFLOW] " + input.toUpperCase() + " | ts=" + System.currentTimeMillis();
+
+    # Write results back to Kafka
+    - type: sink
+      name: kafka-sink
+      properties:
+        bootstrap.servers: "my-cluster-kafka-bootstrap.kafka.svc:9092"
+        topic: "flinkflow-sink"

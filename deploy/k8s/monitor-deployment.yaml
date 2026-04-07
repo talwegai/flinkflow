@@ -1,0 +1,77 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: flinkmonitor
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: flinkflow-monitor-sa
+  namespace: flinkmonitor
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: flinkflow-monitor-role
+rules:
+- apiGroups: [""]
+  resources: ["pods", "pods/log", "services", "namespaces", "configmaps", "events"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["flinkflow.io"]
+  resources: ["flowlets", "pipelines"]
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: flinkflow-monitor-rolebinding
+subjects:
+- kind: ServiceAccount
+  name: flinkflow-monitor-sa
+  namespace: flinkmonitor
+roleRef:
+  kind: ClusterRole
+  name: flinkflow-monitor-role
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flinkflow-monitor
+  namespace: flinkmonitor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flinkflow-monitor
+  template:
+    metadata:
+      labels:
+        app: flinkflow-monitor
+    spec:
+      serviceAccountName: flinkflow-monitor-sa
+      containers:
+      - name: monitor
+        image: flinkflow-monitor:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8082
+        env:
+        - name: FLINK_BASE_URL
+          value: "http://flink-jobmanager.default.svc.cluster.local:8081"
+        - name: PORT
+          value: "8082"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flinkflow-monitor-svc
+  namespace: flinkmonitor
+spec:
+  selector:
+    app: flinkflow-monitor
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8082
+  type: NodePort

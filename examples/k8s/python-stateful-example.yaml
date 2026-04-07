@@ -1,0 +1,40 @@
+apiVersion: flinkflow.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: python-stateful-example
+spec:
+  name: "python-stateful-demo"
+  steps:
+    - type: source
+      name: "json-source"
+      connector: "static-source"
+      properties:
+        content: |
+          {"category": "A", "val": 10}|{"category": "B", "val": 20}|{"category": "A", "val": 30}|{"category": "B", "val": 40}
+
+    - type: keyby
+      name: "key-on-category"
+      language: python
+      code: |
+        import json
+        obj = json.loads(input)
+        return obj["category"]
+
+    - type: window
+      name: "hourly-window"
+      properties:
+        windowType: "tumbling"
+        size: "1"
+      language: python
+      code: |
+        import json
+        o1 = json.loads(value1)
+        o2 = json.loads(value2)
+        return json.dumps({
+            "category": o1["category"],
+            "total": o1["val"] + o2["val"]
+        })
+
+    - type: sink
+      name: "print-results"
+      connector: "console-sink"

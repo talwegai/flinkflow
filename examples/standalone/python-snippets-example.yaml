@@ -1,0 +1,31 @@
+name: "Python Snippets Demo"
+parallelism: 1
+
+# This pipeline demonstrates using Python code snippets (powered by GraalVM)
+# as an alternative to Janino Java snippets for transformation and filtering.
+#
+# Usage:
+#   ./run-local.sh examples/standalone/python-snippets-example.yaml
+
+steps:
+  - type: source
+    name: static-source
+    properties:
+      content: "hello world|graalvm rocks|flink is fast|skip this line"
+
+  # Python-based filter: keep only records that do NOT contain "skip"
+  - type: filter
+    name: python-filter
+    language: python
+    code: |
+      return "skip" not in input
+
+  # Python-based process (map): uppercase the record
+  - type: process
+    name: python-uppercase
+    language: python
+    code: |
+      return input.upper()
+
+  - type: sink
+    name: console-sink

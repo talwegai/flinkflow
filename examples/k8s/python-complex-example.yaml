@@ -1,0 +1,49 @@
+apiVersion: flinkflow.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: python-complex-example
+spec:
+  name: "Complex Python Order Processing (K8s)"
+  parallelism: 1
+  steps:
+    - name: "static-source"
+      type: "source"
+      properties:
+        content: |
+          {"id": "ORD-1", "status": "delivered", "amount": 100, "items": ["apple", "banana"]}
+          | {"id": "ORD-2", "status": "pending", "amount": 50, "items": ["orange"]}
+          | {"id": "ORD-3", "status": "delivered", "amount": 200, "items": ["mango", "peach", "pear"]}
+
+    # 1. Filter: Delivered only
+    - name: "delivered-only"
+      type: "filter"
+      language: "python"
+      code: |
+        import json
+        order = json.loads(input)
+        return order.get("status") == "delivered"
+
+    # 2. Process: Tax & Metadata
+    - name: "tax-and-timestamp"
+      type: "process"
+      language: "python"
+      code: |
+        import json
+        from datetime import datetime
+        order = json.loads(input)
+        order["total_amount"] = order.get("amount", 0) * 1.07
+        order["processed_at"] = datetime.now().isoformat()
+        return json.dumps(order)
+
+    # 3. FlatMap: Explode items into separate rows
+    - name: "explode-items"
+      type: "flatmap"
+      language: "python"
+      code: |
+        import json
+        order = json.loads(input)
+        items = order.get("items", [])
+        return [json.dumps({"order_id": order["id"], "item": it, "total": order["total_amount"]}) for it in items]
+
+    - name: "console"
+      type: "sink"

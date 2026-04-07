@@ -1,0 +1,72 @@
+name: "Complex Python Order Processing"
+parallelism: 1
+
+# This example demonstrates advanced Python-based data engineering:
+# - JSON parsing/serialization
+# - Dynamic tax calculations
+# - 'Exploding' nested arrays into separate records (FlatMap)
+#
+# Run: ./run-local.sh examples/standalone/python-complex-example.yaml
+
+steps:
+  - type: source
+    name: static-source
+    properties:
+      content: |
+        {"id": "ORD-1", "status": "delivered", "amount": 100, "items": ["apple", "banana"]}
+        | {"id": "ORD-2", "status": "pending", "amount": 50, "items": ["orange"]}
+        | {"id": "ORD-3", "status": "delivered", "amount": 200, "items": ["mango", "peach", "pear"]}
+
+  # 1. Python Filter: Only process 'delivered' orders
+  - type: filter
+    name: delivered-only
+    language: python
+    code: |
+      import json
+      order = json.loads(input)
+      return order.get("status") == "delivered"
+
+  # 2. Python Process: Calculate tax and enrich metadata
+  - type: process
+    name: tax-and-timestamp
+    language: python
+    code: |
+      import json
+      from datetime import datetime
+      
+      order = json.loads(input)
+      
+      # Enrich with tax (7%)
+      original_amount = order.get("amount", 0)
+      order["tax_amount"] = original_amount * 0.07
+      order["total_amount"] = original_amount + order["tax_amount"]
+      
+      # Add processing metadata
+      order["processed_at"] = datetime.now().isoformat()
+      order["engine"] = "GraalVM-Python-3.10"
+      
+      return json.dumps(order)
+
+  # 3. Python FlatMap: Explode 'items' list into individual records
+  - type: flatmap
+    name: explode-items
+    language: python
+    code: |
+      import json
+      order = json.loads(input)
+      items = order.get("items", [])
+      
+      output_records = []
+      for item in items:
+          record = {
+              "order_id": order["id"],
+              "item_name": item,
+              "total_paid": order["total_amount"],
+              "timestamp": order["processed_at"]
+          }
+          output_records.append(json.dumps(record))
+          
+      return output_records
+
+  - type: sink
+    name: console-sink

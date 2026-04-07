@@ -1,0 +1,76 @@
+apiVersion: flinkflow.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: confluent-cfk-pipeline---flowlet-example
+spec:
+  name: "Confluent CFK Pipeline - Flowlet Example"
+  parallelism: 2
+  
+  # ─────────────────────────────────────────────────────────────────────────────
+  # This pipeline demonstrates the Flowlet system — Flinkflow's equivalent of
+  # Apache Camel Kamelets.  Instead of spelling out every Kafka property inline,
+  # you reference a named Flowlet and supply only the parameters it declares.
+  #
+  # Available built-in Flowlets (src/main/resources/flowlets/):
+  #   kafka-source            – standard Kafka source
+  #   kafka-sink              – standard Kafka sink
+  #   confluent-kafka-source  – Confluent Cloud / CFK source (SASL_SSL)
+  #   confluent-kafka-sink    – Confluent Cloud / CFK sink   (SASL_SSL)
+  #   log-transform           – debug logging pass-through action
+  #   http-enrich             – async HTTP enrichment action
+  #
+  # Custom Flowlets can be added to a local `flowlets/` directory and loaded
+  # at runtime with: --flowlets-dir ./flowlets
+  # ─────────────────────────────────────────────────────────────────────────────
+  
+  steps:
+    # ── SOURCE ──────────────────────────────────────────────────────────────────
+    # Reference the built-in 'confluent-kafka-source' Flowlet instead of manually
+    # writing out all the SASL_SSL properties.
+    - type: flowlet
+      name: confluent-kafka-source
+      with:
+        bootstrapServers: "pkc-xxx.us-east-1.aws.confluent.cloud:9092"
+        topic: "orders-raw"
+        apiKey: "${KAFKA_API_KEY}"          # Can use env vars via a wrapper script
+        apiSecret: "${KAFKA_API_SECRET}"
+        groupId: "flinkflow-orders-group"
+  
+    # ── ACTION: debug logging ────────────────────────────────────────────────────
+    - type: flowlet
+      name: log-transform
+      with:
+        prefix: "[RAW ORDER]"
+  
+    # ── PROCESS: custom business logic (inline code, not a Flowlet) ─────────────
+    - type: process
+      name: normalize-order
+      code: |
+        // Normalise the order payload: uppercase status field
+        // Assumes CSV: orderId,customerId,status,amount
+        String[] parts = input.split(",", -1);
+        if (parts.length >= 3) {
+            parts[2] = parts[2].trim().toUpperCase();
+        }
+        return String.join(",", parts);
+  
+    # ── ACTION: HTTP enrichment via Flowlet ─────────────────────────────────────
+    - type: flowlet
+      name: http-enrich
+      with:
+        urlCode: |
+          String customerId = input.split(",")[1].trim();
+          return "https://internal-customer-api.svc.cluster.local/customers/" + customerId;
+        mergeCode: |
+          return input + ",customerInfo=" + response;
+        timeout: "5000"
+        capacity: "50"
+  
+    # ── SINK ────────────────────────────────────────────────────────────────────
+    - type: flowlet
+      name: confluent-kafka-sink
+      with:
+        bootstrapServers: "pkc-xxx.us-east-1.aws.confluent.cloud:9092"
+        topic: "orders-enriched"
+        apiKey: "${KAFKA_API_KEY}"
+        apiSecret: "${KAFKA_API_SECRET}"

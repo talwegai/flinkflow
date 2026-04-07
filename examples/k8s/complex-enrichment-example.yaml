@@ -1,0 +1,44 @@
+apiVersion: flinkflow.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: two-topic-join-enrichment-pipeline
+spec:
+  name: "Two-Topic Join Enrichment Pipeline"
+  parallelism: 1
+  steps:
+    # 1. Primary Source: Customer Orders from Kafka
+    - type: source
+      name: kafka-source
+      properties:
+        bootstrap.servers: "localhost:9092"
+        topic: "customer-orders"
+        group.id: "enrichment-group"
+  
+    # 2. Secondary Source & Join: Join with Customer Profile topic
+    - type: join
+      name: kafka-source
+      properties:
+        # Secondary Kafka Source properties
+        bootstrap.servers: "localhost:9092"
+        topic: "customer-profiles"
+        group.id: "enrichment-group-secondary"
+        
+        # Join Keys and Window
+        leftKey: "return input.split(\",\")[1];"  # Join on customer_id (2nd field in orders)
+        rightKey: "return input.split(\",\")[0];" # Join on customer_id (1st field in profiles)
+        lowerBound: -3600 # 1 hour window
+        upperBound: 3600
+      code: |
+        // Enrichment Logic: Combine data from both topics
+        // 'left' is the record from customer-orders
+        // 'right' is the record from customer-profiles
+        String orderDetails = left.split(",")[2]; 
+        String customerName = right.split(",")[1];
+        return "Order: " + orderDetails + " | Customer: " + customerName;
+  
+    # 3. Final Sink: Pushed to a consolidated topic
+    - type: sink
+      name: kafka-sink
+      properties:
+        bootstrap.servers: "localhost:9092"
+        topic: "enriched-orders"

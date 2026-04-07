@@ -1,0 +1,22 @@
+name: "Kafka Transform Pipeline"
+parallelism: 1
+steps:
+  - type: source
+    name: kafka-source
+    properties:
+      bootstrap.servers: "localhost:9092"
+      topic: "source-topic"
+      group.id: "flinkflow-group"
+
+  - type: process
+    name: transformation
+    code: |
+      // The 'input' variable contains the record as a String
+      String processed = input.toUpperCase();
+      return "Processed: " + processed;
+
+  - type: sink
+    name: kafka-sink
+    properties:
+      bootstrap.servers: "localhost:9092"
+      topic: "sink-topic"

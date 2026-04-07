@@ -1,0 +1,50 @@
+name: "Kafka Avro Schema Registry Example"
+parallelism: 1
+steps:
+  # 1. Read Avro from Kafka using Schema Registry
+  - type: source
+    name: kafka-source
+    properties:
+      format: "avro"
+      bootstrap.servers: "localhost:9092"
+      topic: "users-avro"
+      group.id: "avro-consumer-group"
+      schema.registry.url: "http://localhost:8081"
+      # schema.literal: |
+      #   {
+      #     "type": "record",
+      #     "name": "User",
+      #     "fields": [
+      #       {"name": "id", "type": "int"},
+      #       {"name": "name", "type": "string"},
+      #       {"name": "email", "type": ["null", "string"], "default": null}
+      #     ]
+      #   }
+
+  # 2. Transform the data (now as a JSON String)
+  - type: process
+    name: enrich-user
+    code: |
+      // The input is now a JSON string representation of the Avro record
+      return input.replace("}", ", \"processed\": true }");
+
+  # 3. Write back as Avro using Schema Registry
+  - type: sink
+    name: kafka-sink
+    properties:
+      format: "avro"
+      bootstrap.servers: "localhost:9092"
+      topic: "users-processed-avro"
+      schema.registry.url: "http://localhost:8081"
+      schema.subject: "users-processed-avro-value"
+      # schema.literal: |
+      #   {
+      #     "type": "record",
+      #     "name": "UserProcessed",
+      #     "fields": [
+      #       {"name": "id", "type": "int"},
+      #       {"name": "name", "type": "string"},
+      #       {"name": "email", "type": ["null", "string"], "default": null},
+      #       {"name": "processed", "type": "boolean"}
+      #     ]
+      #   }

@@ -1,0 +1,26 @@
+apiVersion: flinkflow.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: file-sink-example-pipeline
+spec:
+  name: "File Sink Example Pipeline"
+  parallelism: 1
+  
+  steps:
+    - name: "static-source"
+      type: "source"
+      properties:
+        content: "record1|record2|record3"
+        
+    - name: "process-content"
+      type: "process"
+      code: |
+        return "Processed: " + input;
+        
+    - name: "file-sink"
+      type: "sink"
+      properties:
+        path: "/tmp/flinkflow-output"
+        rolloverInterval: "10"
+        inactivityInterval: "5"
+        maxPartSize: "1mb"

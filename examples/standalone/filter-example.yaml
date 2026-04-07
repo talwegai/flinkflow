@@ -1,0 +1,16 @@
+name: "Filter Example Pipeline"
+parallelism: 1
+steps:
+  - name: "static-source"
+    type: "source"
+    properties:
+      content: "Hello|World|Flink|Filter|Example|1|2|3"
+
+  - name: "length-filter"
+    type: "filter"
+    code: |
+      // Keep only words longer than 3 characters
+      return input.length() > 3;
+
+  - name: "console"
+    type: "sink"

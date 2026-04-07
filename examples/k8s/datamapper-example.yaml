@@ -1,0 +1,22 @@
+apiVersion: flinkflow.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: flinkflow-datamapper-demo
+spec:
+  name: "Flinkflow DataMapper Demo"
+  parallelism: 1
+  steps:
+    - type: source
+      name: static-source
+      properties:
+        content: '{"id": 101, "name": "Alice Smith", "email": "alice@example.com"}|{"id": 102, "name": "Bob Jones", "email": "bob@example.com"}'
+  
+    - type: datamapper
+      name: complex-transform
+      properties:
+        xsltPath: "mappings/transform.xsl"
+  
+    - type: sink
+      name: console-sink
+      properties:
+        type: console

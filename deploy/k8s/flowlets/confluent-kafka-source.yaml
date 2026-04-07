@@ -1,0 +1,56 @@
+apiVersion: flinkflow.io/v1alpha1
+kind: Flowlet
+metadata:
+  name: confluent-kafka-source
+  labels:
+    app.kubernetes.io/part-of: flinkflow
+    flinkflow.io/group: kafka
+    flinkflow.io/provider: confluent
+spec:
+  title: "Confluent Kafka Source"
+  description: |
+    Reads records from a Confluent Cloud, Confluent Platform, or CFK-managed
+    Kafka topic.  SASL_SSL/PLAIN authentication is wired automatically from
+    the `apiKey` and `apiSecret` parameters — no boilerplate required.
+  type: source
+  version: "1.0"
+  labels:
+    group: kafka
+    provider: confluent
+  parameters:
+    bootstrapServers:
+      title: "Bootstrap Servers"
+      description: "Confluent cluster bootstrap endpoint (e.g. pkc-xxx.us-east-1.aws.confluent.cloud:9092 or kafka.confluent.svc.cluster.local:9092 for CFK)."
+      type: string
+      required: true
+    topic:
+      title: "Topic"
+      description: "Name of the Kafka topic to consume from."
+      type: string
+      required: true
+    apiKey:
+      title: "API Key / Username"
+      description: "Confluent API Key (Cloud) or SASL username (Platform/CFK)."
+      type: string
+      required: true
+    apiSecret:
+      title: "API Secret / Password"
+      description: "Confluent API Secret (Cloud) or SASL password (Platform/CFK)."
+      type: string
+      required: true
+    groupId:
+      title: "Consumer Group ID"
+      description: "The Kafka consumer group identifier."
+      type: string
+      required: false
+      defaultValue: "flinkflow-consumer"
+  template:
+    - type: source
+      name: kafka-source
+      properties:
+        bootstrap.servers: "{{bootstrapServers}}"
+        topic: "{{topic}}"
+        group.id: "{{groupId}}"
+        security.protocol: "SASL_SSL"
+        sasl.mechanism: "PLAIN"
+        sasl.jaas.config: "org.apache.kafka.common.security.plain.PlainLoginModule required username='{{apiKey}}' password='{{apiSecret}}';"

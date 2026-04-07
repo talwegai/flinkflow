@@ -1,0 +1,17 @@
+name: "File Monitor Example Pipeline"
+parallelism: 1
+
+steps:
+  - name: "file-source"
+    type: "source"
+    properties:
+      path: "/tmp/flinkflow-input"
+      monitorInterval: "5" # Scan directory every 5 seconds for new files 
+
+  - name: "process-content"
+    type: "process"
+    code: |
+      return "New content found: " + input;
+
+  - name: "console"
+    type: "sink"

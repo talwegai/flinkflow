@@ -1,0 +1,17 @@
+name: "Flinkflow Demo Job"
+parallelism: 1
+steps:
+  - type: source
+    name: static-source
+    properties:
+      content: "Hello,Apache,Flink,Janino,Camel,Kamelets"
+
+  - type: process
+    name: simple-transform
+    code: |
+      return input.toUpperCase() + " processed by Flinkflow!";
+
+  - type: sink
+    name: console-sink
+    properties:
+      type: console

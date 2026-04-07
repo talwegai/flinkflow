@@ -1,0 +1,79 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: flink-jobmanager
+spec:
+  type: ClusterIP
+  ports:
+  - name: rpc
+    port: 6123
+  - name: blob-server
+    port: 6124
+  - name: webui
+    port: 8081
+  selector:
+    app: flink
+    component: jobmanager
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flink-jobmanager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flink
+      component: jobmanager
+  template:
+    metadata:
+      labels:
+        app: flink
+        component: jobmanager
+    spec:
+      serviceAccountName: flink-service-account
+      containers:
+      - name: jobmanager
+        image: flinkflow:v6
+        imagePullPolicy: IfNotPresent
+        args: ["standalone-job", "-Djobmanager.rpc.address=flink-jobmanager", "--job-classname", "ai.talweg.flinkflow.FlinkflowApp", "--job-args", "--k8s-pipeline", "python-complex-example", "--k8s-namespace", "default"]
+        ports:
+        - containerPort: 6123
+          name: rpc
+        - containerPort: 6124
+          name: blob-server
+        - containerPort: 8081
+          name: webui
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flink-taskmanager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flink
+      component: taskmanager
+  template:
+    metadata:
+      labels:
+        app: flink
+        component: taskmanager
+    spec:
+      serviceAccountName: flink-service-account
+      containers:
+      - name: taskmanager
+        image: flinkflow:v6
+        imagePullPolicy: IfNotPresent
+        resources:
+          requests:
+            memory: "4096Mi"
+            cpu: "1"
+          limits:
+            memory: "6144Mi"
+            cpu: "2"
+        args: ["taskmanager", "-Djobmanager.rpc.address=flink-jobmanager"]
+        ports:
+        - containerPort: 6122
+          name: rpc

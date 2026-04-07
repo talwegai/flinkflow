@@ -1,0 +1,26 @@
+apiVersion: flinkflow.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: join-example-pipeline
+spec:
+  name: "Join Example Pipeline"
+  parallelism: 1
+  steps:
+    - type: source
+      name: static-source
+      properties:
+        content: "order1:cust1,order2:cust2,order3:cust1"
+  
+    - type: join
+      name: static-source
+      properties:
+        content: "cust1:Alice,cust2:Bob"
+        leftKey: "return input.split(\":\")[1];"
+        rightKey: "return input.split(\":\")[0];"
+        lowerBound: -60
+        upperBound: 60
+      code: |
+        return "SUCCESS: " + left + " joined with " + right;
+  
+    - type: sink
+      name: console-sink

@@ -1,0 +1,39 @@
+# Java
+target/
+*.class
+*.jar
+*.war
+*.ear
+.mvn/
+.metadata/
+.recommenders/
+.classpath
+.project
+.settings/
+
+# Maven
+bin/
+dependency-reduced-pom.xml
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.env
+
+# Hugo Docs Site
+website/public/
+website/resources/
+website/.hugo_build.lock
+node_modules/
+website/node_modules/
+
+# Logs
+*.log

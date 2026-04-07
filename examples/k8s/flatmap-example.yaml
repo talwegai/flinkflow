@@ -1,0 +1,23 @@
+apiVersion: flinkflow.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: flatmap-example-pipeline
+spec:
+  name: "FlatMap Example Pipeline"
+  parallelism: 1
+  steps:
+    - name: "static-source"
+      type: "source"
+      properties:
+        content: "Hello World|Flink FlatMap Example|1 2 3"
+  
+    - name: "split-words"
+      type: "flatmap"
+      code: |
+        // Split sentence into words and collect them
+        for (String word : input.split(" ")) {
+            out.collect(word);
+        }
+  
+    - name: "console"
+      type: "sink"

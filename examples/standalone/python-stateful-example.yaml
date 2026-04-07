@@ -1,0 +1,36 @@
+name: "python-stateful-demo"
+parallelism: 1
+steps:
+  - type: source
+    name: "json-source"
+    connector: "static-source"
+    properties:
+      content: |
+        {"category": "A", "val": 10}|{"category": "B", "val": 20}|{"category": "A", "val": 30}|{"category": "B", "val": 40}
+
+  - type: keyby
+    name: "key-on-category"
+    language: python
+    code: |
+      import json
+      obj = json.loads(input)
+      return str(obj["category"])
+
+  - type: window
+    name: "hourly-window"
+    properties:
+      windowType: "tumbling"
+      size: "5"
+    language: python
+    code: |
+      import json
+      o1 = json.loads(value1)
+      o2 = json.loads(value2)
+      return json.dumps({
+          "category": o1["category"],
+          "total": o1["val"] + o2["val"]
+      })
+
+  - type: sink
+    name: "print-results"
+    connector: "console-sink"

@@ -1,0 +1,83 @@
+---
+# ─────────────────────────────────────────────────────────────────────────────
+# Flinkflow Pipeline CRD
+#
+# Allows defining an entire Flink processing job as a Kubernetes resource.
+# This makes the job configuration Kubernetes-native, manageable via kubectl
+# and GitOps tools.
+#
+# Apply with:
+#   kubectl apply -f k8s/crd-pipeline.yaml
+# ─────────────────────────────────────────────────────────────────────────────
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: pipelines.flinkflow.io
+  labels:
+    app.kubernetes.io/name: flinkflow
+spec:
+  group: flinkflow.io
+  names:
+    kind: Pipeline
+    listKind: PipelineList
+    plural: pipelines
+    singular: pipeline
+    shortNames:
+      - pln
+  scope: Namespaced
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      additionalPrinterColumns:
+        - name: Parallelism
+          type: integer
+          jsonPath: .spec.parallelism
+        - name: Age
+          type: date
+          jsonPath: .metadata.creationTimestamp
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              required:
+                - steps
+              properties:
+                name:
+                  type: string
+                  description: Optional override for the Flink Job name.
+                parallelism:
+                  type: integer
+                  default: 1
+                steps:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - type
+                    properties:
+                      type:
+                        type: string
+                      connector:
+                        type: string
+                        description: "The name of the connector (e.g. kafka-source, static-source)."
+                      name:
+                        type: string
+                      code:
+                        type: string
+                      properties:
+                        type: object
+                        additionalProperties:
+                          type: string
+                      with:
+                        type: object
+                        additionalProperties:
+                          type: string
+                      language:
+                        type: string
+                        description: "Code runtime language: 'java' (Janino, default) or 'python' (GraalVM Polyglot)."
+                        enum:
+                          - java
+                          - python

@@ -1,0 +1,27 @@
+name: "Window Example Pipeline"
+parallelism: 2
+
+steps:
+  - name: "static-source"
+    type: "source"
+    properties:
+      content: "sensor1,10|sensor2,15|sensor1,25|sensor3,5|sensor2,20"
+
+  - name: "keyby-device"
+    type: "keyby"
+    code: |
+      return input.split(",")[0];
+
+  - name: "sum-window"
+    type: "window"
+    properties:
+      windowType: tumbling
+      size: 5
+    code: |
+      String device = value1.split(",")[0];
+      int val1 = Integer.parseInt(value1.split(",")[1]);
+      int val2 = Integer.parseInt(value2.split(",")[1]);
+      return device + "," + (val1 + val2);
+
+  - name: "console"
+    type: "sink"

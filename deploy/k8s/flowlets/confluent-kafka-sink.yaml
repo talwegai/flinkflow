@@ -1,0 +1,48 @@
+apiVersion: flinkflow.io/v1alpha1
+kind: Flowlet
+metadata:
+  name: confluent-kafka-sink
+  labels:
+    app.kubernetes.io/part-of: flinkflow
+    flinkflow.io/group: kafka
+    flinkflow.io/provider: confluent
+spec:
+  title: "Confluent Kafka Sink"
+  description: |
+    Writes records to a Confluent Cloud, Confluent Platform, or CFK-managed
+    Kafka topic.  SASL_SSL/PLAIN authentication is wired automatically.
+  type: sink
+  version: "1.0"
+  labels:
+    group: kafka
+    provider: confluent
+  parameters:
+    bootstrapServers:
+      title: "Bootstrap Servers"
+      description: "Confluent cluster bootstrap endpoint."
+      type: string
+      required: true
+    topic:
+      title: "Topic"
+      description: "Name of the Kafka topic to produce to."
+      type: string
+      required: true
+    apiKey:
+      title: "API Key / Username"
+      description: "Confluent API Key (Cloud) or SASL username (Platform/CFK)."
+      type: string
+      required: true
+    apiSecret:
+      title: "API Secret / Password"
+      description: "Confluent API Secret (Cloud) or SASL password (Platform/CFK)."
+      type: string
+      required: true
+  template:
+    - type: sink
+      name: kafka-sink
+      properties:
+        bootstrap.servers: "{{bootstrapServers}}"
+        topic: "{{topic}}"
+        security.protocol: "SASL_SSL"
+        sasl.mechanism: "PLAIN"
+        sasl.jaas.config: "org.apache.kafka.common.security.plain.PlainLoginModule required username='{{apiKey}}' password='{{apiSecret}}';"

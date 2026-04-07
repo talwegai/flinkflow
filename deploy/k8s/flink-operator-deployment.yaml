@@ -1,0 +1,33 @@
+apiVersion: flink.apache.org/v1beta1
+kind: FlinkDeployment
+metadata:
+  name: flinkflow-app
+spec:
+  image: flinkflow:latest
+  flinkVersion: v1_17
+  flinkConfiguration:
+    taskmanager.numberOfTaskSlots: "2"
+  serviceAccount: flink-service-account
+  jobManager:
+    resource:
+      memory: "2048m"
+      cpu: 1
+  taskManager:
+    resource:
+      memory: "2048m"
+      cpu: 1
+  job:
+    jarURI: local:///opt/flink/usrlib/flinkflow.jar
+    entryClass: ai.talweg.flinkflow.FlinkflowApp
+    # Pipeline YAML is baked into the image at /opt/flink/conf/pipeline.yaml.
+    # --enable-k8s-flowlets instructs Flinkflow to query the Kubernetes API for
+    # installed Flowlet CRs in this namespace at startup (in addition to the
+    # built-in classpath catalog).
+    # Run `kubectl apply -f k8s/install-flowlets.sh` to install the Flowlet catalog.
+    args:
+      - "/opt/flink/conf/pipeline.yaml"
+      - "--enable-k8s-flowlets"
+      - "--k8s-namespace"
+      - "default"   # <-- change to your target namespace
+    parallelism: 2
+    upgradeMode: stateless

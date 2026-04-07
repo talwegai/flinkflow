@@ -1,0 +1,48 @@
+apiVersion: flinkflow.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: python-snippets-example
+spec:
+  name: "Python Snippets Demo (K8s)"
+  parallelism: 1
+
+  # This pipeline demonstrates inline Python code snippets (powered by GraalVM Polyglot)
+  # deployed as a Kubernetes-native Pipeline Custom Resource.
+  #
+  # Prerequisites:
+  #   kubectl apply -f k8s/crd-pipeline.yaml
+  #   kubectl apply -f k8s/crd-flowlet.yaml
+  #   kubectl apply -f k8s/rbac.yaml
+  #
+  # Apply:
+  #   kubectl apply -f examples/k8s/python-snippets-example.yaml
+
+  steps:
+    - name: static-source
+      type: source
+      properties:
+        content: "hello world|graalvm rocks|flink is fast|skip this line|python is awesome"
+
+    # Python filter: discard any record containing the word "skip"
+    - name: python-filter
+      type: filter
+      language: python
+      code: |
+        return "skip" not in input
+
+    # Python process (map): uppercase the record and append a tag
+    - name: python-uppercase
+      type: process
+      language: python
+      code: |
+        return "[PYTHON] " + input.upper()
+
+    # Python flatmap: split on spaces and emit each word as a separate record
+    - name: python-word-split
+      type: flatmap
+      language: python
+      code: |
+        return input.split(" ")
+
+    - name: console-sink
+      type: sink

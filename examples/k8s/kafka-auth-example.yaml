@@ -1,0 +1,33 @@
+apiVersion: flinkflow.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: kafka-auth-example-pipeline
+spec:
+  name: "Kafka Auth Example Pipeline"
+  parallelism: 1
+  steps:
+    - type: source
+      name: kafka-source
+      properties:
+        bootstrap.servers: "my-secure-kafka:9093"
+        topic: "secure-input"
+        group.id: "flinkflow-auth-group"
+        # Security properties
+        security.protocol: "SASL_SSL"
+        sasl.mechanism: "SCRAM-SHA-256"
+        sasl.jaas.config: "org.apache.kafka.common.security.scram.ScramLoginModule required username='my-user' password='my-password';"
+  
+    - type: process
+      name: transformation
+      code: |
+        return "Auth-Processed: " + input;
+  
+    - type: sink
+      name: kafka-sink
+      properties:
+        bootstrap.servers: "my-secure-kafka:9093"
+        topic: "secure-output"
+        # Security properties
+        security.protocol: "SASL_SSL"
+        sasl.mechanism: "SCRAM-SHA-256"
+        sasl.jaas.config: "org.apache.kafka.common.security.scram.ScramLoginModule required username='my-user' password='my-password';"

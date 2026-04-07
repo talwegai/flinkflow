@@ -1,0 +1,57 @@
+apiVersion: flinkflow.io/v1alpha1
+kind: Flowlet
+metadata:
+  name: http-enrich
+  labels:
+    app.kubernetes.io/part-of: flinkflow
+    flinkflow.io/group: http
+spec:
+  title: "HTTP Enrichment"
+  description: |
+    An action Flowlet that asynchronously enriches each record by calling an
+    external REST API.  The URL is built from a Java snippet with access to the
+    `input` variable.  The response is merged back via a user-supplied code snippet.
+  type: action
+  version: "1.0"
+  labels:
+    group: http
+  parameters:
+    urlCode:
+      title: "URL Builder Code"
+      description: "Java snippet returning the request URL. Variable `input` is available."
+      type: string
+      required: true
+      example: 'return "https://api.example.com/users/" + input.split(",")[1];'
+    mergeCode:
+      title: "Response Merge Code"
+      description: "Java snippet to merge `input` and `response` into the output record."
+      type: string
+      required: true
+      example: 'return input + ",info=" + response;'
+    authCode:
+      title: "Auth Header Code"
+      description: "Optional Java snippet returning the Authorization header value."
+      type: string
+      required: false
+      defaultValue: ""
+    timeout:
+      title: "Request Timeout (ms)"
+      description: "Maximum time in milliseconds to wait for an HTTP response."
+      type: integer
+      required: false
+      defaultValue: "10000"
+    capacity:
+      title: "Max Concurrent Requests"
+      description: "Maximum number of in-flight asynchronous HTTP requests."
+      type: integer
+      required: false
+      defaultValue: "100"
+  template:
+    - type: http-lookup
+      name: http-enrich
+      properties:
+        urlCode: "{{urlCode}}"
+        authCode: "{{authCode}}"
+        timeout: "{{timeout}}"
+        capacity: "{{capacity}}"
+      code: "{{mergeCode}}"

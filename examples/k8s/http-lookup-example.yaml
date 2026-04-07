@@ -1,0 +1,29 @@
+apiVersion: flinkflow.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: http-lookup-example-pipeline
+spec:
+  name: "HTTP Lookup Example Pipeline"
+  parallelism: 1
+  steps:
+    - type: source
+      name: static-source
+      properties:
+        content: "101|102|103"
+  
+    - type: http-lookup
+      properties:
+        urlCode: |
+          return "https://jsonplaceholder.typicode.com/posts/" + input;
+        authCode: |
+          // Example: Add a custom header or token
+          // return "Bearer " + System.getenv("API_KEY");
+          return "Anonymous"; 
+        timeout: "5000"
+        capacity: "10"
+      code: |
+        // input is the original ID, response is the JSON from the web service
+        return "Enriched " + input + " with data: " + response;
+  
+    - type: sink
+      name: console-sink

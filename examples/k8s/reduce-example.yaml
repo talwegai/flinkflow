@@ -1,0 +1,30 @@
+apiVersion: flinkflow.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: reduce-example-pipeline
+spec:
+  name: "Reduce Example Pipeline"
+  parallelism: 2
+  steps:
+    - name: "static-source"
+      type: "source"
+      properties:
+        content: "apple,1|banana,2|apple,3|cherry,1|banana,4"
+  
+    - name: "keyby-fruit"
+      type: "keyby"
+      code: |
+        // Partition by the fruit name
+        return input.split(",")[0];
+  
+    - name: "sum-counts"
+      type: "reduce"
+      code: |
+        // Parse current string representation and sum
+        String fruit = value1.split(",")[0];
+        int count1 = Integer.parseInt(value1.split(",")[1]);
+        int count2 = Integer.parseInt(value2.split(",")[1]);      
+        return fruit + "," + (count1 + count2);
+  
+    - name: "console"
+      type: "sink"

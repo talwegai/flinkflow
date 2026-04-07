@@ -1,0 +1,22 @@
+apiVersion: flinkflow.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: monitor-demo
+  namespace: default
+spec:
+  name: "Monitor Test Pipeline"
+  parallelism: 1
+  steps:
+    - type: datagen
+      name: datagen-source
+      properties:
+        rowsPerSecond: "500"
+        payload: "monitoring-test-event"
+
+    - type: process
+      name: enrich
+      code: |
+        return "[MONITOR] " + input.toUpperCase() + " | ts=" + System.currentTimeMillis();
+
+    - type: sink
+      name: console-sink

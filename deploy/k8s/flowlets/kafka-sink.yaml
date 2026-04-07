@@ -1,0 +1,37 @@
+apiVersion: flinkflow.io/v1alpha1
+kind: Flowlet
+metadata:
+  name: kafka-sink
+  labels:
+    app.kubernetes.io/part-of: flinkflow
+    flinkflow.io/group: kafka
+    flinkflow.io/provider: apache
+spec:
+  title: "Kafka Sink"
+  description: |
+    Writes records to an Apache Kafka topic.
+    Any additional Kafka producer properties (SSL, SASL, etc.) can be supplied
+    as extra `with:` keys and will be forwarded to the Flink Kafka connector.
+  type: sink
+  version: "1.0"
+  labels:
+    group: kafka
+    provider: apache
+  parameters:
+    bootstrapServers:
+      title: "Bootstrap Servers"
+      description: "Comma-separated list of Kafka broker addresses."
+      type: string
+      required: true
+      example: "localhost:9092"
+    topic:
+      title: "Topic"
+      description: "Name of the Kafka topic to produce to."
+      type: string
+      required: true
+  template:
+    - type: sink
+      name: kafka-sink
+      properties:
+        bootstrap.servers: "{{bootstrapServers}}"
+        topic: "{{topic}}"

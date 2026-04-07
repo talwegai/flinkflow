@@ -1,0 +1,38 @@
+name: "Python JSON & Datetime Example"
+parallelism: 1
+
+# This example demonstrates using the Python standard library (json and datetime)
+# within a Flinkflow pipeline.
+#
+# Run: ./run-local.sh examples/standalone/python-json-datetime.yaml
+
+steps:
+  - type: source
+    name: static-source
+    properties:
+      content: |
+        {"id": "ORD-101", "amount": 250.50}
+        | {"id": "ORD-102", "amount": 120.00}
+        | {"id": "ORD-103", "amount": 45.75}
+
+  - type: process
+    name: enrich-with-timestamp
+    language: python
+    code: |
+      import json
+      from datetime import datetime
+      
+      # Parse the incoming JSON string
+      order = json.loads(input)
+      
+      # Add a processing timestamp and a formatted currency string
+      order["processed_at"] = datetime.now().isoformat()
+      order["display_amount"] = f"${order['amount']:.2f}"
+      
+      # Return the enriched JSON string
+      return json.dumps(order)
+
+  - type: sink
+    name: console-sink
+    properties:
+      type: console

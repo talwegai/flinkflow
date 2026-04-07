@@ -1,0 +1,45 @@
+apiVersion: flinkflow.io/v1alpha1
+kind: Flowlet
+metadata:
+  name: kafka-source
+  labels:
+    app.kubernetes.io/part-of: flinkflow
+    flinkflow.io/group: kafka
+    flinkflow.io/provider: apache
+spec:
+  title: "Kafka Source"
+  description: |
+    Reads records from an Apache Kafka topic.
+    Any additional Kafka consumer properties (SSL, SASL, etc.) can be supplied
+    as extra `with:` keys — they are forwarded directly to the Flink Kafka
+    connector builder.
+  type: source
+  version: "1.0"
+  labels:
+    group: kafka
+    provider: apache
+  parameters:
+    bootstrapServers:
+      title: "Bootstrap Servers"
+      description: "Comma-separated list of Kafka broker addresses."
+      type: string
+      required: true
+      example: "localhost:9092"
+    topic:
+      title: "Topic"
+      description: "Name of the Kafka topic to consume from."
+      type: string
+      required: true
+    groupId:
+      title: "Consumer Group ID"
+      description: "The Kafka consumer group identifier."
+      type: string
+      required: false
+      defaultValue: "flinkflow-consumer"
+  template:
+    - type: source
+      name: kafka-source
+      properties:
+        bootstrap.servers: "{{bootstrapServers}}"
+        topic: "{{topic}}"
+        group.id: "{{groupId}}"
