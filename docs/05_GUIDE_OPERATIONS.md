@@ -20,7 +20,7 @@ The dashboard can be deployed as a side-channel monitoring service using the `k8
 kubectl apply -f k8s/monitor-deployment.yaml
 ```
 
-For detailed configuration of the Python client and UI components, refer to the **[Dashboard Directory](https://github.com/talwegai/flinkflow/tree/main/dashboard/README.md)**.
+For detailed configuration of the Python client and UI components, refer to the **[Dashboard Directory](https://github.com/talwegai/flinkflow/blob/main/dashboard/README.md)**.
 
 ---
 

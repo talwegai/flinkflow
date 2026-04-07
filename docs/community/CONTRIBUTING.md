@@ -10,7 +10,7 @@ By participating in this project, you agree to abide by our [Code of Conduct](CO
 
 There are many ways to contribute to Flinkflow, beyond just writing code:
 
-*   **Report Bugs**: Found something that isn't working? [Open an issue](https://github.com/talweg/flinkflow/issues).
+*   **Report Bugs**: Found something that isn't working? [Open an issue](https://github.com/talwegai/flinkflow/issues).
 *   **Suggest Features**: Have an idea for a new Flowlet or a DSL improvement? Let us know!
 *   **Improve Documentation**: Spot a typo or a confusing explanation? PRs for docs are always welcome.
 *   **Write Code**: Pick an issue labelled `good first issue` and start hacking.
@@ -68,7 +68,7 @@ mvn test
 
 ### 6. Submit a Pull Request
 *   Push your branch to your fork.
-*   Open a Pull Request against the `main` branch of `talweg/flinkflow`.
+*   Open a Pull Request against the `main` branch of `talwegai/flinkflow`.
 *   Provide a clear description of the changes and link any relevant issues.
 
 ---

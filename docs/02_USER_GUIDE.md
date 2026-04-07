@@ -117,9 +117,9 @@ spec:
 ---
 
 ## 📚 6. Next Steps
-- **[Configuration Reference](/docs/GUIDE_CONFIGURATION)**: Explore the full list of connectors and properties.
-- **[System Architecture](/docs/ARCHITECTURE)**: Learn how the engine works under the hood.
-- **[Roadmap](/docs/ROADMAP)**: See what's coming next (AI features and the v2.0 platform).
+- **[Configuration Reference](/docs/04_GUIDE_CONFIGURATION)**: Explore the full list of connectors and properties.
+- **[System Architecture](/docs/01_ARCHITECTURE)**: Learn how the engine works under the hood.
+- **[Roadmap](/docs/08_ROADMAP)**: See what's coming next (AI features and the v2.0 platform).
 
 ---
 
@@ -314,12 +314,12 @@ kubectl logs -f flinkflow-app-jm-0 | grep FLINKFLOW-ERROR
 
 | Guide | Description |
 | :--- | :--- |
-| **[Configuration Reference](/docs/GUIDE_CONFIGURATION)** | Full DSL spec for all connectors and operations |
-| **[Operations & Monitoring](/docs/GUIDE_OPERATIONS)** | Performance tuning and advanced dashboard setup |
-| **[XSLT DataMapper Guide](/docs/GUIDE_DATAMAPPER)** | Complex JSON/XML transformations using Saxon-HE |
-| **[Kubernetes Deployment Guide](/docs/DEPLOY_K8S)** | Step-by-step K8s operator deployment |
-| **[System Architecture](/docs/ARCHITECTURE)** | How the engine works under the hood |
-| **[Project Roadmap](/docs/ROADMAP)** | Planned features for upcoming releases |
+| **[Configuration Reference](/docs/04_GUIDE_CONFIGURATION)** | Full DSL spec for all connectors and operations |
+| **[Operations & Monitoring](/docs/05_GUIDE_OPERATIONS)** | Performance tuning and advanced dashboard setup |
+| **[XSLT DataMapper Guide](/docs/06_GUIDE_DATAMAPPER)** | Complex JSON/XML transformations using Saxon-HE |
+| **[Kubernetes Deployment Guide](/docs/07_DEPLOY_K8S)** | Step-by-step K8s operator deployment |
+| **[System Architecture](/docs/01_ARCHITECTURE)** | How the engine works under the hood |
+| **[Project Roadmap](/docs/08_ROADMAP)** | Planned features for upcoming releases |
 
 ---
 

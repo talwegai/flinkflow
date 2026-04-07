@@ -151,4 +151,4 @@ steps:
       batchSize: "500"
 ```
 
-For more examples, check the **[standalone catalog](https://github.com/talwegai/flinkflow/tree/main/examples/standalone/README.md)** or **[Kubernetes library](https://github.com/talwegai/flinkflow/tree/main/deploy/k8s/README.md)**.
+For more examples, check the **[standalone catalog](https://github.com/talwegai/flinkflow/blob/main/examples/standalone/README.md)** or **[Kubernetes library](https://github.com/talwegai/flinkflow/blob/main/deploy/k8s/README.md)**.

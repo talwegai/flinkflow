@@ -1,6 +1,6 @@
 # Flinkflow Project Backlog (TODO)
 
-This file tracks the concrete tasks and feature implementations for Flinkflow, organized against the [Product Roadmap](/docs/ROADMAP).
+This file tracks the concrete tasks and feature implementations for Flinkflow, organized against the [Product Roadmap](/docs/08_ROADMAP).
 
 ---
 

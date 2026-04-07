@@ -490,11 +490,11 @@ Bring AI into the data path for real-time analytics and intelligent workflows.
 
 | Document | Path |
 |---|---|
-| Architecture Diagrams | [System Architecture](/docs/ARCHITECTURE) |
-| Feature Backlog (granular) | [Project Backlog](/docs/TODO) |
-| Kubernetes Deployment Guide | [Deploying to Kubernetes](/docs/DEPLOY_K8S) |
-| Full User Guide | [README.md](https://github.com/talwegai/flinkflow/blob/main/README.md) |
-| Security Policy | [Security Policy](/docs/SECURITY) |
+| Architecture Diagrams | [System Architecture](/docs/01_ARCHITECTURE) |
+| Feature Backlog (granular) | [Project Backlog](/docs/10_TODO) |
+| Kubernetes Deployment Guide | [Deploying to Kubernetes](/docs/07_DEPLOY_K8S) |
+| Full User Guide | [README.md](../../README.md) |
+| Security Policy | [Security Policy](/docs/09_SECURITY) |
 
 ---
 
