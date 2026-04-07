@@ -48,7 +48,7 @@ jobs:
 
       - name: Build Docker Image (Dry Run)
         run: |
-          docker build -t flinkflow:test .
+          docker build -t flinkflow:test -f deploy/docker/Dockerfile .
 
   # ──────────────────────────────────────────────────────────────────
   # Job 2: Build the Docusaurus documentation site
