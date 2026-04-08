@@ -3,7 +3,7 @@
 **Flinkflow** is a declarative, low-code data streaming platform built on top of Apache Flink. Inspired by Apache Camel K, it democratizes stateful stream processing by abstracting the complexities of the Flink API into a simple, Kubernetes-native YAML DSL.
 
 ---
-**[🌐 Documentation](https://talweg.ai)** | **[🚀 Get Started](https://talweg.ai/docs/)** | **[🏗️ Architecture](https://talweg.ai/docs/ARCHITECTURE)**
+**[🌐 Documentation](https://talweg.ai)** | **[🚀 Get Started](https://talweg.ai/docs/)** | **[🏗️ Architecture](https://talweg.ai/docs/01_ARCHITECTURE)**
 
 ---
 
@@ -41,9 +41,9 @@ Flinkflow bridges the gap between high-performance data engineering and the broa
 
 - **Declarative YAML DSL**: Define entire pipeline structures—Sources, Sinks, and Operations—in clean YAML.
 - **Polyglot Logic Snippets**: Inject custom logic directly into your YAML—support for both **Java (Janino)** and **Python (GraalVM)** for transformations, filters, and flatmaps without recompiling.
-- **Kubernetes-Native (GitOps)**: Manage pipelines as `Pipeline` and `Flowlet` Custom Resources. Fully compatible with Helm, ArgoCD, and the Flink Kubernetes Operator. See [docs/README-flinkflow-k8s.md](docs/README-flinkflow-k8s.md).
+- **Kubernetes-Native (GitOps)**: Manage pipelines as `Pipeline` and `Flowlet` Custom Resources. Fully compatible with Helm, ArgoCD, and the Flink Kubernetes Operator. See [docs/07_DEPLOY_K8S.md](docs/07_DEPLOY_K8S.md).
 - **Reusable Flowlet Catalog**: Drag-and-drop capability for complex connectors (Kafka, Confluent, S3, JDBC) using parameterized components.
-- **Advanced Data Mapping**: Support for XSLT 3.0 via Saxon-HE for structural JSON/XML transformations (Kaoto integration). See [docs/GUIDE_DATAMAPPER.md](docs/GUIDE_DATAMAPPER.md).
+- **Advanced Data Mapping**: Support for XSLT 3.0 via Saxon-HE for structural JSON/XML transformations (Kaoto integration). See [docs/06_GUIDE_DATAMAPPER.md](docs/06_GUIDE_DATAMAPPER.md).
 - **Observability Built-in**: Real-time monitoring of job health and throughput via a dedicated dashboard.
 - **Extensible Connectors**: Unified support for Kafka, S3, JDBC, HTTP Sinks, and more.
 - **Enterprise Security**: Native support for Kubernetes Secrets (`secret:name/key`) to secure credentials without hardcoding.
@@ -59,14 +59,14 @@ Flinkflow bridges the gap between high-performance data engineering and the broa
 
 To explore Flinkflow in detail, refer to the specialized documentation for each component:
 
-*   **[Kubernetes Deployment Guide](docs/README-flinkflow-k8s.md)**: authoritive guide for running Flinkflow via the Flink Kubernetes Operator.
-*   **[Pipeline Configuration Reference](docs/GUIDE_CONFIGURATION.md)**: Comprehensive guide for the YAML DSL, connectors, and secret management.
-*   **[Operations & Monitoring](docs/GUIDE_OPERATIONS.md)**: Details on performance, dashboard setup, and troubleshooting.
+*   **[Kubernetes Deployment Guide](docs/07_DEPLOY_K8S.md)**: authoritive guide for running Flinkflow via the Flink Kubernetes Operator.
+*   **[Pipeline Configuration Reference](docs/04_GUIDE_CONFIGURATION.md)**: Comprehensive guide for the YAML DSL, connectors, and secret management.
+*   **[Operations & Monitoring](docs/05_GUIDE_OPERATIONS.md)**: Details on performance, dashboard setup, and troubleshooting.
 *   **[Infrastructure Catalog (deploy/k8s/)](deploy/k8s/README.md)**: Reference for manifests, RBAC, and system deployments.
 *   **[Flowlet Registry (deploy/k8s/flowlets/)](deploy/k8s/flowlets/README.md)**: Library of reusable, parameterized pipeline components.
-*   **[XSLT DataMapper Guide](docs/GUIDE_DATAMAPPER.md)**: Deep dive into using Saxon-HE for structural mapping.
-*   **[System Architecture](docs/ARCHITECTURE.md)**: Detailed diagrams and component descriptions.
-*   **[Project Roadmap](docs/ROADMAP.md)**: Future milestones and planned features.
+*   **[XSLT DataMapper Guide](docs/06_GUIDE_DATAMAPPER.md)**: Deep dive into using Saxon-HE for structural mapping.
+*   **[System Architecture](docs/01_ARCHITECTURE.md)**: Detailed diagrams and component descriptions.
+*   **[Project Roadmap](docs/08_ROADMAP.md)**: Future milestones and planned features.
 
 
 ---
@@ -124,7 +124,7 @@ Flinkflow's YAML-first approach is specifically designed to be **LLM-optimized**
 
 ## ⚡ Performance: Polyglot-AOT Architecture
 Flinkflow achieves native-level performance through its **Janino-powered** (Java) and **GraalVM-powered** (Python) code injection system. All logic snippets in your YAML are compiled/optimized **exactly once** during job startup, resulting in zero overhead during high-throughput record processing.
-> See **[Operations & Performance (docs/GUIDE_OPERATIONS.md)](docs/GUIDE_OPERATIONS.md)** for details.
+> See **[Operations & Performance (docs/05_GUIDE_OPERATIONS.md)](docs/05_GUIDE_OPERATIONS.md)** for details.
 
 ---
 
@@ -368,7 +368,7 @@ For traditional deployments or manual infrastructure control:
 - **Manual Cluster Mode**: Direct JobManager/TaskManager Pod pool.
 - **Native Submission**: Direct `flink run-application` via the K8s API.
 
-> Detailed guides for these methods are available in the **[Kubernetes Deployment Guide (docs/README-flinkflow-k8s.md)](docs/README-flinkflow-k8s.md)**.
+> Detailed guides for these methods are available in the **[Kubernetes Deployment Guide (docs/07_DEPLOY_K8S.md)](docs/07_DEPLOY_K8S.md)**.
 
 
 ---
@@ -378,7 +378,7 @@ For traditional deployments or manual infrastructure control:
 Flinkflow is configured via a high-level YAML DSL. You can define sources, sinks, and complex processing logic without writing a single line of Flink Java boilerplate.
 
 > [!IMPORTANT]
-> For the full specification of all connectors (Kafka, S3, JDBC, HTTP), operations (Windowing, Joins, Aggregations), and Secret Management (`secret:name/key`), refer to the **[Pipeline Configuration Reference (docs/GUIDE_CONFIGURATION.md)](docs/GUIDE_CONFIGURATION.md)**.
+> For the full specification of all connectors (Kafka, S3, JDBC, HTTP), operations (Windowing, Joins, Aggregations), and Secret Management (`secret:name/key`), refer to the **[Pipeline Configuration Reference (docs/04_GUIDE_CONFIGURATION.md)](docs/04_GUIDE_CONFIGURATION.md)**.
 
 ### Quick Syntax Example
 ```yaml
@@ -420,7 +420,7 @@ steps:
 
 Flowlets are parameterized, shareable pipeline components. This allows you to define complex patterns (like "Confluent Kafka to S3") once and reuse them across dozens of pipelines by just changing parameters in the `with:` block.
 
-> See **[Flowlet Catalog Index (deploy/k8s/flowlets/README.md)](deploy/k8s/flowlets/README.md)** and the **[Configuration Guide](docs/GUIDE_CONFIGURATION.md#flowlets)**.
+> See **[Flowlet Catalog Index (deploy/k8s/flowlets/README.md)](deploy/k8s/flowlets/README.md)** and the **[Configuration Guide](docs/04_GUIDE_CONFIGURATION.md#flowlets)**.
 
 ---
 
@@ -428,7 +428,7 @@ Flowlets are parameterized, shareable pipeline components. This allows you to de
 
 The **NiceGUI-based dashboard** provides real-time visibility into your Flink metrics and Kubernetes logs.
 
-> See **[Operations & Monitoring (docs/GUIDE_OPERATIONS.md)](docs/GUIDE_OPERATIONS.md)**.
+> See **[Operations & Monitoring (docs/05_GUIDE_OPERATIONS.md)](docs/05_GUIDE_OPERATIONS.md)**.
 
 ---
 
@@ -473,11 +473,11 @@ Flinkflow is licensed under the **Apache License, Version 2.0**. See the [LICENS
 
 Flinkflow is an open-source project and we welcome contributions of all kinds! Whether you are fixing a bug, improving the docs, or suggesting a new feature, your help is appreciated.
 
-*   **[Contributing Guide](CONTRIBUTING.md)**: For finding bugs and submitting features.
-*   **[Developer Guide](docs/DEVELOPER_GUIDE.md)**: For deep-dive engine development and internals.
-*   **[Code of Conduct](CODE_OF_CONDUCT.md)**: Our standards for a welcoming community.
-*   **[Security Policy](SECURITY.md)**: How to report vulnerabilities and our support model.
-*   **[Report an Issue](https://github.com/talweg/flinkflow/issues)**: Help us make Flinkflow better by reporting bugs.
+*   **[Contributing Guide](docs/community/CONTRIBUTING.md)**: For finding bugs and submitting features.
+*   **[Developer Guide](docs/03_DEVELOPER_GUIDE.md)**: For deep-dive engine development and internals.
+*   **[Code of Conduct](docs/community/CODE_OF_CONDUCT.md)**: Our standards for a welcoming community.
+*   **[Security Policy](docs/09_SECURITY.md)**: How to report vulnerabilities and our support model.
+*   **[Report an Issue](https://github.com/talwegai/flinkflow/issues)**: Help us make Flinkflow better by reporting bugs.
 
 ---
 
