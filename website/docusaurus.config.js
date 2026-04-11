@@ -44,7 +44,7 @@ const config = {
       ({
         docs: {
           path: '../docs',
-          routeBasePath: 'docs',
+          routeBasePath: '/', // Serve the docs at the site's root
           sidebarPath: './sidebars.js',
           editUrl:
             'https://github.com/talwegai/flinkflow/tree/main/docs/',
@@ -88,11 +88,11 @@ const config = {
             items: [
               {
                 label: 'Getting Started',
-                to: '/docs/',
+                to: '/',
               },
               {
                 label: 'Developer Guide',
-                to: '/docs/DEVELOPER_GUIDE',
+                to: '/DEVELOPER_GUIDE',
               },
             ],
           },

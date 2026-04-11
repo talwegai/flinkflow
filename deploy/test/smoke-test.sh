@@ -7,7 +7,7 @@ set -e
 
 # Configuration
 EXAMPLES_DIR="examples/standalone"
-RUN_SCRIPT="./run-local.sh"
+RUN_SCRIPT="./scripts/run-local.sh"
 
 echo "========================================================="
 echo "   Flinkflow Smoke Test Suite: CLI Validation            "
@@ -29,7 +29,8 @@ echo "Step 2: Iterating through examples in $EXAMPLES_DIR..."
 # Change to the project root directory
 cd "$(dirname "$0")/../.."
 
-for f in $EXAMPLES_DIR/*.yaml; do
+# Use find to get all yaml files recursively in subdirectories
+for f in $(find $EXAMPLES_DIR -name "*.yaml"); do
     echo -n "Checking $(basename $f)... "
     
     # Run via mvn exec:java which handles classpath correctly including logging

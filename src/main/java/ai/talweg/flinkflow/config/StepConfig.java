@@ -24,7 +24,8 @@ import java.util.Map;
  * Each step has a type (e.g., source, map, sink), a name, and specific
  * properties.
  */
-public class StepConfig {
+public class StepConfig implements java.io.Serializable {
+    private static final long serialVersionUID = 1L;
     /**
      * The type of the step (e.g., "source", "map", "filter", "sink", "datamapper",
      * "join").

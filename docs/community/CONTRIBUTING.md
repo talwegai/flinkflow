@@ -63,7 +63,7 @@ Before submitting, ensure all tests pass:
 mvn test
 
 # Run Smoke tests (validates all YAML examples)
-./deploy/scripts/smoke-test.sh
+./deploy/test/smoke-test.sh
 ```
 
 ### 6. Submit a Pull Request

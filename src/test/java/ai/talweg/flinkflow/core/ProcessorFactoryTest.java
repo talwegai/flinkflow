@@ -132,4 +132,47 @@ public class ProcessorFactoryTest {
         assertEquals(1, sideResults.size());
         assertEquals("ERROR: failed", sideResults.get(0));
     }
+
+    @Test
+    public void testFactoryLanguageBranches() {
+        // Just verify that using different languages correctly triggers the switch statements
+        // without throwing unsupported language exceptions and constructs the appropriate wrapper.
+
+        // Python
+        assertTrue(ProcessorFactory.createMapper("pass", "python") != null);
+        assertTrue(ProcessorFactory.createFilter("pass", "python") != null);
+        assertTrue(ProcessorFactory.createFlatMap("pass", "python") != null);
+        assertTrue(ProcessorFactory.createKeySelector("pass", "python") != null);
+        assertTrue(ProcessorFactory.createReducer("pass", "python") != null);
+        assertTrue(ProcessorFactory.createWindowReducer("pass", "python") != null);
+        assertTrue(ProcessorFactory.createSideOutput("pass", "dlq", "python") != null);
+        assertTrue(ProcessorFactory.createJoiner("pass", "python") != null);
+
+        // Camel sub-types
+        assertTrue(ProcessorFactory.createMapper("pass", "camel-simple") != null);
+        assertTrue(ProcessorFactory.createFilter("pass", "camel-jsonpath") != null);
+        assertTrue(ProcessorFactory.createFlatMap("pass", "camel-groovy") != null);
+        assertTrue(ProcessorFactory.createKeySelector("pass", "jsonpath") != null);
+        assertTrue(ProcessorFactory.createReducer("pass", "groovy") != null);
+        assertTrue(ProcessorFactory.createWindowReducer("pass", "camel-simple") != null);
+
+        // Camel-YAML
+        assertTrue(ProcessorFactory.createMapper("- set-body: constant: hello", "camel-yaml") != null);
+        assertTrue(ProcessorFactory.createFilter("- simple: '${body} == 1'", "camel-yaml") != null);
+        assertTrue(ProcessorFactory.createFlatMap("- split: { simple: '${body}' }", "camel-yaml") != null);
+        assertTrue(ProcessorFactory.createKeySelector("- set-body: constant: key", "camel-yaml") != null);
+    }
+
+    @Test
+    public void testCreateAdditionalProcessors() {
+        // DataMapper
+        assertTrue(ProcessorFactory.createDataMapper("dummy.xslt") != null);
+        
+        // Async HTTP
+        assertTrue(ProcessorFactory.createAsyncHttpLookup("url", "res", "auth", "java") != null);
+        assertTrue(ProcessorFactory.createAsyncHttpLookup("url", "res", "auth") != null);
+        
+        // Agent
+        assertTrue(ProcessorFactory.createAgent("test-agent", "gpt-4", "test system prompt", true, new java.util.HashMap<>(), new java.util.HashMap<>()) != null);
+    }
 }

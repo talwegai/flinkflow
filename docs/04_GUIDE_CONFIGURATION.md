@@ -12,12 +12,16 @@ This guide provides a detailed specification of the Flinkflow YAML DSL, includin
 - `steps`: A sequential list of pipeline steps.
 
 ### Step Config
-- `type`: The type of operation (`source`, `process`, `datamapper`, `join`, `http-lookup`, `sink`, or `flowlet`).
+- `type`: The type of operation (`source`, `process`, `datamapper`, `join`, `http-lookup`, `agent`, `sink`, or `flowlet`).
 - `name`: Unique identifier for the component (e.g., `kafka-source`).
 - `code`: The logic snippet for transformation (used in `process`, `filter`, `flatmap`, etc.).
 - `language`: (Optional) The runtime for the `code` snippet:
     - `java` (Default): High-performance Janino (Java) execution.
     - `python`: Inline Python via GraalVM Polyglot script engine.
+    - `camel-simple` (or `camel`): Declarative Camel Simple expression. [[Docs]](https://camel.apache.org/components/latest/languages/simple-language.html)
+    - `camel-jsonpath` (or `jsonpath`): JSON extractions and filters. [[Docs]](https://camel.apache.org/components/latest/languages/jsonpath-language.html)
+    - `camel-groovy` (or `groovy`): High-performance JVM-native scripting. [[Docs]](https://camel.apache.org/components/latest/languages/groovy-language.html)
+    - `camel-yaml`: Complex route fragments using Camel YAML DSL. [[Docs]](https://camel.apache.org/manual/camel-yaml-dsl.html)
 - `properties`: Key-value configuration map. Values can reference Kubernetes Secrets using `secret:name/key`.
 - `with`: (For `flowlet` steps) Mapping of parameters passed to a reusable Flowlet.
 
@@ -42,15 +46,16 @@ This guide provides a detailed specification of the Flinkflow YAML DSL, includin
 | `jdbc-sink`   | sink | `url`, `sql`, `code`, `batchSize` | Batch inserts into PostgreSQL, MySQL, or Oracle. |
 
 ### Operations & Transformations
-| `process` | 1-to-1 transformation. | `input` (str) | Java / Python |
-| `filter` | Retains records returning `true`. | `input` (str) | Java / Python |
-| `flatmap` | 1-to-N transformation. | `input` (str) | Java / Python |
-| `keyby` | Partitions stream by an extracted key. | `input` (str) | Java-only |
-| `reduce` | Rolling aggregation of two elements. | `value1`, `value2`| Java-only |
-| `window` | Time-based windowing (Tumbling/Sliding). | `value1`, `value2`| Java-only |
+| `process` | 1-to-1 transformation. | `input`/`body` | Java / Python / Camel |
+| `filter` | Retains records returning `true`. | `input`/`body` | Java / Python / Camel |
+| `flatmap` | 1-to-N transformation. | `input`/`body` | Java / Python / Camel |
+| `keyby` | Partitions stream by an extracted key. | `input`/`body` | Java / Camel |
+| `reduce` | Rolling aggregation of two elements. | `value1`, `value2`| Java / Camel |
+| `window` | Time-based windowing (Tumbling/Sliding). | `value1`, `value2`| Java / Camel |
 | `sideoutput` | Branches stream using `ctx.output()`. | `input`, `ctx` | Java-only |
 | `datamapper` | XSLT 3.0 structural transformation. | `xsltPath` (prop)| XML/JSON |
 | `join` | Interval join between two streams. | `left`, `right`| Java-only |
+| `agent` | Autonomous LLM agent over each record. | `input` | OpenAI / Gemini / Vertex |
 | `http-lookup`| Async enrichment via REST API. | `input`, `resp` | Java-only |
 
 > [!TIP]
@@ -66,10 +71,90 @@ This guide provides a detailed specification of the Flinkflow YAML DSL, includin
 >     data["processed_at"] = datetime.now().isoformat()
 >     return json.dumps(data)
 > ```
+>
+> [!TIP]
+> **Declarative Logic (Apache Camel)**: Use `language: camel` or `language: jsonpath` for low-code operations. This removes the need for manual JSON parsing and boilerplate.
+>
+> **Field Extraction (JsonPath):**
+> ```yaml
+> - type: keyby
+>   language: jsonpath
+>   code: "$.user.id"
+> ```
+>
+> **Template Formatting (Camel Simple):**
+> ```yaml
+> - type: process
+>   language: camel
+>   code: "User ${jsonpath($.user.name)} logged in from ${headers.ip}"
+> ```
+>
+> **Complex Stateful Math (Camel Groovy):**
+> For windowed reductions, use `headers.get("value1")` and `headers.get("value2")`.
+> ```yaml
+> - type: window
+>   language: camel-groovy
+>   code: |
+>     def o1 = new groovy.json.JsonSlurper().parseText(headers.get("value1"))
+>     def o2 = new groovy.json.JsonSlurper().parseText(headers.get("value2"))
+>     return groovy.json.JsonOutput.toJson([sum: o1.val + o2.val])
+> ```
+>
+> **Enterprise Patterns (Camel YAML DSL):**
+> For complex routing or multi-step logic within a single operator, use `language: camel-yaml`. The route must start with `from: uri: direct:start`.
+> ```yaml
+> - type: process
+>   language: camel-yaml
+>   code: |
+>     - from:
+>         uri: "direct:start"
+>         steps:
+>           - choice:
+>               when:
+>                 - simple: "${body} > 100"
+>                   steps:
+>                     - setBody:
+>                         constant: "OVER_LIMIT"
+>               otherwise:
+>                 steps:
+>                   - setBody:
+>                       simple: "Accepted: ${body}"
+> ```
 
 
 > [!TIP]
 > In all Java snippets, the **`metrics`** object (type `MetricGroup`) is available to emit custom live metrics: `metrics.counter("my_counter").inc();`.
+
+> [!TIP]
+> **Agentic Bridge**: Use `type: agent` to run an autonomous LLM over each stream record. Supports stateful multi-turn memory, Flowlet-as-a-Tool execution, and multiple providers.
+> ```yaml
+> - type: agent
+>   name: support-triage
+>   properties:
+>     model: "gemini-2.5-flash"       # or gpt-4o, claude-3-opus
+>     systemPrompt: "Classify the following customer message as: BILLING, TECHNICAL, or GENERAL."
+>     memory: "false"                  # set true for multi-turn stateful conversation
+>     apiKey: "secret:llm-creds/google-api-key"
+>     tools: "log-transform,http-enrich"  # optional: Flowlets exposed as agent tools
+> ```
+> **Supported Providers** (auto-detected from model name):
+> | Provider | Models | Auth |
+> | :--- | :--- | :--- |
+> | OpenAI | `gpt-4o`, `gpt-4`, `o1-*` | `OPENAI_API_KEY` or `apiKey` property |
+> | Google Gemini | `gemini-*` | `GOOGLE_API_KEY` or `apiKey` property |
+> | Google Vertex | Any Gemini + `provider: vertex` | Application Default Credentials (ADC) |
+> | Ollama | `ollama:*`, `phi*`, `llama*`, `mistral*` | `baseUrl: "http://localhost:11434"` |
+>
+> **Example: Local Ollama Agent**
+> ```yaml
+> - type: agent
+>   name: local-classifier
+>   properties:
+>     # Uses 'ollama:' prefix to target local Ollama server
+>     model: "ollama:llama3"
+>     baseUrl: "http://localhost:11434"
+>     systemPrompt: "Classify this record."
+> ```
 
 ---
 

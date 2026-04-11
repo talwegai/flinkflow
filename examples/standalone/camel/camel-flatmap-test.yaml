@@ -1,0 +1,27 @@
+name: camel-flatmap-test
+steps:
+  - type: source
+    name: datagen
+    properties:
+      rowsPerSecond: "1"
+      payload: "batch-request"
+
+  - type: process
+    name: create-batch
+    language: camel-groovy
+    code: |
+      // Generate a JSON object containing an array
+      return groovy.json.JsonOutput.toJson([
+        batchId: "B-" + System.currentTimeMillis(),
+        items: ["Alpha", "Beta", "Gamma"]
+      ])
+
+  - type: flatmap
+    name: explode-batch
+    language: jsonpath
+    code: "$.items[*]"
+
+  - type: sink
+    name: console-sink
+    properties:
+      type: "console"

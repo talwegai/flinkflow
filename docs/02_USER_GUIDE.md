@@ -65,7 +65,7 @@ steps:
 ### 🏃 Running it locally:
 If you have the Flinkflow JAR, you can run this instantly:
 ```bash
-./run-local.sh hello-world.yaml
+./scripts/run-local.sh examples/standalone/hello-world.yaml
 ```
 
 ---
@@ -91,6 +91,58 @@ Secure, sandboxed Python for data scientists and analysts.
     data = json.loads(input)
     data['processed'] = True
     return json.dumps(data)
+```
+
+### **Apache Camel DSL**
+The preferred way to build complex, low-code integrations. *(See: [Apache Camel Docs](https://camel.apache.org/manual/index.html))*
+
+**Simple Expressions**:
+Best for field extraction and fast string logic. *(Ref: [Simple Language](https://camel.apache.org/components/latest/languages/simple-language.html))*
+```yaml
+- type: process
+  language: camel
+  code: "User ${jsonpath($.id)} processed at ${date:now}"
+```
+
+**YAML DSL Fragments**:
+Best for complex routing (Enterprise Integration Patterns) like the Choice EIP. *(Ref: [YAML DSL](https://camel.apache.org/manual/camel-yaml-dsl.html))*
+```yaml
+- type: process
+  language: camel-yaml
+  code: |
+    - from:
+        uri: "direct:start"
+        steps:
+          - choice:
+              when:
+                - simple: "${body} contains 'fraud'"
+                  steps:
+                    - setBody:
+                        constant: "ALERT"
+              otherwise:
+                steps:
+                  - setBody:
+                      constant: "SAFE"
+```
+
+### 🌍 **Comprehensive Example: IoT Fleet Analytics**
+For a full end-to-end pipeline that streams mock datagen payloads, processes them, reduces them with a 5-second tumbling window, and evaluates them with a condition engine to trigger alerts, see the `iot-fleet-analytics` examples!
+
+We provide both Kubernetes CRD and Standalone definitions, implemented in both Java and Python:
+- **Kubernetes (Java)**: `examples/k8s/iot-fleet-analytics.yaml`
+- **Kubernetes (Python)**: `examples/k8s/iot-fleet-analytics-python.yaml`
+
+### 🏃 Running the Examples Locally:
+You can test the standalone versions (without the `apiVersion` Kubernetes wrappers) of these IoT pipelines using the local runner:
+
+**To run the Python version:**
+```bash
+./scripts/run-local.sh examples/standalone/iot-fleet-analytics-python.yaml
+```
+
+**To run the Java version:**
+```bash
+./scripts/run-local.sh examples/standalone/iot-fleet-analytics.yaml
 ```
 
 ---
@@ -281,7 +333,7 @@ You can emit custom metrics directly from your code snippets using the built-in 
 The fastest way to check your YAML is correct — without starting Flink — is the `--dry-run` flag:
 
 ```bash
-./run-local.sh my-pipeline.yaml --dry-run
+./scripts/run-local.sh my-pipeline.yaml --dry-run
 ```
 
 This will:

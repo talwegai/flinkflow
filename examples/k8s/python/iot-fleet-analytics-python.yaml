@@ -1,0 +1,90 @@
+apiVersion: flinkflow.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: iot-sensor-fleet-analytics-python
+spec:
+  parallelism: 2
+  steps:
+    - type: source
+      name: datagen
+      properties:
+        rowsPerSecond: "15"
+        payload: "sensor"
+
+    - type: process
+      name: simulate-telemetry
+      language: python
+      code: |
+        import json
+        import random
+
+        parts = input.split("-")
+        index = int(parts[-1])
+        trucks = ["TRUCK_01", "TRUCK_02", "TRUCK_03"]
+        truck_id = trucks[index % 3]
+
+        temp = -18.0 + (random.random() * 45.0)
+
+        payload = {
+            "truckId": truck_id,
+            "temperature": round(temp, 2)
+        }
+        return json.dumps(payload)
+
+    - type: keyby
+      name: partition-by-truck
+      language: python
+      code: |
+        import json
+        return json.loads(input)["truckId"]
+
+    - type: window
+      name: calculate-average-temp
+      language: python
+      properties:
+        windowType: "tumbling"
+        size: "5"
+      code: |
+        import json
+
+        o1 = json.loads(value1)
+        o2 = json.loads(value2)
+
+        sum1 = o1.get("sumTemp", o1.get("temperature"))
+        count1 = o1.get("count", 1)
+
+        sum2 = o2.get("sumTemp", o2.get("temperature"))
+        count2 = o2.get("count", 1)
+
+        total_sum = sum1 + sum2
+        total_count = count1 + count2
+
+        result = {
+            "truckId": o1["truckId"],
+            "sumTemp": total_sum,
+            "count": total_count,
+            "averageTemperature": round(total_sum / total_count, 2)
+        }
+        return json.dumps(result)
+
+    - type: process
+      name: augment-temperature-alerts
+      language: python
+      code: |
+        import json
+        obj = json.loads(input)
+        if obj.get("averageTemperature", 0.0) > 0.0:
+            obj["STATUS"] = "CRITICAL_ALERT"
+        else:
+            obj["STATUS"] = "NORMAL"
+        return json.dumps(obj)
+
+    - type: filter
+      name: filter-alerts
+      language: python
+      code: |
+        import json
+        return json.loads(input).get("STATUS") == "CRITICAL_ALERT"
+
+    - type: sink
+      name: console-sink

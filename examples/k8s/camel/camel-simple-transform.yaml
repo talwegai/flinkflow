@@ -1,0 +1,21 @@
+apiVersion: flinkflow.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: camel-simple-transform
+spec:
+  parallelism: 1
+  steps:
+    - type: source
+      name: static-data
+      properties:
+        content: "hello-world|low-code-streaming"
+
+    - type: process
+      name: format-message
+      language: camel-simple
+      code: "PROCESSED: ${body.toUpperCase()}"
+
+    - type: sink
+      name: console-sink
+      properties:
+        type: console

@@ -40,17 +40,26 @@ public class DynamicAsyncHttpFunction extends RichAsyncFunction<String, String> 
     private final String urlCode;
     private final String responseCode;
     private final String authCode;
+    private final String language;
 
     private transient HttpClient httpClient;
+    
+    // Java (Janino) Handlers
     private transient Object dynamicHandlerInstance;
     private transient Method urlMethod;
     private transient Method responseMethod;
     private transient Method authMethod;
 
-    public DynamicAsyncHttpFunction(String urlCode, String responseCode, String authCode) {
+    // Python (GraalVM) Handlers
+    private transient PythonEvaluator urlEvaluator;
+    private transient PythonEvaluator responseEvaluator;
+    private transient PythonEvaluator authEvaluator;
+
+    public DynamicAsyncHttpFunction(String urlCode, String responseCode, String authCode, String language) {
         this.urlCode = urlCode;
         this.responseCode = responseCode;
         this.authCode = authCode;
+        this.language = (language != null) ? language.toLowerCase() : "java";
     }
 
     @Override
@@ -61,32 +70,53 @@ public class DynamicAsyncHttpFunction extends RichAsyncFunction<String, String> 
                 .connectTimeout(Duration.ofSeconds(10))
                 .build();
 
-        String className = "DynamicHttpHandler_" + System.nanoTime();
-        String classCode = "public class " + className + " {\n" +
-                "    public String getUrl(String input) throws Exception {\n" +
-                "        " + urlCode + "\n" +
-                "    }\n" +
-                "    public String handleResponse(String input, String response) throws Exception {\n" +
-                "        " + responseCode + "\n" +
-                "    }\n" +
-                "    public String getAuth(String input) throws Exception {\n" +
-                "        " + (authCode != null ? authCode : "return null;") + "\n" +
-                "    }\n" +
-                "}";
+        if ("python".equals(language)) {
+            urlEvaluator = new PythonEvaluator(urlCode, "def process(input)");
+            urlEvaluator.open();
 
-        SimpleCompiler compiler = new SimpleCompiler();
-        compiler.cook(classCode);
-        Class<?> clazz = compiler.getClassLoader().loadClass(className);
-        dynamicHandlerInstance = clazz.getDeclaredConstructor().newInstance();
-        urlMethod = clazz.getMethod("getUrl", String.class);
-        responseMethod = clazz.getMethod("handleResponse", String.class, String.class);
-        authMethod = clazz.getMethod("getAuth", String.class);
+            responseEvaluator = new PythonEvaluator(responseCode, "def process(input, response)");
+            responseEvaluator.open();
+
+            if (authCode != null && !authCode.isEmpty()) {
+                authEvaluator = new PythonEvaluator(authCode, "def process(input)");
+                authEvaluator.open();
+            }
+        } else {
+            String className = "DynamicHttpHandler_" + System.nanoTime();
+            String classCode = "public class " + className + " {\n" +
+                    "    public String getUrl(String input) throws Exception {\n" +
+                    "        " + urlCode + "\n" +
+                    "    }\n" +
+                    "    public String handleResponse(String input, String response) throws Exception {\n" +
+                    "        " + responseCode + "\n" +
+                    "    }\n" +
+                    "    public String getAuth(String input) throws Exception {\n" +
+                    "        " + (authCode != null ? authCode : "return null;") + "\n" +
+                    "    }\n" +
+                    "}";
+
+            SimpleCompiler compiler = new SimpleCompiler();
+            compiler.cook(classCode);
+            Class<?> clazz = compiler.getClassLoader().loadClass(className);
+            dynamicHandlerInstance = clazz.getDeclaredConstructor().newInstance();
+            urlMethod = clazz.getMethod("getUrl", String.class);
+            responseMethod = clazz.getMethod("handleResponse", String.class, String.class);
+            authMethod = clazz.getMethod("getAuth", String.class);
+        }
     }
 
     @Override
     public void asyncInvoke(String input, ResultFuture<String> resultFuture) throws Exception {
-        String url = (String) urlMethod.invoke(dynamicHandlerInstance, input);
-        String authHeader = (String) authMethod.invoke(dynamicHandlerInstance, input);
+        String url;
+        String authHeader;
+
+        if ("python".equals(language)) {
+            url = urlEvaluator.execute(input).asString();
+            authHeader = (authEvaluator != null) ? authEvaluator.execute(input).asString() : null;
+        } else {
+            url = (String) urlMethod.invoke(dynamicHandlerInstance, input);
+            authHeader = (String) authMethod.invoke(dynamicHandlerInstance, input);
+        }
 
         HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
                 .uri(URI.create(url))
@@ -103,7 +133,12 @@ public class DynamicAsyncHttpFunction extends RichAsyncFunction<String, String> 
 
         responseFuture.thenAccept(response -> {
             try {
-                String result = (String) responseMethod.invoke(dynamicHandlerInstance, input, response.body());
+                String result;
+                if ("python".equals(language)) {
+                    result = responseEvaluator.execute(input, response.body()).asString();
+                } else {
+                    result = (String) responseMethod.invoke(dynamicHandlerInstance, input, response.body());
+                }
                 resultFuture.complete(Collections.singleton(result));
             } catch (Exception e) {
                 resultFuture.completeExceptionally(e);
@@ -112,6 +147,13 @@ public class DynamicAsyncHttpFunction extends RichAsyncFunction<String, String> 
             resultFuture.completeExceptionally(ex);
             return null;
         });
+    }
+
+    @Override
+    public void close() throws Exception {
+        if (urlEvaluator != null) urlEvaluator.close();
+        if (responseEvaluator != null) responseEvaluator.close();
+        if (authEvaluator != null) authEvaluator.close();
     }
 
     @Override

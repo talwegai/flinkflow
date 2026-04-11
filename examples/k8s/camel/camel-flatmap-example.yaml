@@ -1,0 +1,30 @@
+apiVersion: flinkflow.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: camel-flatmap-example
+spec:
+  parallelism: 1
+  steps:
+    - type: source
+      name: batch-source
+      properties:
+        rowsPerSecond: "1"
+
+    - type: process
+      name: create-batch
+      language: camel-groovy
+      code: |
+        return groovy.json.JsonOutput.toJson([
+          batchId: "K8S-" + System.currentTimeMillis(),
+          items: ["Direct", "Express", "Standard"]
+        ])
+
+    - type: flatmap
+      name: split-batch
+      language: jsonpath
+      code: "$.items[*]"
+
+    - type: sink
+      name: console-sink
+      properties:
+        type: console

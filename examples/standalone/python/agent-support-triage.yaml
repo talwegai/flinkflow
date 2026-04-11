@@ -1,0 +1,77 @@
+# --- Customer Support Triage Agent (Python Edition) ---
+# This pipeline processes raw customer messages, uses Google Gemini to 
+# categorize them and determine urgency, and formats the result into 
+# a clean terminal dashboard using Python for high performance.
+
+name: "Customer Support Triage Agent"
+
+steps:
+  - name: support-tickets
+    type: source
+    connector: static-source
+    properties:
+      content: |
+        {"ticketId": "T-001", "customer": "alice@acme.com", "message": "I was charged twice for my subscription this month and need an immediate refund!"}|
+        {"ticketId": "T-002", "customer": "bob@startup.io", "message": "How do I export my data to CSV?"}|
+        {"ticketId": "T-003", "customer": "charlie@enterprise.com", "message": "The API is returning 500 errors for the last 10 minutes. This is stopping our production line."}|
+        {"ticketId": "T-004", "customer": "dana@global.co", "message": "Can you add more members to my team? It seems I hit the limit."}|
+        {"ticketId": "T-005", "customer": "eve@security.net", "message": "I noticed a suspicious login attempt from a country I've never visited. Is my account safe?"}
+
+  - name: support-triage-ai
+    type: agent
+    properties:
+      # Provider: Google Gemini (Gemini AI Studio API)
+      model: "gemini-2.5-flash"
+      
+      # Disable memory as the stream is not keyed, avoiding Flink's keyed state requirement
+      memory: "false"
+      
+      
+      # You can also provide the API key here directly, or via GOOGLE_API_KEY env var
+      apiKey: "your-key-here"
+      
+      systemPrompt: |
+        You are a Support Triage Agent for a SaaS platform.
+        Your task is to analyze incoming support tickets and output a JSON object with:
+        - ticketId: the original ID
+        - urgency: CRITICAL, HIGH, MEDIUM, or LOW
+        - category: BILLING, TECHNICAL, FEATURE_REQUEST, or SECURITY
+        - action: a 1-sentence recommended next step
+
+        Output ONLY valid JSON.
+        Example: {"ticketId": "T-X", "urgency": "HIGH", "category": "TECHNICAL", "action": "Escalate to Tier 2."}
+
+  - name: table-formatter
+    type: process
+    language: "python"
+    code: |
+      import json
+      
+      # The 'input' variable is provided by the Flinkflow GraalPy runtime
+      outer = json.loads(input)
+      raw = outer.get("output", "")
+      
+      # Strip markdown code blocks if the LLM included them
+      raw = raw.replace("```json", "").replace("```", "").strip()
+      
+      try:
+          inner = json.loads(raw)
+      except:
+          # Fallback if AI response isn't pure JSON
+          result = f"  [ERROR] Could not parse AI response: {raw}"
+          return result
+
+      tid      = inner.get("ticketId", "-")
+      urgency  = inner.get("urgency", "LOW")
+      category = inner.get("category", "-")
+      action   = inner.get("action", "-")
+
+      # Visual dashboard formatting
+      badge = "🔴" if urgency == "CRITICAL" else "🟠" if urgency == "HIGH" else "🟡" if urgency == "MEDIUM" else "🟢"
+      sep = "─" * 76
+      
+      return f"\n{sep}\n  {tid:<8}  │  {badge} {urgency:<10} │  {category:<14}\n  Action    : {action}\n{sep}"
+
+  - name: triage-output
+    type: sink
+    connector: console-sink

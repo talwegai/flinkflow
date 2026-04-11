@@ -49,7 +49,7 @@ public class PipelineKubernetesLoader {
 
             LOG.info("Fetching Pipeline CR '" + name + "' from namespace '" + targetNamespace + "'");
 
-            Pipeline pipeline = client.resources(Pipeline.class, PipelineList.class)
+            Pipeline pipeline = client.resources(Pipeline.class)
                     .inNamespace(targetNamespace)
                     .withName(name)
                     .get();

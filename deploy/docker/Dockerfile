@@ -5,8 +5,14 @@ WORKDIR /opt/flink
 # Copy application JAR
 COPY target/flinkflow-0.9.0-BETA.jar /opt/flink/usrlib/flinkflow.jar
 
-# Copy pipeline configuration
-COPY examples/standalone/simple-transform-example.yaml /opt/flink/conf/pipeline.yaml
+# Enable Prometheus metrics reporter
+RUN cp /opt/flink/plugins/metrics-prometheus/flink-metrics-prometheus-*.jar /opt/flink/lib/
+
+# Copy all examples for runtime selection
+COPY examples /opt/flink/examples/
+
+# Default pipeline configuration (defaults to hello-world)
+COPY examples/standalone/java/hello-world.yaml /opt/flink/conf/pipeline.yaml
 
 # Flexible entrypoint 
 ENTRYPOINT ["/docker-entrypoint.sh"]

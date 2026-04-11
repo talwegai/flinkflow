@@ -5,7 +5,7 @@ parallelism: 1
 # as an alternative to Janino Java snippets for transformation and filtering.
 #
 # Usage:
-#   ./run-local.sh examples/standalone/python-snippets-example.yaml
+#   ./scripts/run-local.sh examples/standalone/python-snippets-example.yaml
 
 steps:
   - type: source

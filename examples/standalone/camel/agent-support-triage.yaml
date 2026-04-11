@@ -1,0 +1,106 @@
+# --- Customer Support Triage Agent (Camel Edition) ---
+# This pipeline uses Apache Camel YAML DSL for the formatting step.
+# It demonstrates how Camel's powerful EIPs (unmarshal, choice, simple)
+# can be used for sophisticated message processing in Flinkflow.
+
+name: "Customer Support Triage Agent (Camel)"
+
+steps:
+  - name: support-tickets
+    type: source
+    connector: static-source
+    properties:
+      content: |
+        {"ticketId": "T-001", "customer": "alice@acme.com", "message": "I was charged twice for my subscription this month and need an immediate refund!"}|
+        {"ticketId": "T-002", "customer": "bob@startup.io", "message": "How do I export my data to CSV?"}|
+        {"ticketId": "T-003", "customer": "charlie@enterprise.com", "message": "The API is returning 500 errors for the last 10 minutes. This is stopping our production line."}|
+        {"ticketId": "T-004", "customer": "dana@global.co", "message": "Can you add more members to my team? It seems I hit the limit."}|
+        {"ticketId": "T-005", "customer": "eve@security.net", "message": "I noticed a suspicious login attempt from a country I've never visited. Is my account safe?"}
+
+  - name: support-triage-ai
+    type: agent
+    properties:
+      model: "gemini-2.5-flash"
+      memory: "false"
+      # Replace with your actual key or use environmental variable
+      apiKey: "your-key-here"
+      
+      systemPrompt: |
+        You are a Support Triage Agent. Analyze the ticket and return ONLY JSON:
+        {"ticketId": "...", "urgency": "...", "category": "...", "action": "..."}
+
+  - name: table-formatter
+    type: process
+    language: "camel-yaml"
+    code: |
+      - from:
+          uri: "direct:start"
+          steps:
+            - unmarshal:
+                json: {}
+            # Check if the response contains an error from the Agent
+            - choice:
+                when:
+                  - simple: "${body[error]} != null"
+                    steps:
+                      - setBody:
+                          simple: "\n  [AGENT ERROR] ${body[message]}\n"
+                      - stop: {}
+            
+            # Extract and clean the 'output' field
+            - setHeader:
+                name: "raw"
+                simple: "${body[output]}"
+            - choice:
+                when:
+                  - simple: "${header.raw} == null"
+                    steps:
+                      - setBody:
+                          simple: "\n  [ERROR] AI returned empty response\n"
+                      - stop: {}
+
+            # Strip markdown fences
+            - setHeader:
+                name: "raw"
+                simple: "${header.raw.replaceAll('(?s)```json\\s*', '').replaceAll('```', '').trim()}"
+            
+            # Re-parse the inner JSON
+            - setBody:
+                simple: "${header.raw}"
+            - unmarshal:
+                json: {}
+            
+            # Determine badge emoji based on urgency
+            - choice:
+                when:
+                  - simple: "${body[urgency]} == 'CRITICAL'"
+                    steps:
+                      - setHeader:
+                          name: "badge"
+                          constant: "🔴"
+                  - simple: "${body[urgency]} == 'HIGH'"
+                    steps:
+                      - setHeader:
+                          name: "badge"
+                          constant: "🟠"
+                  - simple: "${body[urgency]} == 'MEDIUM'"
+                    steps:
+                      - setHeader:
+                          name: "badge"
+                          constant: "🟡"
+                otherwise:
+                  steps:
+                    - setHeader:
+                        name: "badge"
+                        constant: "🟢"
+            # Format the output table
+            - setBody:
+                simple: |
+                  \n────────────────────────────────────────────────────────────────────────────
+                    ${body[ticketId]}  │  ${header.badge} ${body[urgency]}  │  ${body[category]}
+                    Action    : ${body[action]}
+                  ────────────────────────────────────────────────────────────────────────────
+
+  - name: triage-output
+    type: sink
+    connector: console-sink

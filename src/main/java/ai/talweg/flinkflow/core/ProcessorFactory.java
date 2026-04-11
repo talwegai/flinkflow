@@ -49,6 +49,14 @@ public class ProcessorFactory {
     public static MapFunction<String, String> createMapper(String codeBody, String language) {
         if ("python".equalsIgnoreCase(language)) {
             return new DynamicPythonMapFunction(codeBody);
+        } else if ("camel".equalsIgnoreCase(language) || "camel-simple".equalsIgnoreCase(language)) {
+            return new DynamicCamelMapFunction(codeBody, "simple");
+        } else if ("jsonpath".equalsIgnoreCase(language) || "camel-jsonpath".equalsIgnoreCase(language)) {
+            return new DynamicCamelMapFunction(codeBody, "jsonpath");
+        } else if ("groovy".equalsIgnoreCase(language) || "camel-groovy".equalsIgnoreCase(language)) {
+            return new DynamicCamelMapFunction(codeBody, "groovy");
+        } else if ("camel-yaml".equalsIgnoreCase(language)) {
+            return new DynamicCamelYamlMapFunction(codeBody);
         }
         return new DynamicCodeFunction(codeBody);
     }
@@ -77,6 +85,14 @@ public class ProcessorFactory {
     public static FilterFunction<String> createFilter(String codeBody, String language) {
         if ("python".equalsIgnoreCase(language)) {
             return new DynamicPythonFilterFunction(codeBody);
+        } else if ("camel".equalsIgnoreCase(language) || "camel-simple".equalsIgnoreCase(language)) {
+            return new DynamicCamelFilterFunction(codeBody, "simple");
+        } else if ("jsonpath".equalsIgnoreCase(language) || "camel-jsonpath".equalsIgnoreCase(language)) {
+            return new DynamicCamelFilterFunction(codeBody, "jsonpath");
+        } else if ("groovy".equalsIgnoreCase(language) || "camel-groovy".equalsIgnoreCase(language)) {
+            return new DynamicCamelFilterFunction(codeBody, "groovy");
+        } else if ("camel-yaml".equalsIgnoreCase(language)) {
+            return new DynamicCamelYamlFilterFunction(codeBody);
         }
         return new DynamicFilterFunction(codeBody);
     }
@@ -105,6 +121,14 @@ public class ProcessorFactory {
     public static FlatMapFunction<String, String> createFlatMap(String codeBody, String language) {
         if ("python".equalsIgnoreCase(language)) {
             return new DynamicPythonFlatMapFunction(codeBody);
+        } else if ("camel".equalsIgnoreCase(language) || "camel-simple".equalsIgnoreCase(language)) {
+            return new DynamicCamelFlatMapFunction(codeBody, "simple");
+        } else if ("jsonpath".equalsIgnoreCase(language) || "camel-jsonpath".equalsIgnoreCase(language)) {
+            return new DynamicCamelFlatMapFunction(codeBody, "jsonpath");
+        } else if ("groovy".equalsIgnoreCase(language) || "camel-groovy".equalsIgnoreCase(language)) {
+            return new DynamicCamelFlatMapFunction(codeBody, "groovy");
+        } else if ("camel-yaml".equalsIgnoreCase(language)) {
+            return new DynamicCamelYamlFlatMapFunction(codeBody);
         }
         return new DynamicFlatMapFunction(codeBody);
     }
@@ -133,6 +157,12 @@ public class ProcessorFactory {
     public static ReduceFunction<String> createReducer(String codeBody, String language) {
         if ("python".equalsIgnoreCase(language)) {
             return new DynamicPythonReduceFunction(codeBody);
+        } else if ("camel".equalsIgnoreCase(language) || "camel-simple".equalsIgnoreCase(language)) {
+            return new DynamicCamelReduceFunction(codeBody, "simple");
+        } else if ("jsonpath".equalsIgnoreCase(language) || "camel-jsonpath".equalsIgnoreCase(language)) {
+            return new DynamicCamelReduceFunction(codeBody, "jsonpath");
+        } else if ("groovy".equalsIgnoreCase(language) || "camel-groovy".equalsIgnoreCase(language)) {
+            return new DynamicCamelReduceFunction(codeBody, "groovy");
         }
         return new DynamicReduceFunction(codeBody);
     }
@@ -151,6 +181,12 @@ public class ProcessorFactory {
     public static ReduceFunction<String> createWindowReducer(String codeBody, String language) {
         if ("python".equalsIgnoreCase(language)) {
             return new DynamicPythonWindowReduceFunction(codeBody);
+        } else if ("camel".equalsIgnoreCase(language) || "camel-simple".equalsIgnoreCase(language)) {
+            return new DynamicCamelReduceFunction(codeBody, "simple");
+        } else if ("jsonpath".equalsIgnoreCase(language) || "camel-jsonpath".equalsIgnoreCase(language)) {
+            return new DynamicCamelReduceFunction(codeBody, "jsonpath");
+        } else if ("groovy".equalsIgnoreCase(language) || "camel-groovy".equalsIgnoreCase(language)) {
+            return new DynamicCamelReduceFunction(codeBody, "groovy");
         }
         return new DynamicWindowReduceFunction(codeBody);
     }
@@ -219,6 +255,14 @@ public class ProcessorFactory {
     public static KeySelector<String, String> createKeySelector(String codeBody, String language) {
         if ("python".equalsIgnoreCase(language)) {
             return new DynamicPythonKeySelector(codeBody);
+        } else if ("camel".equalsIgnoreCase(language) || "camel-simple".equalsIgnoreCase(language)) {
+            return new DynamicCamelKeySelector(codeBody, "simple");
+        } else if ("jsonpath".equalsIgnoreCase(language) || "camel-jsonpath".equalsIgnoreCase(language)) {
+            return new DynamicCamelKeySelector(codeBody, "jsonpath");
+        } else if ("groovy".equalsIgnoreCase(language) || "camel-groovy".equalsIgnoreCase(language)) {
+            return new DynamicCamelKeySelector(codeBody, "groovy");
+        } else if ("camel-yaml".equalsIgnoreCase(language)) {
+            return new DynamicCamelYamlKeySelector(codeBody);
         }
         return new DynamicKeySelector(codeBody);
     }
@@ -251,9 +295,35 @@ public class ProcessorFactory {
      * @param urlCode      the logic to generate the URL
      * @param responseCode the logic to handle the HTTP response
      * @param authCode     the logic to handle the auth header
+     * @param language     the language of the code (java, python)
      * @return a new DynamicAsyncHttpFunction instance
      */
-    public static DynamicAsyncHttpFunction createAsyncHttpLookup(String urlCode, String responseCode, String authCode) {
-        return new DynamicAsyncHttpFunction(urlCode, responseCode, authCode);
+    public static ai.talweg.flinkflow.core.DynamicAsyncHttpFunction createAsyncHttpLookup(String urlCode, String responseCode, String authCode, String language) {
+        return new ai.talweg.flinkflow.core.DynamicAsyncHttpFunction(urlCode, responseCode, authCode, language);
+    }
+
+    public static ai.talweg.flinkflow.core.DynamicAsyncHttpFunction createAsyncHttpLookup(String urlCode, String responseCode, String authCode) {
+        return createAsyncHttpLookup(urlCode, responseCode, authCode, "java");
+    }
+
+    // -----------------------------------------------------------------------
+    // Agentic Bridge (Flink Agents)
+    // -----------------------------------------------------------------------
+
+    /**
+     * Creates a new ProcessFunction that acts as an AI Agent.
+     *
+     * @param agentName    The name of the agent
+     * @param model         The LLM model to use
+     * @param systemPrompt  The base instructions for the agent
+     * @param useMemory    Whether to persist agent history in Flink state
+     * @param properties    Additional configuration properties (e.g., tool mappings)
+     * @param flowletCatalog The registry of available flowlets for tool resolution
+     * @return a new DynamicAgentFunction instance
+     */
+    public static org.apache.flink.streaming.api.functions.ProcessFunction<String, String> createAgent(String agentName, String model, String systemPrompt, 
+                                                            boolean useMemory, java.util.Map<String, String> properties,
+                                                            java.util.Map<String, ?> flowletCatalog) {
+        return new DynamicAgentFunction(agentName, model, systemPrompt, useMemory, properties, flowletCatalog);
     }
 }

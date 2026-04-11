@@ -1,0 +1,58 @@
+apiVersion: flinkflow.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: agent-support-triage-python
+spec:
+  parallelism: 1
+  steps:
+    - name: support-tickets
+      type: source
+      connector: static-source
+      properties:
+        content: |
+          {"ticketId": "T-001", "customer": "alice@acme.com", "message": "I was charged twice for my subscription this month and need an immediate refund!"}|
+          {"ticketId": "T-002", "customer": "bob@startup.io", "message": "How do I export my data to CSV?"}|
+          {"ticketId": "T-003", "customer": "charlie@enterprise.com", "message": "The API is returning 500 errors for the last 10 minutes. This is stopping our production line."}|
+          {"ticketId": "T-004", "customer": "dana@global.co", "message": "Can you add more members to my team? It seems I hit the limit."}|
+          {"ticketId": "T-005", "customer": "eve@security.net", "message": "I noticed a suspicious login attempt from a country I've never visited. Is my account safe?"}
+
+    - name: support-triage-ai
+      type: agent
+      properties:
+        model: "gemini-2.5-flash"
+        memory: "false"
+        # Reference a Kubernetes secret for security
+        apiKey: "secret:gemini-creds/api-key"
+        
+        systemPrompt: |
+          You are a Support Triage Agent. Analyze incoming tickets and output JSON:
+          {"ticketId": "...", "urgency": "...", "category": "...", "action": "..."}
+
+    - name: table-formatter
+      type: process
+      language: "python"
+      code: |
+        import json
+        try:
+            outer = json.loads(input)
+            if "error" in outer:
+                return f"\n  [AGENT ERROR] {outer['message']}\n"
+            
+            raw = outer.get("output", "")
+            raw = raw.replace("```json", "").replace("```", "").strip()
+            inner = json.loads(raw)
+            
+            tid      = inner.get("ticketId", "-")
+            urgency  = inner.get("urgency", "LOW")
+            category = inner.get("category", "-")
+            action   = inner.get("action", "-")
+
+            badge = "🔴" if urgency == "CRITICAL" else "🟠" if urgency == "HIGH" else "🟡" if urgency == "MEDIUM" else "🟢"
+            sep = "─" * 76
+            return f"\n{sep}\n  {tid:<8}  │  {badge} {urgency:<10} │  {category:<14}\n  Action    : {action}\n{sep}"
+        except Exception as e:
+            return f"\n  [ERROR] {str(e)}\n"
+
+    - name: triage-output
+      type: sink
+      connector: console-sink

@@ -4,7 +4,7 @@ parallelism: 1
 # This example demonstrates using the Python standard library (json and datetime)
 # within a Flinkflow pipeline.
 #
-# Run: ./run-local.sh examples/standalone/python-json-datetime.yaml
+# Run: ./scripts/run-local.sh examples/standalone/python-json-datetime.yaml
 
 steps:
   - type: source

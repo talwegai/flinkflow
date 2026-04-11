@@ -1,0 +1,61 @@
+name: "IoT Sensor Fleet Analytics Camel (Low-Code)"
+parallelism: 2
+
+steps:
+  - type: source
+    name: datagen
+    properties:
+      rowsPerSecond: "30"
+      payload: "sensor"
+
+  - type: process
+    name: simulate-telemetry
+    language: camel
+    code: '{"truckId": "TRUCK_0${random(1,4)}", "temperature": ${random(-18,40)}}'
+
+  - type: keyby
+    name: partition-by-truck
+    language: jsonpath
+    code: "$.truckId"
+
+  - type: window
+    name: calculate-average-temp
+    language: camel-groovy
+    properties:
+      windowType: "tumbling"
+      size: "2"
+    code: |
+      def slurper = new groovy.json.JsonSlurper()
+      def v1 = headers.get("value1")
+      def v2 = headers.get("value2")
+      if (v1 == null || v2 == null) return v1 ?: v2
+      
+      def o1 = slurper.parseText(v1.toString())
+      def o2 = slurper.parseText(v2.toString())
+      
+      def t1 = o1.get("sumTemp") ?: o1.get("temperature") ?: 0.0
+      def t2 = o2.get("sumTemp") ?: o2.get("temperature") ?: 0.0
+      def c1 = o1.get("count") ?: 1
+      def c2 = o2.get("count") ?: 1
+      
+      def totalSum = t1.toDouble() + t2.toDouble()
+      def totalCount = c1.toInteger() + c2.toInteger()
+      
+      return groovy.json.JsonOutput.toJson([
+          truckId: o1.truckId ?: o2.truckId, 
+          sumTemp: totalSum.toDouble().round(2), 
+          count: totalCount, 
+          avg: (totalSum / totalCount).toDouble().round(2)
+      ])
+
+  - type: process
+    name: status-indicator
+    language: camel-groovy
+    code: |
+      def obj = new groovy.json.JsonSlurper().parseText(body)
+      def avg = obj.avg.toDouble()
+      def icon = avg > 25.0 ? "🚨 [CRITICAL]" : (avg > 15.0 ? "⚠️ [WARNING ]" : "✅ [NORMAL  ]")
+      return "${icon} Truck ${obj.truckId} | Avg Temp: ${avg}°C"
+
+  - type: sink
+    name: console-sink

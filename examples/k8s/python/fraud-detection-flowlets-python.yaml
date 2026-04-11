@@ -1,0 +1,55 @@
+apiVersion: flinkflow.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: real-time-fraud-eval-python
+spec:
+  parallelism: 4
+  steps:
+    - type: flowlet
+      name: confluent-kafka-source
+      with:
+        bootstrapServers: "pkc-xxx.us-east-1.aws.confluent.cloud:9092"
+        topic: "live-transactions"
+        apiKey: "${KAFKA_API_KEY}"
+        apiSecret: "${KAFKA_API_SECRET}"
+        groupId: "fraud-eval-group"
+
+    - type: flowlet
+      name: http-enrich
+      with:
+        language: "python"
+        urlCode: |
+          import json
+          tx = json.loads(input)
+          return f"http://internal-fraud-ml-service/score?userId={tx['userId']}&amount={tx['amount']}"
+        mergeCode: |
+          import json
+          tx = json.loads(input)
+          ml_response = json.loads(response)
+          tx["fraudScore"] = ml_response.get("probability_score", 0.0)
+          return json.dumps(tx)
+        timeout: "1000"      
+
+    - type: process
+      name: filter-high-risk
+      language: python
+      code: |
+        import json
+        from datetime import datetime
+        
+        event = json.loads(input)
+        risk_score = event.get("fraudScore", 0.0)
+        
+        if risk_score > 0.85:
+            event["alertTime"] = datetime.now().isoformat()
+            return json.dumps(event)
+        else:
+            return None
+
+    - type: flowlet
+      name: confluent-kafka-sink
+      with:
+        bootstrapServers: "pkc-xxx.us-east-1.aws.confluent.cloud:9092"
+        topic: "high-risk-alerts"
+        apiKey: "${KAFKA_API_KEY}"
+        apiSecret: "${KAFKA_API_SECRET}"

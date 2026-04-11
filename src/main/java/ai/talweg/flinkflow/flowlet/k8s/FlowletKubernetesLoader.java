@@ -79,7 +79,7 @@ public class FlowletKubernetesLoader {
             LOG.info("Discovering Flowlet CRs from namespace: " + targetNamespace);
 
             var flowletClient = client
-                    .resources(Flowlet.class, FlowletList.class)
+                    .resources(Flowlet.class)
                     .inNamespace(targetNamespace);
 
             List<Flowlet> items = flowletClient.list().getItems();
