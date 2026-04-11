@@ -1,0 +1,24 @@
+name: "Agentic Tool-Calling Smoke Test"
+parallelism: 1
+steps:
+  - name: user-input
+    type: source
+    connector: static-source
+    properties:
+      # This input explicitly asks the agent to use its 'data_lookup' tool
+      content: "Can you lookup the data for user-123 and tell me what you find?"
+
+  - name: support-ai
+    type: agent
+    properties:
+      model: "gpt-4o"
+      systemPrompt: |
+        You are a helpful assistant. 
+        If a user asks for data or information, you MUST use the 'data_lookup' tool.
+        Return the result of the tool invocation.
+      memory: "true"
+      apiKey: "demo-key-placeholder" 
+
+  - name: logger
+    type: sink
+    connector: console-sink

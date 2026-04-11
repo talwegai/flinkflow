@@ -1,0 +1,67 @@
+apiVersion: flinkflow.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: fraud-detection-pipeline
+spec:
+  name: "Real-Time Fraud Evaluation Pipeline"
+  parallelism: 4
+  
+  steps:
+    # ── SOURCE: Ingest real-time transactions ───────────────────────────────────
+    - type: flowlet
+      name: confluent-kafka-source
+      with:
+        bootstrapServers: "pkc-xxx.us-east-1.aws.confluent.cloud:9092"
+        topic: "live-transactions"
+        apiKey: "${KAFKA_API_KEY}"
+        apiSecret: "${KAFKA_API_SECRET}"
+        groupId: "fraud-eval-group"
+
+    # ── ACTION: HTTP Enrichment (Async ML Inference) ────────────────────────────
+    # Make a low-latency non-blocking call to an ML service (e.g., Seldon/Triton)
+    # to evaluate the transaction probability for fraud.
+    - type: flowlet
+      name: http-enrich
+      with:
+        urlCode: |
+          // Assuming JSON input: {"txId": "123", "userId": "u89", "amount": 500}
+          // We call our internal fraud-scoring microservice
+          org.json.JSONObject tx = new org.json.JSONObject(input);
+          return "http://internal-fraud-ml-service/score?userId=" + tx.getString("userId") 
+                 + "&amount=" + tx.getDouble("amount");
+        mergeCode: |
+          // The ML service returns a JSON with a 'probability_score'
+          // We attach this score back into our main payload
+          org.json.JSONObject tx = new org.json.JSONObject(input);
+          org.json.JSONObject mlResponse = new org.json.JSONObject(response);
+          tx.put("fraudScore", mlResponse.getDouble("probability_score"));
+          return tx.toString();
+        timeout: "1000"      # Maximum 1 second wait for ML inference
+        capacity: "100"      # Max 100 concurrent async requests per parallel worker
+
+    # ── PROCESS: Filter and Alert Logic ─────────────────────────────────────────
+    # Drop "safe" transactions and only forward the ones that exceed a risk threshold.
+    - type: process
+      name: filter-high-risk
+      code: |
+        org.json.JSONObject event = new org.json.JSONObject(input);
+        double riskScore = event.getDouble("fraudScore");
+        
+        // If the score is higher than 0.85, it is a high-risk fraud attempt
+        if (riskScore > 0.85) {
+            // Add an alert timestamp
+            event.put("alertTime", java.time.Instant.now().toString());
+            return event.toString();
+        } else {
+            // Returning null effectively drops the event from the stream
+            return null; 
+        }
+
+    # ── SINK: Route to Alerting Topic ───────────────────────────────────────────
+    - type: flowlet
+      name: confluent-kafka-sink
+      with:
+        bootstrapServers: "pkc-xxx.us-east-1.aws.confluent.cloud:9092"
+        topic: "high-risk-alerts"
+        apiKey: "${KAFKA_API_KEY}"
+        apiSecret: "${KAFKA_API_SECRET}"

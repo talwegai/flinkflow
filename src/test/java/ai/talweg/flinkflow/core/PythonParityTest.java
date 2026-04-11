@@ -181,4 +181,56 @@ public class PythonParityTest {
             ioFunction.map("test");
         }, "Should block access to file system");
     }
+
+    @Test
+    public void testPythonFunctionsLifecycleAndUninitialized() throws Exception {
+        // Test MapFunction uninitialized
+        DynamicPythonMapFunction mapFunction = new DynamicPythonMapFunction("return input");
+        org.junit.jupiter.api.Assertions.assertThrows(RuntimeException.class, () -> mapFunction.map("test"));
+        mapFunction.close(); // closing uninitialized
+
+        mapFunction.open(null);
+        mapFunction.close(); // closing initialized
+
+        // Test FilterFunction uninitialized
+        DynamicPythonFilterFunction filterFunction = new DynamicPythonFilterFunction("return True");
+        org.junit.jupiter.api.Assertions.assertThrows(RuntimeException.class, () -> filterFunction.filter("test"));
+        filterFunction.close();
+        filterFunction.open(null);
+        filterFunction.close();
+
+        // Test FlatMapFunction uninitialized & close
+        DynamicPythonFlatMapFunction flatMapFunction = new DynamicPythonFlatMapFunction("return input");
+        flatMapFunction.close(); // close uninitialized
+        flatMapFunction.open(null);
+        flatMapFunction.close(); // close initialized
+
+        // Test SideOutputFunction uninitialized
+        DynamicPythonSideOutputFunction sideOutput = new DynamicPythonSideOutputFunction("return input", "tag");
+        org.junit.jupiter.api.Assertions.assertThrows(RuntimeException.class, () -> sideOutput.processElement("test", null, null));
+        sideOutput.close();
+        sideOutput.open(null);
+        sideOutput.close();
+
+        // Test ReduceFunction uninitialized
+        DynamicPythonReduceFunction reduceConfig = new DynamicPythonReduceFunction("return value1");
+        org.junit.jupiter.api.Assertions.assertThrows(RuntimeException.class, () -> reduceConfig.reduce("v1", "v2"));
+        reduceConfig.close();
+        reduceConfig.open(null);
+        reduceConfig.close();
+
+        // Test JoinFunction uninitialized
+        DynamicPythonJoinFunction joinFunction = new DynamicPythonJoinFunction("return left");
+        org.junit.jupiter.api.Assertions.assertThrows(RuntimeException.class, () -> joinFunction.processElement("A", "B", null, null));
+        joinFunction.close();
+        joinFunction.open(null);
+        joinFunction.close();
+
+        // Test WindowReduce uninitialized
+        DynamicPythonWindowReduceFunction windowReduce = new DynamicPythonWindowReduceFunction("return value1");
+        org.junit.jupiter.api.Assertions.assertEquals("v1", windowReduce.reduce("v1", "v2")); 
+        // KeySelector initializes itself if missing
+        DynamicPythonKeySelector keySelector = new DynamicPythonKeySelector("return input");
+        org.junit.jupiter.api.Assertions.assertEquals("test", keySelector.getKey("test")); 
+    }
 }

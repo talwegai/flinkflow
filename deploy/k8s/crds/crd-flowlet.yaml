@@ -122,17 +122,47 @@ spec:
                     properties:
                       type:
                         type: string
-                      connector:
-                        type: string
-                        description: "The name of the connector (e.g. kafka-source, static-source)."
+                        description: "The functional type of the pipeline step."
+                        enum:
+                          - source
+                          - sink
+                          - process
+                          - transform
+                          - filter
+                          - flatmap
+                          - keyby
+                          - groupby
+                          - reduce
+                          - aggregate
+                          - window
+                          - sideoutput
+                          - join
+                          - datamapper
+                          - http-lookup
+                          - flowlet
                       name:
                         type: string
-                      language:
+                        description: "An optional name for this step; if omitted, the Flinkflow engine will generate one."
+                      connector:
                         type: string
-                        description: "Code runtime language: 'java' or 'python'."
+                        description: "The name of the infrastructure connector (required for source/sink)."
                       code:
                         type: string
+                        description: "Inline logic or transformation snippet (can contain {{param}} placeholders)."
+                      language:
+                        type: string
+                        description: "The execution runtime for the code snippet."
+                        default: java
+                        enum:
+                          - java
+                          - python
+                          - camel
+                          - camel-yaml
+                          - camel-jsonpath
+                          - camel-simple
+                          - camel-groovy
                       properties:
                         type: object
+                        description: "Configuration parameters (can contain {{param}} placeholders)."
                         additionalProperties:
                           type: string

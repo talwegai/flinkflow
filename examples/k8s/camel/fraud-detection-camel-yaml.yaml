@@ -1,0 +1,63 @@
+apiVersion: flinkflow.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: fraud-detection-yaml-dsl
+spec:
+  parallelism: 2
+  steps:
+    - type: source
+      name: transaction-gen
+      properties:
+        rowsPerSecond: "5"
+        payload: "sensor"
+
+    - type: process
+      name: create-transaction
+      language: camel
+      code: '{"userId": "USER_${random(100,999)}", "amount": ${random(10,5000)}, "location": "K8S_CLUSTER"}'
+
+    - type: process
+      name: enrichment-and-scoring
+      language: camel-yaml
+      code: |
+        - from:
+            uri: "direct:start"
+            steps:
+              - setHeader:
+                  name: "score"
+                  simple: "${random(0,100)}"
+              - setBody:
+                  groovy: |
+                    def score = (headers.get('score') as Double) / 100.0
+                    def bodyMap = new groovy.json.JsonSlurper().parseText(body)
+                    bodyMap.fraudScore = score
+                    return groovy.json.JsonOutput.toJson(bodyMap)
+
+    - type: process
+      name: risk-analyzer
+      language: camel-yaml
+      code: |
+        - from:
+            uri: "direct:start"
+            steps:
+              - unmarshal:
+                  json: {}
+              - choice:
+                  when:
+                    - simple: "${body[fraudScore]} > 0.85"
+                      steps:
+                        - setBody:
+                            simple: |
+                              {
+                                "status": "ALERT",
+                                "userId": "${body[userId]}",
+                                "fraudScore": ${body[fraudScore]},
+                                "eventTime": "${date:now:yyyy-MM-dd HH:mm:ss}"
+                              }
+                  otherwise:
+                    steps:
+                      - setBody:
+                          constant: "No potential fraud detected"
+
+    - type: sink
+      name: console-sink

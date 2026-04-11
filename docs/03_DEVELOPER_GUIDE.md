@@ -16,6 +16,7 @@ For a detailed visual guide and component breakdown, see **[Architecture.md](01_
 *   **Polyglot Logic**: 
     *   **Janino**: For in-memory Java compilation of code snippets.
     *   **GraalVM (Polyglot API)**: For the secure zero-trust Python sandbox.
+    *   **Apache Camel**: Declarative expression engine for Simple and JsonPath.
 *   **Data Mapping**: Saxon-HE (XSLT 3.0) for transform logic.
 *   **Configuration**: Jackson YAML for pipeline deserialization.
 
@@ -41,6 +42,11 @@ For a detailed visual guide and component breakdown, see **[Architecture.md](01_
 2.  **Implement the Logic**: Add a corresponding operator or generator in `ai.talweg.flinkflow.core.PipelineGraphBuilder`.
 3.  **Register the Type**: Update the YAML parser to recognize your new step.
 
+### Camel Integration Logic
+The `CamelEvaluator` provides a unified engine for evaluating Simple and JsonPath expressions.
+- **Header Mapping**: For key-selectors and reducers, Flinkflow automatically maps input variables to Camel headers (e.g., `value1`, `value2`).
+- **Lazy Initialization**: Camel contexts are heavy. Our `DynamicCamel...` functions utilize lazy initialization in the `open()` method to avoid overhead on the JobManager.
+
 ### Adding a New Flowlet
 Flowlets are discoverable, parameterized components.
 1.  **Create a YAML definition**: Set the `kind: Flowlet`.
@@ -53,8 +59,7 @@ Flowlets are discoverable, parameterized components.
 
 ### Automated Testing
 *   **Maven Unit Tests**: `mvn test` (covers logic, validation, and parsing).
-*   **Smoke Test Suite**: `./deploy/scripts/smoke-test.sh` (validates all YAML examples against the engine in dry-run mode).
-*   **E2E Tests**: Use `docker-compose-e2e.yaml` to spin up a full Flink/Kafka cluster for integration tests.
+*   **Smoke Test Suite**: `./deploy/test/smoke-test.sh` (validates all YAML examples against the engine in dry-run mode).
 
 ### Debugging Snapshots
 When the engine builds a graph, it logs a textual representation of the DAG. Use `-Dlog.level=DEBUG` to see the detailed step-by-step resolution.

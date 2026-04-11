@@ -1,0 +1,44 @@
+apiVersion: flinkflow.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: camel-yaml-dsl-example
+spec:
+  parallelism: 1
+  steps:
+    - type: source
+      name: datagen
+      properties:
+        rowsPerSecond: "5"
+        payload: "sensor"
+
+    - type: process
+      name: simulate-telemetry
+      language: camel
+      code: '{"truckId": "TRUCK_01", "temperature": ${random(20,40)}}'
+
+    - type: process
+      name: classify-temp
+      language: camel-yaml
+      code: |
+        - from:
+            uri: "direct:start"
+            steps:
+              - unmarshal:
+                  json: {}
+              - choice:
+                  when:
+                    - simple: "${body[temperature]} > 30"
+                      steps:
+                        - setHeader:
+                            name: "status"
+                            constant: "CRITICAL"
+                  otherwise:
+                    steps:
+                      - setHeader:
+                          name: "status"
+                          constant: "NORMAL"
+              - setBody:
+                  simple: "Truck ${body[truckId]} is ${header.status} (${body[temperature]}°C)"
+
+    - type: sink
+      name: console-sink

@@ -60,7 +60,8 @@ import java.util.Map;
  *           group.id: "{{groupId}}"
  * </pre>
  */
-public class FlowletSpec {
+public class FlowletSpec implements java.io.Serializable {
+    private static final long serialVersionUID = 1L;
 
     // ------------------------------------------------------------------ //
     // metadata fields (promoted from the nested `metadata` object)

@@ -6,7 +6,7 @@ parallelism: 1
 # - Dynamic tax calculations
 # - 'Exploding' nested arrays into separate records (FlatMap)
 #
-# Run: ./run-local.sh examples/standalone/python-complex-example.yaml
+# Run: ./scripts/run-local.sh examples/standalone/python-complex-example.yaml
 
 steps:
   - type: source

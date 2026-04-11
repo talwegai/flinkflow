@@ -1,0 +1,50 @@
+apiVersion: flinkflow.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: iot-fleet-analytics-camel
+spec:
+  parallelism: 2
+  steps:
+    - type: source
+      name: truck-telemetry
+      properties:
+        rowsPerSecond: "30"
+
+    - type: process
+      name: data-generator
+      language: camel-groovy
+      code: |
+        def truckId = "TRUCK_" + String.format("%02d", new Random().nextInt(5) + 1)
+        def temp = 10.0 + new Random().nextDouble() * 20.0
+        return groovy.json.JsonOutput.toJson([truckId: truckId, temperature: temp, timestamp: System.currentTimeMillis()])
+
+    - type: keyby
+      name: partition-by-truck
+      language: jsonpath
+      code: "$.truckId"
+
+    - type: window
+      name: tumble-temp-window
+      properties:
+        windowType: tumbling
+        size: 2
+      language: camel-groovy
+      code: |
+        def o1 = new groovy.json.JsonSlurper().parseText(headers.value1)
+        def o2 = new groovy.json.JsonSlurper().parseText(headers.value2)
+        def avg = (o1.temperature + o2.temperature) / 2
+        return groovy.json.JsonOutput.toJson([truckId: o1.truckId, avg: avg])
+
+    - type: process
+      name: status-indicator
+      language: camel-groovy
+      code: |
+        def obj = new groovy.json.JsonSlurper().parseText(body)
+        def avg = obj.avg.toDouble()
+        def icon = avg > 25.0 ? "🚨 [CRITICAL]" : (avg > 15.0 ? "⚠️ [WARNING ]" : "✅ [NORMAL  ]")
+        return "${icon} Truck ${obj.truckId} | Avg Temp: ${avg}°C"
+
+    - type: sink
+      name: console-sink
+      properties:
+        type: console

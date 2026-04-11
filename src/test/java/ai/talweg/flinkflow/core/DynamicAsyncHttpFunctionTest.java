@@ -17,6 +17,7 @@
 
 package ai.talweg.flinkflow.core;
 
+import ai.talweg.flinkflow.core.DynamicAsyncHttpFunction;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
@@ -89,7 +90,7 @@ public class DynamicAsyncHttpFunctionTest {
         String responseCode = "return response;";
         String authCode    = "return null;";
 
-        DynamicAsyncHttpFunction fn = ProcessorFactory.createAsyncHttpLookup(urlCode, responseCode, authCode);
+        ai.talweg.flinkflow.core.DynamicAsyncHttpFunction fn = ProcessorFactory.createAsyncHttpLookup(urlCode, responseCode, authCode);
 
         DataStream<String> source = env.fromElements("hello");
         DataStream<String> result = AsyncDataStream.unorderedWait(source, fn, 10, TimeUnit.SECONDS, 10);
@@ -122,7 +123,7 @@ public class DynamicAsyncHttpFunctionTest {
         String responseCode = "return response;";
         String authCode     = "return \"Bearer test-token-123\";";
 
-        DynamicAsyncHttpFunction fn = ProcessorFactory.createAsyncHttpLookup(urlCode, responseCode, authCode);
+        ai.talweg.flinkflow.core.DynamicAsyncHttpFunction fn = ProcessorFactory.createAsyncHttpLookup(urlCode, responseCode, authCode);
 
         DataStream<String> source = env.fromElements("payload");
         DataStream<String> result = AsyncDataStream.unorderedWait(source, fn, 10, TimeUnit.SECONDS, 10);
@@ -153,7 +154,7 @@ public class DynamicAsyncHttpFunctionTest {
         String responseCode = "return input + \":score=\" + response;";
         String authCode     = "return null;";
 
-        DynamicAsyncHttpFunction fn = ProcessorFactory.createAsyncHttpLookup(urlCode, responseCode, authCode);
+        ai.talweg.flinkflow.core.DynamicAsyncHttpFunction fn = ProcessorFactory.createAsyncHttpLookup(urlCode, responseCode, authCode);
 
         DataStream<String> source = env.fromElements("user-007");
         DataStream<String> result = AsyncDataStream.unorderedWait(source, fn, 10, TimeUnit.SECONDS, 10);
@@ -182,7 +183,7 @@ public class DynamicAsyncHttpFunctionTest {
         String responseCode = "return response;";
         String authCode     = "return null;";
 
-        DynamicAsyncHttpFunction fn = ProcessorFactory.createAsyncHttpLookup(urlCode, responseCode, authCode);
+        ai.talweg.flinkflow.core.DynamicAsyncHttpFunction fn = ProcessorFactory.createAsyncHttpLookup(urlCode, responseCode, authCode);
 
         DataStream<String> source = env.fromElements("alpha", "beta");
         DataStream<String> result = AsyncDataStream.unorderedWait(source, fn, 10, TimeUnit.SECONDS, 10);
@@ -192,5 +193,37 @@ public class DynamicAsyncHttpFunctionTest {
         assertEquals(2, results.size());
         assertTrue(results.contains("alpha-enriched"), "alpha should be enriched");
         assertTrue(results.contains("beta-enriched"),  "beta should be enriched");
+    }
+    // ------------------------------------------------------------------ //
+    // Test 5 — Python Support                                            //
+    // ------------------------------------------------------------------ //
+
+    @Test
+    public void testPythonBasicGetReturnsResponseBody() throws Exception {
+        mockServer.enqueue(new MockResponse()
+                .setBody("python-enriched:hello")
+                .setResponseCode(200));
+
+        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        env.setParallelism(1);
+
+        // Python snippets
+        String urlCode      = "return f\"" + baseUrl + "/python?val={input}\"";
+        String responseCode = "return f\"python-enriched:{input}\" if response else None";
+        String authCode     = "return None";
+
+        ai.talweg.flinkflow.core.DynamicAsyncHttpFunction fn = ProcessorFactory.createAsyncHttpLookup(urlCode, responseCode, authCode, "python");
+
+        DataStream<String> source = env.fromElements("hello");
+        DataStream<String> result = AsyncDataStream.unorderedWait(source, fn, 10, TimeUnit.SECONDS, 10);
+
+        List<String> results = collect(result, "Async HTTP Python Test");
+
+        assertEquals(1, results.size());
+        assertEquals("python-enriched:hello", results.get(0));
+
+        RecordedRequest request = mockServer.takeRequest(5, TimeUnit.SECONDS);
+        assertNotNull(request);
+        assertTrue(request.getPath().contains("/python?val=hello"));
     }
 }

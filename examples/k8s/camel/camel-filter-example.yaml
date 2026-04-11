@@ -1,0 +1,28 @@
+apiVersion: flinkflow.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: camel-filter-example
+spec:
+  parallelism: 1
+  steps:
+    - type: source
+      name: telemetry-source
+      properties:
+        rowsPerSecond: "2"
+
+    - type: process
+      name: add-metadata
+      language: camel-groovy
+      code: |
+        def status = (new Random().nextInt(10) > 7) ? "ERROR" : "SUCCESS"
+        return groovy.json.JsonOutput.toJson([status: status, msg: "Message at " + System.currentTimeMillis()])
+
+    - type: filter
+      name: error-only-filter
+      language: camel-simple
+      code: "${jsonpath($.status)} == 'ERROR'"
+
+    - type: sink
+      name: console-sink
+      properties:
+        type: console

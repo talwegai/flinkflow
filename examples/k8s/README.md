@@ -9,48 +9,53 @@ Unlike the standalone YAML examples, these files are formatted as Kubernetes obj
 ### Prerequisites
 1.  **Install CRDs**:
     ```bash
-    kubectl apply -f k8s/crd-pipeline.yaml
-    kubectl apply -f k8s/crd-flowlet.yaml
+    kubectl apply -f deploy/k8s/crds/crd-pipeline.yaml
+    kubectl apply -f deploy/k8s/crds/crd-flowlet.yaml
     ```
 2.  **Setup Permissions**:
     ```bash
-    kubectl apply -f k8s/rbac.yaml
+    kubectl apply -f deploy/k8s/rbac.yaml
     ```
 
 ---
 
 ## 📦 Available Examples
 
+### 🤖 Agentic & AI (Gemini)
 | File | Description | Features |
 | :--- | :--- | :--- |
-| **`simple-transform-example.yaml`** | Minimal Example | Basic static source → uppercase → console sink. |
-| **`filter-example.yaml`** | Filter Logic | Filter records by length using Java/Python logic. |
-| **`flatmap-example.yaml`** | N-to-N Mapping | Split sentences into words (Java/Python). |
-| **`keyby-example.yaml`** | Partitioning | Partition stream by extracted key for parallelism. |
-| **`reduce-example.yaml`** | Aggregations | Rolling word count aggregation. |
-| **`window-example.yaml`** | Time Windows | Tumbling time-window aggregation. |
-| **`sideoutput-example.yaml`** | Flow Control | Route error records to a side stream. |
-| **`join-example.yaml`** | Stream Joins | Interval join between two Kafka topics. |
-| **`kafka-example.yaml`** | Standard Kafka | Production-ready Kafka source → sink. |
-| **`kafka-auth-example.yaml`** | Secure Kafka | Kafka with SASL_SSL authentication. |
-| **`kafka-avro-schema-registry-example.yaml`** | Avro & Registry | Avro serialization with automatic schema fetching. |
-| **`kafka-streaming-demo.yaml`** | Full Demo | Complete Kafka-to-Kafka streaming pipeline. |
-| **`datagen-streaming-demo.yaml`** | Data Generation | Continuous unbounded data generation for testing. |
-| **`datamapper-example.yaml`** | Data Mapping | XSLT 3.0 structural transformations via Saxon-HE. |
-| **`python-snippets-example.yaml`** | Basic Python | Inline Python code via GraalVM for simple logic. |
-| **`python-json-datetime-example.yaml`** | JSON & Dates | Standard Python modules for JSON/Datetime logic. |
-| **`python-complex-example.yaml`** | Advanced Python | JSON parsing and array 'exploding' logic. |
+| **[`camel/agent-support-triage.yaml`](camel/agent-support-triage.yaml)** | **AI Triage (Camel)** | **[NEW]** Gemini ticket categorization via Camel CRD with K8s Secrets. |
+| **[`python/agent-support-triage.yaml`](python/agent-support-triage.yaml)** | **AI Triage (Python)**| **[NEW]** Gemini ticket categorization via Python CRD. |
 
-| **`python-stateful-example.yaml`** | Stateful Python | Python-based `keyBy`, `window`, and `reduce`. |
-| **`http-lookup-example.yaml`** | Async Enrichment | Asynchronous REST API lookups (Async I/O). |
-| **`http-sink-example.yaml`** | Webhook Sink | Push results to external HTTP endpoints. |
-| **`jdbc-sink-example.yaml`** | DB Batch Sink | High-throughput batch inserts into PostgreSQL/MySQL. |
-| **`file-sink-example.yaml`** | File/S3 Sink | Write partitioned, rolling results to storage. |
-| **`file-monitoring-example.yaml`** | File Source | Continuous directory monitoring for new files. |
-| **`flowlet-example.yaml`** | Flowlets | Reusable, parameterized components in K8s. |
-| **`k8s-native-pipeline-resource.yaml`** | Minimal Template | Simple k8s-native pipeline structure. |
-| **`monitor-demo.yaml`** | Dashboard Demo | Optimized for live metrics in the NiceGUI dashboard. |
-| **`complex-enrichment-example.yaml`** | Multi-step Pipeline | Advanced enrichment involving joins and lookups. |
+### 🐫 Low-Code & Declarative (Apache Camel)
+*(Refs: [Simple Language](https://camel.apache.org/components/latest/languages/simple-language.html) | [JsonPath](https://camel.apache.org/components/latest/languages/jsonpath-language.html) | [YAML DSL](https://camel.apache.org/manual/camel-yaml-dsl.html))*
+| File | Description | Features |
+| :--- | :--- | :--- |
+| **[`camel/iot-fleet-analytics-camel.yaml`](camel/iot-fleet-analytics-camel.yaml)** | IoT (Camel) | High-scale sensor telemetry via Camel & Groovy CRD. |
+| **[`camel/camel-yaml-dsl-example.yaml`](camel/camel-yaml-dsl-example.yaml)** | YAML DSL | Complex routing (Choice/When) using Camel YAML DSL. |
+| **[`camel/fraud-detection-camel-yaml.yaml`](camel/fraud-detection-camel-yaml.yaml)** | Fraud (YAML) | Risk scoring and alerting via YAML DSL routes. |
+| **[`camel/camel-flatmap-example.yaml`](camel/camel-flatmap-example.yaml)** | FlatMap (Camel) | Explode JSON arrays into individual records via JsonPath. |
+| **[`camel/camel-filter-example.yaml`](camel/camel-filter-example.yaml)** | Filter (Camel) | Filter records using Camel Simple logical expressions. |
+| **[`camel/camel-simple-transform.yaml`](camel/camel-simple-transform.yaml)** | Transform (Camel) | Declarative string manipulation and formatting. |
+
+### 🐍 Procedural (Python)
+| File | Description | Features |
+| :--- | :--- | :--- |
+| **[`python/iot-fleet-analytics-python.yaml`](python/iot-fleet-analytics-python.yaml)** | IoT (Python) | High-scale sensor telemetry using Python CRD. |
+| **[`python/fraud-detection-flowlets-python.yaml`](python/fraud-detection-flowlets-python.yaml)** | Fraud (Python) | Transaction monitoring using Python Flowlets. |
+| **[`python/python-complex-example.yaml`](python/python-complex-example.yaml)** | Advanced Python | JSON parsing and array 'exploding' logic. |
+| **[`python/python-stateful-example.yaml`](python/python-stateful-example.yaml)** | Stateful Python | Python-based `keyBy`, `window`, and `reduce`. |
+| **[`python/http-lookup-python-example.yaml`](python/http-lookup-python-example.yaml)** | Async (Python) | Async REST lookups with Python handlers. |
+
+### ☕ Procedural (Java)
+| File | Description | Features |
+| :--- | :--- | :--- |
+| **[`java/iot-fleet-analytics.yaml`](java/iot-fleet-analytics.yaml)** | IoT (Java) | Original high-scale sensor telemetry demo. |
+| **[`java/fraud-detection-flowlets.yaml`](java/fraud-detection-flowlets.yaml)** | Fraud (Java) | Transaction monitoring via Java Flowlets. |
+| **[`java/complex-enrichment-example.yaml`](java/complex-enrichment-example.yaml)** | Advanced | Multi-step pipeline with joins and lookups. |
+| **[`java/kafka-streaming-demo.yaml`](java/kafka-streaming-demo.yaml)** | Full Demo | Complete Kafka-to-Kafka streaming pipeline. |
+| **[`java/window-example.yaml`](java/window-example.yaml)** | Time Windows | Tumbling time-window aggregation. |
+| **[`java/datamapper-example.yaml`](java/datamapper-example.yaml)** | Data Mapping | XSLT 3.0 structural transformations. |
 
 ---
 
@@ -58,13 +63,13 @@ Unlike the standalone YAML examples, these files are formatted as Kubernetes obj
 
 1.  **Apply an Example**:
     ```bash
-    kubectl apply -f examples/k8s/kafka-streaming-demo.yaml
+    kubectl apply -f examples/k8s/camel/agent-support-triage.yaml
     ```
 
 2.  **Deploy the Flinkflow Engine**:
     Use the native-pipeline deployment manifest to start a Flink worker that watches for `Pipeline` CRs:
     ```bash
-    kubectl apply -f k8s/native-pipeline-deployment.yaml
+    kubectl apply -f deploy/k8s/native-pipeline-deployment.yaml
     ```
     *(Note: Ensure the JobManager arguments in `native-pipeline-deployment.yaml` match the `metadata.name` of your Pipeline CR.)*
 
@@ -72,7 +77,7 @@ Unlike the standalone YAML examples, these files are formatted as Kubernetes obj
     ```bash
     kubectl get pipes
     # or
-    kubectl describe pipeline kafka-streaming-demo
+    kubectl describe pipeline agent-support-triage-camel
     ```
 
 ---

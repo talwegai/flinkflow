@@ -209,7 +209,8 @@ public class FlowletResolver {
                     : substitute(tmplStep.getName(), params));
             concrete.setCode(tmplStep.getCode() == null ? null
                     : substitute(tmplStep.getCode(), params));
-            concrete.setLanguage(tmplStep.getLanguage());
+            concrete.setLanguage(tmplStep.getLanguage() == null ? null
+                    : substitute(tmplStep.getLanguage(), params));
             concrete.setConnector(tmplStep.getConnector());
 
             // Expand all properties

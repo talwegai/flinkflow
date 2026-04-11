@@ -13,7 +13,7 @@ graph TB
     end
 
     subgraph DEPLOY["🚀 Deployment Options"]
-        D1["Local<br/>run-local.sh"]
+        D1["Local<br/>scripts/run-local.sh"]
         D2["Docker<br/>docker run"]
         D3["Manual K8s<br/>kubectl apply"]
         D4["Flink K8s Operator<br/>FlinkDeployment CR"]
@@ -39,6 +39,8 @@ graph TB
         subgraph POLYGLOT["Polyglot Engine"]
             JANINO["Janino<br/>(Java Compiler)"]
             GRAALVM["GraalVM Python<br/>(Restricted Sandbox)"]
+            CAMEL["Apache Camel Engine<br/>(YAML DSL & Expressions)"]
+            AGENT_NODE["Agentic Bridge<br/>(OpenAI / Gemini / Vertex AI)"]
         end
         
         XSLT["Saxon<br/>XSLT 3.0 DataMapper"]
@@ -182,6 +184,9 @@ flowchart LR
         B -->|"process/filter/etc"| PL{"Runtime?"}
         PL -->|"java<br/>(Janino)"| D1["Direct JVM<br/>Execution"]
         PL -->|"python<br/>(GraalVM)"| D2["Sandboxed<br/>Execution"]
+        PL -->|"camel-yaml<br/>(YAML DSL)"| D3["Full Route<br/>Execution"]
+        PL -->|"camel-simple<br/>(Expressions)"| D3
+        B -->|"agent"| D4["Agentic Bridge<br/>(OpenAI/Gemini/Vertex)"]
         B -->|"datamapper"| E["XSLT 3.0<br/>(Saxon)"]
         B -->|"http-lookup"| F["Async HTTP<br/>Client"]
         B -->|"flowlet"| G["Flowlet Resolver"]
@@ -290,15 +295,35 @@ sequenceDiagram
 
 ## Polyglot & Security Architecture
 
-Flinkflow separates pipeline structure (YAML) from custom business logic (Java/Python).
+Flinkflow separates pipeline structure (YAML) from custom business logic (Java/Python/Camel/Agent).
 
 ### Execution Engines
 - **Janino Engine**: High-performance Java compilation at runtime. Snippets are compiled directly into Flink `RichMapFunction`, `RichFilterFunction`, etc., and execute at native JVM speeds.
 - **GraalVM Python Engine**: Advanced polyglot execution. Python snippets are executed within a **Restricted Sandbox** provided by the GraalVM Context API.
+- **Apache Camel Engine**: Declarative expression and route evaluation.
+    - **Expressions**: Supports **Simple**, **JsonPath**, and **Groovy** for data-centric transformations.
+    - **YAML DSL**: Supports full **Camel YAML DSL** fragments, enabling complex EIPs (Choice, Throttler, Unmarshal) within a single Flink operator.
+- **Agentic Bridge** (`language: agent`): Runs autonomous LLM-backed AI agents directly inside a Flink `ProcessFunction`. Supports multi-turn stateful memory (Flink `ValueState`), Flowlet-as-a-Tool execution, and multiple providers:
+    - **OpenAI**: `gpt-4o`, `gpt-4`, `o1-*`, `o3-*` — requires `OPENAI_API_KEY`
+    - **Google Gemini (AI Studio)**: `gemini-*` — requires `GOOGLE_API_KEY`
+    - **Google Vertex AI**: Any Gemini model with `provider: vertex` — uses Application Default Credentials (ADC)
 
 ### Security Sandboxing (Zero-Trust)
-To protect the Flink cluster and the underlying Kubernetes infrastructure, the Python runtime is strictly bounded:
-1. **I/O Isolation**: No access to the host file system or network sockets.
-2. **Context Isolation**: No access to the host JVM's `System` or arbitrary class lookup.
-3. **Resource Control**: Single-threaded execution with no ability to spawn background host processes.
-4. **Interface Isolation**: Guest code can only interact with the specific data records and callbacks (like `side_emit`) explicitly provided by the Flinkflow bridge.
+
+Flinkflow implements a strict, **deny-by-default** security model for guest code execution to protect the Flink JobManager and TaskManagers from potential exploits within user-supplied YAML logic.
+
+#### Python Sandbox Protections (GraalVM)
+
+The Python execution environment ([PythonEvaluator.java](../src/main/java/ai/talweg/flinkflow/core/PythonEvaluator.java)) is configured with a zero-trust policy:
+
+- **Blocked File System Access**: `IOAccess.NONE` is enforced. Guest scripts cannot read from or write to the host disk (it cannot access secrets, `/etc/hosts`, or log files).
+- **Blocked Java Class Lookup**: Scripts are prohibited from using `import java` or looking up arbitrary Java classes. This prevents scripts from calling `java.lang.System.exit()` or accessing internal JVM state.
+- **Blocked Native Access**: Loading native libraries or executing external binaries is strictly prohibited.
+- **Blocked Multi-Threading**: Scripts cannot spawn new host threads or background processes.
+- **Blocked Polyglot Interop**: Python logic cannot access or execute other guest languages.
+- **Scoped Host Access**: Guest code can only interact with host objects that are explicitly passed as arguments by the Flinkflow engine.
+
+#### Java Logic Validation (Janino)
+
+Java code snippets are dynamically compiled into isolated functional blocks. By default, they do not share broad access to the Flinkflow application's internal classes, ensuring that custom business logic remains bounded by the pipeline context.
+

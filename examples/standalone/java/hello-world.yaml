@@ -1,0 +1,17 @@
+name: "Hello World Pipeline"
+parallelism: 1
+steps:
+  - type: source
+    name: static-source
+    properties:
+      content: "Flinkflow,is,awesome"
+
+  - type: process
+    name: upper-case-transform
+    code: |
+      return input.toUpperCase();
+
+  - type: sink
+    name: console-sink
+    properties:
+      type: console

@@ -1,0 +1,46 @@
+name: "Python HTTP Enrichment Example"
+parallelism: 1
+
+# This example demonstrates Flinkflow's polyglot Async HTTP lookup support.
+# It uses Python snippets to build a dynamic URL and merge the JSON response,
+# all while maintaining high performance through Flink's native Async I/O.
+#
+# Run: ./scripts/run-local.sh examples/standalone/http-lookup-python-example.yaml
+
+steps:
+  - type: source
+    name: static-source
+    properties:
+      content: |
+        {"userId": "user_001", "name": "Alice"}
+        | {"userId": "user_002", "name": "Bob"}
+        | {"userId": "user_003", "name": "Charlie"}
+
+  - type: flowlet
+    name: http-enrich
+    with:
+      language: "python"
+      # Build a dynamic URL using string interpolation
+      urlCode: |
+        import json
+        tx = json.loads(input)
+        # In a real scenario, this would point to a real microservice
+        return f"https://httpbin.org/get?id={tx['userId']}"
+      
+      # Merge the HTTP response (JSON) back into the original record
+      mergeCode: |
+        import json
+        original = json.loads(input)
+        resp_obj = json.loads(response)
+        
+        # httpbin returns the query args in the 'args' field
+        original["external_meta"] = resp_obj.get("args", {})
+        original["status"] = "ENRICHED"
+        
+        return json.dumps(original)
+      
+      timeout: "5000"
+      capacity: "10"
+
+  - type: sink
+    name: console-sink

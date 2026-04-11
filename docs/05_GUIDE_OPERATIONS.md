@@ -22,6 +22,18 @@ kubectl apply -f k8s/monitor-deployment.yaml
 
 For detailed configuration of the Python client and UI components, refer to the **[Dashboard Directory](https://github.com/talwegai/flinkflow/blob/main/dashboard/README.md)**.
 
+### 📈 Enterprise Monitoring: Prometheus & Grafana
+For high-scale production workloads, Flinkflow exposes native metrics for ingestion via Prometheus.
+
+1.  **Metric Exposure**: The Flink cluster is configured to export metrics on port `9249` via the `PrometheusReporter`.
+2.  **Scraping**: If you have a Prometheus operator installed, the `deployment.yaml` includes annotations to automatically trigger scraping.
+3.  **Visualizing**: A pre-built Grafana dashboard is available at **`deploy/monitor/grafana-dashboard.json`**. This dashboard provides real-time visibility into Job-level throughput, JVM memory health, and task-level record rates.
+
+**Key Metrics to Watch:**
+*   `flink_jobmanager_job_numRecordsInPerSecond`: Input throughput per job.
+*   `flink_jobmanager_job_numRecordsOutPerSecond`: Output throughput per job.
+*   `flink_taskmanager_Status_JVM_Memory_Heap_Used`: Memory footprint of processing workers.
+
 ---
 
 ## ⚡ Performance: Polyglot "Compile Once" Architecture
@@ -44,7 +56,7 @@ Flinkflow has been tested to handle over **100,000 records/sec per task slot** f
 Use the `--dry-run` flag to validate your YAML structure and view the fully expanded and resolved graph without submitting the job to Flink.
 
 ```bash
-./run-local.sh ../examples/standalone/simple-transform-example.yaml --dry-run
+./scripts/run-local.sh examples/standalone/simple-transform-example.yaml --dry-run
 ```
 
 ### Log Inspection

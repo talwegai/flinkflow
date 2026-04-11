@@ -53,31 +53,61 @@ spec:
                   default: 1
                 steps:
                   type: array
+                  description: "The sequence of processing steps in the pipeline."
                   items:
                     type: object
                     required:
                       - type
+                      - name
                     properties:
                       type:
                         type: string
-                      connector:
-                        type: string
-                        description: "The name of the connector (e.g. kafka-source, static-source)."
+                        description: "The functional type of the pipeline step."
+                        enum:
+                          - source
+                          - sink
+                          - process
+                          - transform
+                          - filter
+                          - flatmap
+                          - keyby
+                          - groupby
+                          - reduce
+                          - aggregate
+                          - window
+                          - sideoutput
+                          - join
+                          - datamapper
+                          - http-lookup
+                          - flowlet
                       name:
                         type: string
+                        description: "A unique identifier for this step within the pipeline."
+                      connector:
+                        type: string
+                        description: "The name of the infrastructure connector (required for source/sink)."
                       code:
                         type: string
+                        description: "Inline logic or transformation snippet."
+                      language:
+                        type: string
+                        description: "The execution runtime for the code snippet."
+                        default: java
+                        enum:
+                          - java
+                          - python
+                          - camel
+                          - camel-yaml
+                          - camel-jsonpath
+                          - camel-simple
+                          - camel-groovy
                       properties:
                         type: object
+                        description: "Configuration parameters for the specific step or connector."
                         additionalProperties:
                           type: string
                       with:
                         type: object
+                        description: "Parameter values passed to a step of type 'flowlet'."
                         additionalProperties:
                           type: string
-                      language:
-                        type: string
-                        description: "Code runtime language: 'java' (Janino, default) or 'python' (GraalVM Polyglot)."
-                        enum:
-                          - java
-                          - python

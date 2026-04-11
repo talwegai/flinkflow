@@ -9,28 +9,33 @@ spec:
   title: "HTTP Enrichment"
   description: |
     An action Flowlet that asynchronously enriches each record by calling an
-    external REST API.  The URL is built from a Java snippet with access to the
-    `input` variable.  The response is merged back via a user-supplied code snippet.
+    external REST API. The logic can be implemented in Java (Janino) or Python (GraalVM).
   type: action
-  version: "1.0"
+  version: "1.1"
   labels:
     group: http
   parameters:
+    language:
+      title: "Snippet Language"
+      description: "Code language for snippets ('java' or 'python')."
+      type: string
+      required: false
+      defaultValue: "java"
     urlCode:
       title: "URL Builder Code"
-      description: "Java snippet returning the request URL. Variable `input` is available."
+      description: "Code snippet returning the request URL. Variable `input` is available."
       type: string
       required: true
       example: 'return "https://api.example.com/users/" + input.split(",")[1];'
     mergeCode:
       title: "Response Merge Code"
-      description: "Java snippet to merge `input` and `response` into the output record."
+      description: "Code snippet to merge `input` and `response` into the output record."
       type: string
       required: true
       example: 'return input + ",info=" + response;'
     authCode:
       title: "Auth Header Code"
-      description: "Optional Java snippet returning the Authorization header value."
+      description: "Optional code snippet returning the Authorization header value."
       type: string
       required: false
       defaultValue: ""
@@ -49,6 +54,7 @@ spec:
   template:
     - type: http-lookup
       name: http-enrich
+      language: "{{language}}"
       properties:
         urlCode: "{{urlCode}}"
         authCode: "{{authCode}}"

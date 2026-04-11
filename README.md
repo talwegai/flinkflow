@@ -18,9 +18,10 @@ Our mission is to be the **"Glue Layer"** for real-time event-driven architectur
 | Feature | Native Java Flink | Flinkflow |
 | :--- | :--- | :--- |
 | **Authoring** | Heavy Java/Maven Boilerplate | Declarative YAML DSL |
-| **Development Cycle** | Compile → Package → Deploy JAR | Instant Hot-Reload (YAML/Java/Python Snippets) |
+| **Development Cycle** | Compile → Package → Deploy JAR | Instant Hot-Reload (YAML/Java/Python/Camel Snippets) |
 | **Logic Changes** | ~10 minute CI/CD cycles | Seconds (Apply K8s CRD or YAML) |
-| **Target Persona** | Specialized Flink Engineers | Data Scientists, Analysts, DevOps, Backend Devs |
+| **Polyglot Runtimes** | Java Only | **Java** (Janino), **Python** (GraalVM), **Apache Camel** (Simple/JsonPath/YAML DSL) |
+| **Target Persona** | Specialized Flink Engineers | Data Scientists, Analysts, DevOps, Integration Devs |
 | **Component Model** | Custom Code / Classes | Reusable, Parameterized **Flowlets** |
 
 ---
@@ -30,25 +31,26 @@ Our mission is to be the **"Glue Layer"** for real-time event-driven architectur
 Flinkflow bridges the gap between high-performance data engineering and the broader developer ecosystem, empowering a diverse set of stakeholders:
 
 - **🐍 Data Scientists & Analysts**: Port existing Python logic, complex JSON parsing, and feature-engineering snippets directly into production using the secure **GraalVM Python** runtime.
+- **🐫 Low-Code & Integration Developers**: Build entire pipelines using **Apache Camel DSL**, **JsonPath**, and **Simple** expressions. Ideal for declarative transformations, filters, and field extractions without writing procedural code.
+  - *Ref: [Apache Camel](https://camel.apache.org/), [Simple Language](https://camel.apache.org/components/latest/languages/simple-language.html), [YAML DSL](https://camel.apache.org/manual/camel-yaml-dsl.html)*
 - **☸️ DevOps & Platform Engineers**: Manage high-throughput streaming as native Kubernetes **Pipeline CRDs**. No specialized JAR deployments or Maven assemblies—just pure GitOps via YAML.
 - **💻 Backend & Fullstack Developers**: Rapidly build stateful filters, enrichments, and multi-stream joins using a declarative DSL instead of mastering the Flink DataStream API.
 - **🏢 Enterprise Platforms**: Securely democratize streaming across teams. The **Zero-Trust Polyglot Sandbox** ensures that guest code (Java/Python) remains fully isolated and safe.
-- **🤖 GenAI & LLM Automations**: Flinkflow is a prime target for **"Chat-to-Pipeline"** generation. Its structured YAML schema is optimized for precise, valid synthesis by AI models.
+- **🤖 GenAI & Agentic AI**: Flinkflow is a **Declarative Agentic Platform**. Beyond simple "Chat-to-Pipeline" generation, it now supports native autonomous agents. These agents can reason over data streams, maintain stateful memory, and call your Flowlets as tools to take real-world actions.
 
 ---
 
 ## ✨ Features
 
 - **Declarative YAML DSL**: Define entire pipeline structures—Sources, Sinks, and Operations—in clean YAML.
-- **Polyglot Logic Snippets**: Inject custom logic directly into your YAML—support for both **Java (Janino)** and **Python (GraalVM)** for transformations, filters, and flatmaps without recompiling.
+- **Polyglot Logic Snippets**: Inject custom logic directly into your YAML—support for **Java (Janino)**, **Python (GraalVM)**, and **Apache Camel (Simple/JsonPath/Groovy)** for transformations, filters, and flatmaps.
 - **Kubernetes-Native (GitOps)**: Manage pipelines as `Pipeline` and `Flowlet` Custom Resources. Fully compatible with Helm, ArgoCD, and the Flink Kubernetes Operator. See [docs/07_DEPLOY_K8S.md](docs/07_DEPLOY_K8S.md).
 - **Reusable Flowlet Catalog**: Drag-and-drop capability for complex connectors (Kafka, Confluent, S3, JDBC) using parameterized components.
 - **Advanced Data Mapping**: Support for XSLT 3.0 via Saxon-HE for structural JSON/XML transformations (Kaoto integration). See [docs/06_GUIDE_DATAMAPPER.md](docs/06_GUIDE_DATAMAPPER.md).
 - **Observability Built-in**: Real-time monitoring of job health and throughput via a dedicated dashboard.
 - **Extensible Connectors**: Unified support for Kafka, S3, JDBC, HTTP Sinks, and more.
-- **Enterprise Security**: Native support for Kubernetes Secrets (`secret:name/key`) to secure credentials without hardcoding.
-- **Schema Management**: First-class integration with Confluent/Apicurio Schema Registry for Avro-encoded streams with automatic schema fetching.
-- **Extensible Connectors**: Unified support for Kafka, S3, JDBC, HTTP Sinks, and more.
+- **Agentic Bridge (New)**: Run autonomous AI agents directly in your stream. Support for **OpenAI** (GPT-4o), **Google Gemini**, and **Ollama** (Llama 3, Mistral, Phi-3). Includes stateful conversation history and Flowlet-as-a-Tool execution.
+- **Apache Camel Integration**: Use Camel **Simple**, **JSONPath**, and **YAML DSL** for expressive, low-code transformations — no Java required.
 - **Enterprise Security**: Native support for Kubernetes Secrets (`secret:name/key`) to secure credentials without hardcoding.
 - **Schema Management**: First-class integration with Confluent/Apicurio Schema Registry for Avro-encoded streams with automatic schema fetching.
 
@@ -66,7 +68,8 @@ To explore Flinkflow in detail, refer to the specialized documentation for each 
 *   **[Flowlet Registry (deploy/k8s/flowlets/)](deploy/k8s/flowlets/README.md)**: Library of reusable, parameterized pipeline components.
 *   **[XSLT DataMapper Guide](docs/06_GUIDE_DATAMAPPER.md)**: Deep dive into using Saxon-HE for structural mapping.
 *   **[System Architecture](docs/01_ARCHITECTURE.md)**: Detailed diagrams and component descriptions.
-*   **[Project Roadmap](docs/08_ROADMAP.md)**: Future milestones and planned features.
+*   **[ADR-005: Agentic Bridge](adr/005_AGENTIC_BRIDGE.md)**: Conceptual design for autonomous AI agents on Flink.
+*   **[Project Roadmap](docs/08_VISION.md)**: Future milestones and planned features.
 
 
 ---
@@ -85,6 +88,8 @@ graph LR
     subgraph "Flinkflow Engine"
         PARSER["YAML Parser & Flowlet Resolver"]
         JANINO["Polyglot Engine (Java/Python)"]
+        CAMEL["Camel Engine (Simple/JSONPath/YAML DSL)"]
+        AGENT["Agentic Bridge (OpenAI/Gemini/Ollama)"]
         DAG["Flink Stream Graph"]
     end
 
@@ -101,7 +106,11 @@ graph LR
     YAML --> PARSER
     FLOW --> PARSER
     PARSER --> JANINO
+    PARSER --> CAMEL
+    PARSER --> AGENT
     JANINO --> DAG
+    CAMEL --> DAG
+    AGENT --> DAG
     K8S --> FLINK
     DAG -.-> FLINK
     SRC --> FLINK
@@ -116,70 +125,21 @@ Flinkflow's YAML-first approach is specifically designed to be **LLM-optimized**
 
 *   **Chat-to-Pipeline**: Build complex real-time filters, enrichments, and aggregations using natural language.
 *   **Predictable Output**: The YAML schema ensures that generated pipelines are syntactically valid and architecturally consistent.
-*   **Encapsulated Logic**: Janino (Java) and GraalVM (Python) snippets allow for precise "injection" of custom business logic without breaking the high-level pipeline structure.
+*   **Encapsulated Logic**: Janino (Java), GraalVM (Python), and Apache Camel (Simple/JSONPath/YAML DSL) snippets allow for precise "injection" of custom business logic without breaking the high-level pipeline structure.
 
 ---
 
 ---
 
 ## ⚡ Performance: Polyglot-AOT Architecture
-Flinkflow achieves native-level performance through its **Janino-powered** (Java) and **GraalVM-powered** (Python) code injection system. All logic snippets in your YAML are compiled/optimized **exactly once** during job startup, resulting in zero overhead during high-throughput record processing.
+Flinkflow achieves native-level performance through its **Janino-powered** (Java), **GraalVM-powered** (Python), and **Camel-powered** (Simple/JSONPath/YAML DSL) code injection system. All logic snippets in your YAML are compiled/optimized **exactly once** during job startup, resulting in zero overhead during high-throughput record processing.
 > See **[Operations & Performance (docs/05_GUIDE_OPERATIONS.md)](docs/05_GUIDE_OPERATIONS.md)** for details.
 
 ---
 
-## Project Structure
+## 📂 Project Structure
 
-```
-flinkflow/
-├── src/
-│   ├── main/java/ai/talweg/flinkflow/
-│   │   ├── FlinkflowApp.java               # Main entry point: parses YAML, builds & executes the Flink DAG
-│   │   ├── config/                         # YAML/JSON deserialization models
-│   │   │   ├── JobConfig.java              # Top-level pipeline configuration
-│   │   │   ├── StepConfig.java             # Individual pipeline step (type, name, code, runtime)
-│   │   │   └── k8s/                        # Kubernetes CRD models (kind: Pipeline)
-│   │   ├── validation/                     # Pipeline integrity & parameter checks
-│   │   ├── core/                           # Polyglot Runtime (Java & Python)
-│   │   │   ├── ProcessorFactory.java       # Primary factory for dynamic functions
-│   │   │   ├── PythonEvaluator.java        # Sandboxed GraalVM Python runtime management
-│   │   │   ├── DynamicCodeFunction.java    # Janino-backed Java logic (Map/Filter/FlatMap)
-│   │   │   ├── DynamicPython...Function.java # GraalVM-backed Python logic (10+ polyglot variants)
-│   │   │   ├── DynamicAsyncHttpFunction.java # Asynchronous enrichment (HTTP Lookups)
-│   │   │   ├── DataMapperFunction.java     # Saxon-HE based XSLT 3.0 transformations
-│   │   │   └── ... (Join, Windowing, Reduce, and Sink functions)
-│   │   └── flowlet/                        # Reusable, parameterized component system
-│   │       ├── FlowletResolver.java        # Expands flowlet steps into primitive Flink operations
-│   │       ├── FlowletRegistry.java        # Discovery & caching of Flowlets (K8s & Classpath)
-│   │       └── k8s/                        # Kubernetes CRD models (kind: Flowlet)
-│   └── test/
-│       └── java/ai/talweg/flinkflow/
-│           └── SmokeTestSuite.java         # Factory: Dynamically generates JUnit tests from YAML examples
-│
-├── examples/                               # Pipeline templates & configurations
-│   ├── standalone/                         # Standalone YAMLs (23+ templates)
-│   └── k8s/                                # Kubernetes CRDs (23+ resource templates)
-│
-├── deploy/                                 # Deployment & Infrastructure
-│   ├── docker/                             # Dockerfiles & Compose configurations
-│   ├── k8s/                                # Kubernetes infrastructure manifests
-│   ├── scripts/                            # Automation & Utility scripts
-│   └── run-local.sh                        # Local execution helper script
-│
-├── dashboard/                              # Monitoring Dashboard
-│   ├── monitor.py                          # NiceGUI application for real-time observability
-│   └── flink_client.py                     # Wrapper for Flink REST API
-│
-├── docs/                                   # Detailed Technical Documentation
-│   ├── ARCHITECTURE.md                     # Deep-dive into internal component design
-│   ├── GUIDE_CONFIGURATION.md              # Global DSL & Connector reference
-│   ├── GUIDE_OPERATIONS.md                 # Performance tuning & monitoring guide
-│   └── README-flinkflow-k8s.md             # Authoritative Kubernetes setup guide
-│
-├── Dockerfile                              # Multi-stage build (Maven -> Flink-ready image)
-├── pom.xml                                 # Maven build (Shade, JaCoCo, Janino, GraalVM)
-└── README.md                               # This file
-```
+To explore the Flinkflow codebase and directory layout, see the **[Developer Guide (docs/03_DEVELOPER_GUIDE.md)](docs/03_DEVELOPER_GUIDE.md)**.
 
 
 ## Getting Started
@@ -205,7 +165,7 @@ To ensure all examples and core components are functional, you can run the smoke
 
 **Via Shell Script (Full CLI validation):**
 ```bash
-./deploy/scripts/smoke-test.sh
+./deploy/test/smoke-test.sh
 ```
 
 **Via Maven (JUnit-integrated):**
@@ -217,7 +177,7 @@ mvn test -Dtest=SmokeTestSuite
 
 You can run a pipeline locally using the provided helper script:
 
-1. Create a `pipeline.yaml` (see `examples/standalone/simple-transform-example.yaml`):
+1. Create a `pipeline.yaml` (see `examples/standalone/java/simple-transform-example.yaml`):
 
 ```yaml
 name: "My Flink Job"
@@ -242,14 +202,14 @@ steps:
 2. Run using the helper script:
 
 ```bash
-./run-local.sh examples/standalone/simple-transform-example.yaml
+./scripts/run-local.sh examples/standalone/java/simple-transform-example.yaml
 ```
 
 Or manually using Maven with the `local-run` profile:
 
 ```bash
 mvn exec:java -P local-run -Dexec.mainClass="ai.talweg.flinkflow.FlinkflowApp" \
-    -Dexec.args="examples/standalone/simple-transform-example.yaml"
+    -Dexec.args="examples/standalone/java/simple-transform-example.yaml"
 ```
 
 ### 🛠️ Advanced CLI Arguments
@@ -264,21 +224,42 @@ Flinkflow supports several arguments to aid local development and validation:
 **Example (Dry-run with local flowlets):**
 ```bash
 mvn exec:java -P local-run -Dexec.mainClass="ai.talweg.flinkflow.FlinkflowApp" \
-    -Dexec.args="examples/standalone/complex-enrichment-example.yaml --dry-run --flowlet-dir deploy/k8s/flowlets"
+    -Dexec.args="examples/standalone/java/complex-enrichment-example.yaml --dry-run --flowlet-dir deploy/k8s/flowlets"
 ```
 
 ### Docker Deployment
 
 1. Build the Docker image:
+   (Ensure you have run `mvn clean package` first to generate the JAR)
 
 ```bash
-docker build -t flinkflow:latest .
+docker build -t flinkflow:latest -f deploy/docker/Dockerfile .
 ```
 
-2. Run the Docker container:
+2. **Quick Test**: Run a sample pipeline in Local Mode (MiniCluster) directly from the container:
 
 ```bash
-docker run --rm flinkflow:latest
+# Run a bounded example (Hello World)
+docker run --rm flinkflow:latest \
+  java -cp "/opt/flink/usrlib/flinkflow.jar:/opt/flink/lib/*" \
+  ai.talweg.flinkflow.FlinkflowApp \
+  /opt/flink/examples/standalone/java/hello-world.yaml
+```
+
+3. **Solutions Demo**: Run a continuous, multi-step IoT analytics pipeline:
+
+```bash
+# Run the Python-based solutions demo
+docker run --rm flinkflow:latest \
+  java -cp "/opt/flink/usrlib/flinkflow.jar:/opt/flink/lib/*" \
+  ai.talweg.flinkflow.FlinkflowApp \
+  /opt/flink/examples/standalone/python/iot-fleet-analytics-python.yaml
+
+# Run the Camel-based (Low-Code/Declarative) solutions demo
+docker run --rm flinkflow:latest \
+  java -cp "/opt/flink/usrlib/flinkflow.jar:/opt/flink/lib/*" \
+  ai.talweg.flinkflow.FlinkflowApp \
+  /opt/flink/examples/standalone/camel/iot-fleet-analytics-camel.yaml
 ```
 
 ---
@@ -328,7 +309,7 @@ For the best developer experience, Flinkflow allows you to define your entire jo
         - type: sink
           name: console-sink
     ```
-    Apply it with `kubectl apply -f my-pipeline.yaml` (see **`examples/k8s/k8s-native-pipeline-resource.yaml`** for a full template).
+    Apply it with `kubectl apply -f my-pipeline.yaml` (see **`examples/k8s/java/k8s-native-pipeline-resource.yaml`** for a full template).
 
 3.  **Run the Native Deployment**:
     Use the provided manifest to start a Flink cluster that fetches this CR:
@@ -414,6 +395,51 @@ steps:
     name: console-sink
 ```
 
+### 🤖 Agentic AI Example (Autonomous Reasoning)
+```yaml
+name: "Autonomous Support Agent"
+steps:
+  - type: source
+    name: customer-query-stream
+  - type: agent
+    name: help-genius
+    properties:
+      model: "gpt-4o"
+      systemPrompt: "Analyze the user query. Use the order-lookup tool if needed."
+      tools: "order-lookup, refund-processor"
+  - type: sink
+    name: action-log
+
+### 🤖 Local AI with Ollama
+```yaml
+name: "Local Offline Agent"
+steps:
+  - type: source
+    name: logs
+  - type: agent
+    name: local-analyst
+    properties:
+      model: "ollama:mistral" # Auto-detected via 'ollama:' prefix
+      baseUrl: "http://localhost:11434"
+      systemPrompt: "Summarize this log entry for any anomalies."
+  - type: sink
+    name: console
+```
+
+### 🌍 Advanced End-to-End Examples
+For full end-to-end pipelines that stream data, utilize Flowlets, tumbling windows, and condition engines, check out our catalog!
+
+We provide both Kubernetes CRD and Standalone definitions, implemented in both Java and Python:
+
+**Real-Time Fraud Evaluation Pipeline:**
+- **Kubernetes (Java)**: `examples/k8s/java/fraud-detection-flowlets.yaml`
+- **Kubernetes (Python)**: `examples/k8s/python/fraud-detection-flowlets-python.yaml`
+
+**IoT Sensor Fleet Analytics:**
+- **Kubernetes (Java)**: `examples/k8s/java/iot-fleet-analytics.yaml`
+- **Kubernetes (Python)**: `examples/k8s/python/iot-fleet-analytics-python.yaml`
+- **Standalone (Camel/Low-Code)**: `examples/standalone/camel/iot-fleet-analytics-camel.yaml`
+
 ---
 
 ## 🏗️ Reusable Components: Flowlets
@@ -441,25 +467,41 @@ The **NiceGUI-based dashboard** provides real-time visibility into your Flink me
 
 ## 🔒 Security: Polyglot Sandboxing
 
-Flinkflow implements a strict, **deny-by-default** security model for guest code execution. While many streaming platforms grant broad host access to scripts, Flinkflow uses a hardened **GraalVM Python sandbox** and restricted **Janino Java** runtime to protect the Flink JobManager and TaskManagers from potential exploits within user-supplied YAML logic.
+Flinkflow implements a strict, **deny-by-default** security model for guest code execution. It uses a hardened **GraalVM Python sandbox** and restricted **Janino Java** runtime to protect the Flink cluster from potential exploits within user-supplied YAML logic.
 
-### Python Sandbox Protections (GraalVM)
-
-The Python execution environment ([PythonEvaluator.java](src/main/java/ai/talweg/flinkflow/core/PythonEvaluator.java)) is configured with a zero-trust policy:
-
--   **Blocked File System Access**: `IOAccess.NONE` is enforced. Guest scripts cannot read from or write to the host disk (it cannot access secrets, `/etc/hosts`, or log files).
--   **Blocked Java Class Lookup**: Scripts are prohibited from using `import java` or looking up arbitrary Java classes. This prevents scripts from calling `java.lang.System.exit()` or accessing Flink's internal JVM state.
--   **Blocked Native Access**: Loading native libraries or executing external binaries is strictly prohibited.
--   **Blocked Multi-Threading**: Scripts cannot spawn new host threads or background processes.
--   **Blocked Polyglot Interop**: Python logic cannot access or execute other guest languages.
--   **Scoped Host Access**: Guest code can only interact with host objects (like `side_emit` or records) that are explicitly passed as arguments by the Flinkflow engine.
-
-### Java Logic Validation (Janino)
-
-Java code snippets are dynamically compiled into isolated functional blocks. By default, they do not share broad access to the Flinkflow application's internal classes, ensuring that "injection" of custom business logic remains bounded by the pipeline context.
+> [!TIP]
+> This security architecture makes Flinkflow uniquely suited for **LLM-generated pipelines** and **Multi-Tenant environments**. Detailed technical specs on the sandbox isolation can be found in our **[Security Policy (docs/09_SECURITY.md)](docs/09_SECURITY.md)**.
 
 > [!IMPORTANT]
 > This security architecture makes Flinkflow uniquely suited for **LLM-generated pipelines** and **Multi-Tenant environments**, where safety and isolation are paramount.
+
+## 🏢 Talweg Enterprise & Services
+
+Flinkflow is maintained by **[Talweg](https://talweg.ai)**. While the core engine is free and open-source, we offer professional services and an enterprise-grade distribution for organization-wide streaming platforms.
+
+| Feature | Community Edition | Talweg Enterprise |
+| :--- | :---: | :---: |
+| **Core DSL & Polyglot Runtimes** | ✅ | ✅ |
+| **Agentic Bridge (LLM Integration)** | ✅ | ✅ |
+| **Kafka, S3, JDBC Connectors** | ✅ | ✅ |
+| **Flinkflow Web IDE (Visual DAG Builder)** | ❌ | ✅ |
+| **In-stream ML & AI Validation Assist** | ❌ | ✅ |
+| **Live Hot-Reloading** | ❌ | ✅ |
+| **Enterprise RBAC & SSO** | ❌ | ✅ |
+| **Air-Gapped Container Gallery** | ❌ | ✅ |
+| **Advanced Observability (SLA/Audit)** | ❌ | ✅ |
+| **Proprietary High-Perf Connectors** | ❌ | ✅ |
+| **24/7 Production Support** | ❌ | ✅ |
+
+### 🛠️ Professional Services
+Talweg provides expert consulting and managed services to accelerate your streaming journey:
+- **Pipeline Architecture Reviews**: Expert validation of your DAGs, stateful logic, and secret management.
+- **End-to-End Pipeline Development**: Full-lifecycle implementation support, from data source ingestion to final sink delivery.
+- **Custom Flowlet Development**: Building proprietary, secure connectors for your internal systems (SAP, AS/400, etc.).
+- **Agentic AI & ML Strategy**: Real-time inference optimization and agentic workflow design.
+- **Managed Hosting**: Fully managed, auto-scaling container based Flinkflow clusters on AWS, Azure, GCP, or On-Premise.
+
+**Need help or looking for enterprise features?** [Contact our team](mailto:contact@talweg.ai) or visit **[talweg.ai](https://talweg.ai)**.
 
 ---
 

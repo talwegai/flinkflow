@@ -22,7 +22,8 @@ package ai.talweg.flinkflow.flowlet;
  * This is part of the Flowlet spec's parameter schema, inspired by Apache
  * Camel Kamelet parameter definitions.
  */
-public class FlowletParameter {
+public class FlowletParameter implements java.io.Serializable {
+    private static final long serialVersionUID = 1L;
 
     /** Short human-readable title for this parameter. */
     private String title;

@@ -29,8 +29,9 @@ If you discover a security vulnerability within Flinkflow, please report it to u
 ## Security Architecture
 
 Flinkflow is designed with a **Zero-Trust** security model for guest code execution (Java/Python). 
-- **Polyglot Sandbox**: All Python logic is executed in a restricted GraalVM context with blocked file system and network access.
-- **Credential Safety**: We natively support Kubernetes Secrets to prevent hardcoding credentials in YAML definitions.
+
+For a detailed technical breakdown of our sandboxing architecture, including GraalVM and Janino isolation layers, please refer to the **[System Architecture Guide](01_ARCHITECTURE.md#security-sandboxing-zero-trust)**.
+
 
 ---
 *Thank you for helping keep Flinkflow secure!*

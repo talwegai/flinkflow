@@ -298,6 +298,14 @@ public class FlinkflowApp {
                         throw new RuntimeException("Stream not initialized. Source step missing.");
                     stream = applyHttpLookup(stream, step);
                     break;
+                case "agent":
+                    if (stream == null)
+                        throw new RuntimeException("Stream not initialized. Source step missing.");
+                    String agentModel = step.getProperties().getOrDefault("model", "gpt-4o");
+                    String systemPrompt = step.getProperties().getOrDefault("systemPrompt", "You are a helpful assistant.");
+                    boolean useMemory = Boolean.parseBoolean(step.getProperties().getOrDefault("memory", "true"));
+                    stream = stream.process(ProcessorFactory.createAgent(step.getName(), agentModel, systemPrompt, useMemory, step.getProperties(), flowletRegistry.getCatalog()));
+                    break;
                 case "sink":
                     if (stream == null)
                         throw new RuntimeException("Stream not initialized. Source step missing.");
@@ -622,7 +630,7 @@ public class FlinkflowApp {
 
         return AsyncDataStream.unorderedWait(
                 stream,
-                ProcessorFactory.createAsyncHttpLookup(urlCode, responseCode, authCode),
+                ProcessorFactory.createAsyncHttpLookup(urlCode, responseCode, authCode, step.getLanguage()),
                 timeout,
                 TimeUnit.MILLISECONDS,
                 capacity);

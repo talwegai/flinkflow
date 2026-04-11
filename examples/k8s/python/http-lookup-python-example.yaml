@@ -1,0 +1,33 @@
+apiVersion: flinkflow.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: http-lookup-python-example
+spec:
+  parallelism: 2
+  steps:
+    - type: source
+      name: static-source
+      properties:
+        content: |
+          {"userId": "user_001", "name": "Alice"}
+          | {"userId": "user_002", "name": "Bob"}
+
+    - type: flowlet
+      name: http-enrich
+      with:
+        language: "python"
+        urlCode: |
+          import json
+          tx = json.loads(input)
+          return f"https://httpbin.org/get?id={tx['userId']}"
+        mergeCode: |
+          import json
+          original = json.loads(input)
+          resp_obj = json.loads(response)
+          original["external_meta"] = resp_obj.get("args", {})
+          original["status"] = "ENRICHED_BY_PYTHON"
+          return json.dumps(original)
+        timeout: "5000"
+
+    - type: sink
+      name: console-sink
