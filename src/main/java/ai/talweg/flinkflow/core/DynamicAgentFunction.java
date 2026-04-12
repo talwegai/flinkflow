@@ -21,8 +21,9 @@ import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.ollama.OllamaChatModel;
 import dev.langchain4j.service.AiServices;
-import org.apache.flink.api.common.state.ValueState;
-import org.apache.flink.api.common.state.ValueStateDescriptor;
+import org.apache.flink.api.common.state.v2.ValueState;
+import org.apache.flink.api.common.state.v2.ValueStateDescriptor;
+import org.apache.flink.api.common.functions.OpenContext;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.functions.ProcessFunction;
@@ -76,7 +77,7 @@ public class DynamicAgentFunction extends ProcessFunction<String, String> {
     }
 
     @Override
-    public void open(Configuration parameters) throws Exception {
+    public void open(OpenContext parameters) throws Exception {
         String provider = detectProvider();
         LOG.info("Initializing Agentic Bridge [{}] — model: {}, provider: {}", agentName, model, provider);
 
@@ -116,14 +117,29 @@ public class DynamicAgentFunction extends ProcessFunction<String, String> {
 
     @Override
     public void processElement(String input, Context ctx, Collector<String> out) throws Exception {
-        try {
-            String history = (useMemory && chatHistoryState != null) ? chatHistoryState.value() : null;
-            String systemContext = (history != null) ? (systemPrompt + "\n--- History ---\n" + history) : systemPrompt;
+        if (!useMemory || chatHistoryState == null) {
+            executeAgent(input, null, out);
+            return;
+        }
 
+        // State V2: Access history asynchronously
+        chatHistoryState.asyncValue().thenAccept(history -> {
+            try {
+                executeAgent(input, history, out);
+            } catch (Exception e) {
+                LOG.error("Agent [{}] async execution failed: {}", agentName, e.getMessage());
+            }
+        });
+    }
+
+    private void executeAgent(String input, String history, Collector<String> out) throws Exception {
+        try {
+            String systemContext = (history != null) ? (systemPrompt + "\n--- History ---\n" + history) : systemPrompt;
             String response = agent.chat(systemContext, input);
 
             if (useMemory && chatHistoryState != null) {
-                chatHistoryState.update(systemContext + "\nUser: " + input + "\nAssistant: " + response);
+                String newHistory = systemContext + "\nUser: " + input + "\nAssistant: " + response;
+                chatHistoryState.asyncUpdate(newHistory);
             }
 
             out.collect(String.format("{\"agent\":\"%s\",\"model\":\"%s\",\"output\":%s}",

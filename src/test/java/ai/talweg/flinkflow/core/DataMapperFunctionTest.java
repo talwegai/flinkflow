@@ -23,6 +23,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.util.CloseableIterator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.apache.flink.api.common.functions.OpenContext;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -118,7 +119,7 @@ public class DataMapperFunctionTest {
     public void testMissingXsltFileThrows() {
         DataMapperFunction fn = new DataMapperFunction("/tmp/nonexistent.xslt");
         assertThrows(Exception.class, () -> {
-            fn.open(new org.apache.flink.configuration.Configuration());
+            fn.open((OpenContext) null);
         }, "Opening a non-existent XSLT file should throw");
     }
 }

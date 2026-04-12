@@ -1,6 +1,8 @@
 # Flinkflow
 
-**Flinkflow** is a declarative, low-code data streaming platform built on top of Apache Flink. Inspired by Apache Camel K, it democratizes stateful stream processing by abstracting the complexities of the Flink API into a simple, Kubernetes-native YAML DSL.
+![Flink 2.2.0](https://img.shields.io/badge/Apache_Flink-2.2.0-E6522C?style=for-the-badge&logo=apache-flink)
+
+**Flinkflow** is a declarative, low-code data streaming platform built natively for **Apache Flink 2.2.0**. Inspired by Apache Camel K, it democratizes stateful stream processing by abstracting the complexities of the modern Flink DataStream V2 API into a simple, Kubernetes-native YAML DSL.
 
 ---
 **[🌐 Documentation](https://talweg.ai)** | **[🚀 Get Started](https://talweg.ai/docs/)** | **[🏗️ Architecture](https://talweg.ai/docs/01_ARCHITECTURE)**
@@ -49,7 +51,8 @@ Flinkflow bridges the gap between high-performance data engineering and the broa
 - **Advanced Data Mapping**: Support for XSLT 3.0 via Saxon-HE for structural JSON/XML transformations (Kaoto integration). See [docs/06_GUIDE_DATAMAPPER.md](docs/06_GUIDE_DATAMAPPER.md).
 - **Observability Built-in**: Real-time monitoring of job health and throughput via a dedicated dashboard.
 - **Extensible Connectors**: Unified support for Kafka, S3, JDBC, HTTP Sinks, and more.
-- **Agentic Bridge (New)**: Run autonomous AI agents directly in your stream. Support for **OpenAI** (GPT-4o), **Google Gemini**, and **Ollama** (Llama 3, Mistral, Phi-3). Includes stateful conversation history and Flowlet-as-a-Tool execution.
+- **Agentic Bridge (Flink 2.2+)**: Run autonomous AI agents directly in your stream. Support for **OpenAI** (GPT-4o), **Google Gemini**, and **Ollama**. Powered by **Flink State V2**, providing non-blocking, asynchronous memory for conversation history and reasoning.
+- **Asynchronous State Processing**: Native support for Flink's State V2 APIs in all Agentic steps, ensuring high throughput even with large state sizes or remote backends.
 - **Apache Camel Integration**: Use Camel **Simple**, **JSONPath**, and **YAML DSL** for expressive, low-code transformations — no Java required.
 - **Enterprise Security**: Native support for Kubernetes Secrets (`secret:name/key`) to secure credentials without hardcoding.
 - **Schema Management**: First-class integration with Confluent/Apicurio Schema Registry for Avro-encoded streams with automatic schema fetching.
@@ -146,8 +149,9 @@ To explore the Flinkflow codebase and directory layout, see the **[Developer Gui
 
 ### Prerequisites
 
-- Java 17+
-- Maven 3+
+- Java 17+ (Java 21 recommended for Flink 2.2)
+- Maven 3.8+
+- Apache Flink 2.2.0 (for deployment)
 - Docker (optional, for containerization)
 - Kubernetes (optional, for deployment)
 
@@ -163,7 +167,7 @@ This will produce a shaded JAR in `target/flinkflow-0.9.0-BETA.jar`.
 
 To ensure all examples and core components are functional, you can run the smoke test suite. This suite performs a `--dry-run` validation on all standalone YAML examples.
 
-**Via Shell Script (Full CLI validation):**
+**Via Shell Script (Full validation):**
 ```bash
 ./deploy/test/smoke-test.sh
 ```
@@ -205,12 +209,12 @@ steps:
 ./scripts/run-local.sh examples/standalone/java/simple-transform-example.yaml
 ```
 
-Or manually using Maven with the `local-run` profile:
+Or manually using Maven to spin up a managed local cluster execution:
 
 ```bash
-mvn exec:java -P local-run -Dexec.mainClass="ai.talweg.flinkflow.FlinkflowApp" \
-    -Dexec.args="examples/standalone/java/simple-transform-example.yaml"
+mvn exec:exec -P local-run -Dapp.args="examples/standalone/java/simple-transform-example.yaml"
 ```
+*(This automatically safely handles Flink 2.2 classloading and Java 17+ memory flags via a natively forked JVM.)*
 
 ### 🛠️ Advanced CLI Arguments
 
@@ -223,8 +227,7 @@ Flinkflow supports several arguments to aid local development and validation:
 
 **Example (Dry-run with local flowlets):**
 ```bash
-mvn exec:java -P local-run -Dexec.mainClass="ai.talweg.flinkflow.FlinkflowApp" \
-    -Dexec.args="examples/standalone/java/complex-enrichment-example.yaml --dry-run --flowlet-dir deploy/k8s/flowlets"
+mvn exec:exec -P local-run -Dapp.args="examples/standalone/java/complex-enrichment-example.yaml --dry-run --flowlet-dir deploy/k8s/flowlets"
 ```
 
 ### Docker Deployment
@@ -491,7 +494,8 @@ Flinkflow is maintained by **[Talweg](https://talweg.ai)**. While the core engin
 | **Air-Gapped Container Gallery** | ❌ | ✅ |
 | **Advanced Observability (SLA/Audit)** | ❌ | ✅ |
 | **Proprietary High-Perf Connectors** | ❌ | ✅ |
-| **24/7 Production Support** | ❌ | ✅ |
+| **Day 1 Setup Support (Kubernetes)** | ❌ | ✅ |
+| **Professional Services** | ❌ | ✅ |
 
 ### 🛠️ Professional Services
 Talweg provides expert consulting and managed services to accelerate your streaming journey:

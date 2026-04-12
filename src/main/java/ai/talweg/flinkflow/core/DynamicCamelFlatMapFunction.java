@@ -16,8 +16,8 @@
 
 package ai.talweg.flinkflow.core;
 
+import org.apache.flink.api.common.functions.OpenContext;
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
-import org.apache.flink.configuration.Configuration;
 import org.apache.flink.util.Collector;
 import java.util.Collection;
 
@@ -33,7 +33,7 @@ public class DynamicCamelFlatMapFunction extends RichFlatMapFunction<String, Str
     }
 
     @Override
-    public void open(Configuration parameters) {
+    public void open(OpenContext parameters) {
         evaluator.open();
     }
 

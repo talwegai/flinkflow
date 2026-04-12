@@ -48,6 +48,13 @@ Flinkflow achieves native-level performance through its **Janino-powered** (Java
 ### Throughput Benchmarks
 Flinkflow has been tested to handle over **100,000 records/sec per task slot** for simple filtering and transformation logic on standard heap configurations.
 
+### 🧠 State V2: Asynchronous Memory Management (New in Flink 2.2)
+Starting with Flinkflow v1.0, stateful operations (like Agentic Memory) utilize **Flink State V2**.
+
+1.  **Non-blocking I/O**: Previously, state access (`ValueState.value()`) was a blocking operation that halted the task thread. With State V2, Flinkflow uses `asyncValue().thenAccept(...)`, allowing the thread to continue processing other records while the state is being fetched from the backend (especially beneficial for RocksDB or remote S3 state backends).
+2.  **Higher Throughput for Agents**: Agents with large history can now process records more efficiently as the LLM inference and state persistence happen concurrently.
+3.  **Disaggregated State Compatibility**: Flink 2.2's State V2 is designed for disaggregated storage, allowing your Agentic Bridge to scale to millions of concurrent "conversations" without filling TaskManager local disks.
+
 ---
 
 ## 🔍 Troubleshooting & Verification

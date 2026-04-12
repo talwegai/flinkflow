@@ -17,6 +17,7 @@
 
 package ai.talweg.flinkflow.core;
 
+import org.apache.flink.api.common.functions.OpenContext;
 import org.apache.flink.streaming.api.functions.ProcessFunction;
 import org.apache.flink.util.Collector;
 import org.apache.flink.util.OutputTag;
@@ -74,7 +75,7 @@ public class DynamicSideOutputFunction extends ProcessFunction<String, String> {
      * @throws Exception if code compilation or instance creation fails
      */
     @Override
-    public void open(org.apache.flink.configuration.Configuration parameters) throws Exception {
+    public void open(OpenContext parameters) throws Exception {
         String className = "DynamicSideOutput_" + System.nanoTime();
 
         // This class template implements a simple method which we'll call reflectively.

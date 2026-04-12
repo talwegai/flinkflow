@@ -16,8 +16,8 @@
 
 package ai.talweg.flinkflow.core;
 
+import org.apache.flink.api.common.functions.OpenContext;
 import org.apache.flink.api.common.functions.RichFilterFunction;
-import org.apache.flink.configuration.Configuration;
 
 /**
  * A Flink FilterFunction that evaluates a Camel predicate (Simple, JsonPath, etc.)
@@ -31,7 +31,7 @@ public class DynamicCamelFilterFunction extends RichFilterFunction<String> {
     }
 
     @Override
-    public void open(Configuration parameters) {
+    public void open(OpenContext parameters) {
         evaluator.open();
     }
 

@@ -56,7 +56,8 @@ Flinkflow is maintained by **[Talweg](https://talweg.ai)**. While the core engin
 | **Air-Gapped Container Gallery** | ❌ | ✅ |
 | **Advanced Observability (SLA/Audit)** | ❌ | ✅ |
 | **Proprietary High-Perf Connectors** | ❌ | ✅ |
-| **24/7 Production Support** | ❌ | ✅ |
+| **Day 1 Setup Support (Kubernetes)** | ❌ | ✅ |
+| **Professional Services** | ❌ | ✅ |
 
 ### 🛠️ Professional Services
 Talweg provides expert consulting and managed services to accelerate your streaming journey:

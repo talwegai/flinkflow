@@ -17,6 +17,7 @@
 
 package ai.talweg.flinkflow.core;
 
+import org.apache.flink.api.common.functions.OpenContext;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.functions.async.ResultFuture;
 import org.apache.flink.streaming.api.functions.async.RichAsyncFunction;
@@ -63,7 +64,7 @@ public class DynamicAsyncHttpFunction extends RichAsyncFunction<String, String> 
     }
 
     @Override
-    public void open(Configuration parameters) throws Exception {
+    public void open(OpenContext parameters) throws Exception {
         httpClient = HttpClient.newBuilder()
                 .version(HttpClient.Version.HTTP_2)
                 .followRedirects(HttpClient.Redirect.NORMAL)

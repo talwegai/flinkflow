@@ -168,7 +168,7 @@ public class FlinkflowAppTest {
             writer.write("    name: console-sink\n");
         }
         
-        // This won't run anything but validates the CLI args parsing branch and the dry run bypass logic.
+        // This won't run anything but validates the runner args parsing branch and the dry run bypass logic.
         assertDoesNotThrow(() -> {
             int status = FlinkflowApp.execute(new String[]{
                 "--dry-run",

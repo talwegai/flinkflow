@@ -17,7 +17,7 @@
 
 package ai.talweg.flinkflow.core;
 
-import org.apache.flink.configuration.Configuration;
+import org.apache.flink.api.common.functions.OpenContext;
 import org.apache.flink.streaming.api.functions.co.ProcessJoinFunction;
 import org.apache.flink.util.Collector;
 import org.slf4j.Logger;
@@ -36,7 +36,7 @@ public class DynamicPythonJoinFunction extends ProcessJoinFunction<String, Strin
     }
 
     @Override
-    public void open(Configuration parameters) throws Exception {
+    public void open(OpenContext parameters) throws Exception {
         evaluator = new PythonEvaluator(codeBody, "def process(left, right)");
         evaluator.open();
         LOG.info("Python JoinFunction initialized");

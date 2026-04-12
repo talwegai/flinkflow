@@ -10,7 +10,7 @@ EXAMPLES_DIR="examples/standalone"
 RUN_SCRIPT="./scripts/run-local.sh"
 
 echo "========================================================="
-echo "   Flinkflow Smoke Test Suite: CLI Validation            "
+echo "   Flinkflow Smoke Test Suite: Argument Validation       "
 echo "========================================================="
 
 # Build project once to ensure jar is up-to-date
@@ -33,10 +33,9 @@ cd "$(dirname "$0")/../.."
 for f in $(find $EXAMPLES_DIR -name "*.yaml"); do
     echo -n "Checking $(basename $f)... "
     
-    # Run via mvn exec:java which handles classpath correctly including logging
+    # Run via run-local.sh script which correctly sets Java flags and uses the fat JAR
     TMP_LOG=$(mktemp)
-    if mvn exec:java -P local-run -Dexec.mainClass="ai.talweg.flinkflow.FlinkflowApp" \
-        -Dexec.args="$f --dry-run --flowlet-dir deploy/k8s/flowlets" > "$TMP_LOG" 2>&1; then
+    if $RUN_SCRIPT --no-compile "$f" --dry-run --flowlet-dir deploy/k8s/flowlets > "$TMP_LOG" 2>&1; then
         echo "[PASS]"
         SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
     else

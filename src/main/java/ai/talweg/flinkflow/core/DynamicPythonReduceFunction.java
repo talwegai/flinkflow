@@ -17,8 +17,8 @@
 
 package ai.talweg.flinkflow.core;
 
+import org.apache.flink.api.common.functions.OpenContext;
 import org.apache.flink.api.common.functions.RichReduceFunction;
-import org.apache.flink.configuration.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +35,7 @@ public class DynamicPythonReduceFunction extends RichReduceFunction<String> {
     }
 
     @Override
-    public void open(Configuration parameters) throws Exception {
+    public void open(OpenContext parameters) throws Exception {
         evaluator = new PythonEvaluator(codeBody, "def process(value1, value2)");
         evaluator.open();
         LOG.info("Python ReduceFunction initialized");

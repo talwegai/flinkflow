@@ -33,7 +33,7 @@ Unlike the standalone YAML examples, these files are formatted as Kubernetes obj
 | :--- | :--- | :--- |
 | **[`camel/iot-fleet-analytics-camel.yaml`](camel/iot-fleet-analytics-camel.yaml)** | IoT (Camel) | High-scale sensor telemetry via Camel & Groovy CRD. |
 | **[`camel/camel-yaml-dsl-example.yaml`](camel/camel-yaml-dsl-example.yaml)** | YAML DSL | Complex routing (Choice/When) using Camel YAML DSL. |
-| **[`camel/fraud-detection-camel-yaml.yaml`](camel/fraud-detection-camel-yaml.yaml)** | Fraud (YAML) | Risk scoring and alerting via YAML DSL routes. |
+| **[`camel/fraud-detection-camel.yaml`](camel/fraud-detection-camel.yaml)** | Fraud (YAML) | Risk scoring and alerting via YAML DSL routes. |
 | **[`camel/camel-flatmap-example.yaml`](camel/camel-flatmap-example.yaml)** | FlatMap (Camel) | Explode JSON arrays into individual records via JsonPath. |
 | **[`camel/camel-filter-example.yaml`](camel/camel-filter-example.yaml)** | Filter (Camel) | Filter records using Camel Simple logical expressions. |
 | **[`camel/camel-simple-transform.yaml`](camel/camel-simple-transform.yaml)** | Transform (Camel) | Declarative string manipulation and formatting. |

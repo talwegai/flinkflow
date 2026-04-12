@@ -17,8 +17,8 @@
 
 package ai.talweg.flinkflow.core;
 
+import org.apache.flink.api.common.functions.OpenContext;
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
-import org.apache.flink.configuration.Configuration;
 import org.apache.flink.util.Collector;
 import org.graalvm.polyglot.Value;
 
@@ -62,7 +62,7 @@ public class DynamicPythonFlatMapFunction extends RichFlatMapFunction<String, St
      * @throws Exception if the Python context cannot be created
      */
     @Override
-    public void open(Configuration parameters) throws Exception {
+    public void open(OpenContext parameters) throws Exception {
         evaluator = new PythonEvaluator(codeBody, "def process(input)");
         evaluator.open();
     }

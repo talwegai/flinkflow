@@ -38,7 +38,7 @@ import org.apache.flink.core.fs.Path;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.filesystem.rollingpolicies.DefaultRollingPolicy;
-import org.apache.flink.streaming.api.windowing.time.Time;
+import java.time.Duration;
 import org.apache.flink.streaming.api.datastream.AsyncDataStream;
 import org.apache.flink.connector.datagen.source.DataGeneratorSource;
 import org.apache.flink.connector.datagen.source.GeneratorFunction;
@@ -91,7 +91,7 @@ public class FlinkflowApp {
      * @throws Exception If there is an error during execution.
      */
     public static int execute(String[] args) throws Exception {
-        // Parse optional CLI flags
+        // Parse optional runner flags
         String k8sNamespace = null;
         boolean enableK8sFlowlets = false;
         String k8sPipelineName = null;
@@ -249,20 +249,20 @@ public class FlinkflowApp {
                     if ("tumbling".equals(windowType)) {
                         stream = keyedStream
                                 .window(org.apache.flink.streaming.api.windowing.assigners.TumblingProcessingTimeWindows
-                                        .of(org.apache.flink.streaming.api.windowing.time.Time.seconds(windowSize)))
+                                        .of(Duration.ofSeconds(windowSize)))
                                 .reduce(ProcessorFactory.createWindowReducer(step.getCode(), step.getLanguage()));
                     } else if ("sliding".equals(windowType)) {
                         long slide = Long.parseLong(step.getProperties().getOrDefault("slide", "5"));
                         stream = keyedStream
                                 .window(org.apache.flink.streaming.api.windowing.assigners.SlidingProcessingTimeWindows
-                                        .of(org.apache.flink.streaming.api.windowing.time.Time.seconds(windowSize),
-                                                org.apache.flink.streaming.api.windowing.time.Time.seconds(slide)))
+                                        .of(Duration.ofSeconds(windowSize),
+                                                Duration.ofSeconds(slide)))
                                 .reduce(ProcessorFactory.createWindowReducer(step.getCode(), step.getLanguage()));
                     } else if ("session".equals(windowType)) {
                         long gap = Long.parseLong(step.getProperties().getOrDefault("gap", "5"));
                         stream = keyedStream
                                 .window(org.apache.flink.streaming.api.windowing.assigners.ProcessingTimeSessionWindows
-                                        .withGap(org.apache.flink.streaming.api.windowing.time.Time.seconds(gap)))
+                                        .withGap(Duration.ofSeconds(gap)))
                                 .reduce(ProcessorFactory.createWindowReducer(step.getCode(), step.getLanguage()));
                     } else {
                         throw new RuntimeException("Unknown window type: " + windowType);
@@ -304,6 +304,13 @@ public class FlinkflowApp {
                     String agentModel = step.getProperties().getOrDefault("model", "gpt-4o");
                     String systemPrompt = step.getProperties().getOrDefault("systemPrompt", "You are a helpful assistant.");
                     boolean useMemory = Boolean.parseBoolean(step.getProperties().getOrDefault("memory", "true"));
+                    
+                    if (useMemory && stream instanceof org.apache.flink.streaming.api.datastream.KeyedStream) {
+                        // Flink 2.x: Enable async state for the keyed stream before applying the process function
+                        // This allows State V2 async operations to work correctly.
+                        stream = ((org.apache.flink.streaming.api.datastream.KeyedStream<String, ?>) stream).enableAsyncState();
+                    }
+                    
                     stream = stream.process(ProcessorFactory.createAgent(step.getName(), agentModel, systemPrompt, useMemory, step.getProperties(), flowletRegistry.getCatalog()));
                     break;
                 case "sink":
@@ -532,7 +539,7 @@ public class FlinkflowApp {
             String method = props.getOrDefault("method", "POST");
             String authCode = props.get("authCode");
 
-            stream.addSink(new ai.talweg.flinkflow.core.DynamicHttpSinkFunction(urlCode, method, authCode));
+            stream.process(new ai.talweg.flinkflow.core.DynamicHttpSinkFunction(urlCode, method, authCode)).name(step.getName());
         } else if ("jdbc-sink".equalsIgnoreCase(sinkName)) {
             Map<String, String> props = step.getProperties();
             String driverUrl = props.get("url"); // e.g. jdbc:postgresql://localhost:5432/mydb
@@ -563,14 +570,13 @@ public class FlinkflowApp {
             if (password != null)
                 connectionOptionsBuilder.withPassword(password);
 
-            org.apache.flink.streaming.api.functions.sink.SinkFunction<String> jdbcSink = org.apache.flink.connector.jdbc.JdbcSink
-                    .sink(
-                            sql,
-                            new ai.talweg.flinkflow.core.DynamicJdbcStatementBuilder(codeBody),
-                            execBuilder.build(),
-                            connectionOptionsBuilder.build());
+            org.apache.flink.api.connector.sink2.Sink<String> jdbcSink = org.apache.flink.connector.jdbc.core.datastream.sink.JdbcSink
+                    .<String>builder()
+                    .withQueryStatement(sql, new ai.talweg.flinkflow.core.DynamicJdbcStatementBuilder(codeBody))
+                    .withExecutionOptions(execBuilder.build())
+                    .buildAtLeastOnce(connectionOptionsBuilder.build());
 
-            stream.addSink(jdbcSink);
+            stream.sinkTo(jdbcSink).name(step.getName());
         } else {
             throw new RuntimeException("Unsupported sink: " + sinkName);
         }
@@ -609,7 +615,7 @@ public class FlinkflowApp {
 
         return leftStream.keyBy(ProcessorFactory.createKeySelector(leftKeyExpr, step.getLanguage()))
                 .intervalJoin(rightStream.keyBy(ProcessorFactory.createKeySelector(rightKeyExpr, step.getLanguage())))
-                .between(Time.seconds(lowerBound), Time.seconds(upperBound))
+                .between(Duration.ofSeconds(lowerBound), Duration.ofSeconds(upperBound))
                 .process(ProcessorFactory.createJoiner(step.getCode(), step.getLanguage()));
     }
 
