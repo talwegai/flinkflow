@@ -16,8 +16,8 @@
 
 package ai.talweg.flinkflow.core;
 
+import org.apache.flink.api.common.functions.OpenContext;
 import org.apache.flink.api.common.functions.RichMapFunction;
-import org.apache.flink.configuration.Configuration;
 
 /**
  * A Flink MapFunction that evaluates a Camel expression (Simple, JsonPath, etc.)
@@ -31,7 +31,7 @@ public class DynamicCamelMapFunction extends RichMapFunction<String, String> {
     }
 
     @Override
-    public void open(Configuration parameters) {
+    public void open(OpenContext parameters) {
         evaluator.open();
     }
 

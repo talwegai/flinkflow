@@ -18,7 +18,7 @@
 package ai.talweg.flinkflow.core;
 
 import org.apache.flink.api.common.functions.RichFilterFunction;
-import org.apache.flink.configuration.Configuration;
+import org.apache.flink.api.common.functions.OpenContext;
 import org.codehaus.janino.SimpleCompiler;
 
 import java.lang.reflect.Method;
@@ -63,7 +63,7 @@ public class DynamicFilterFunction extends RichFilterFunction<String> {
      * @throws Exception if code compilation or instance creation fails
      */
     @Override
-    public void open(Configuration parameters) throws Exception {
+    public void open(OpenContext parameters) throws Exception {
         String className = "DynamicFilter_" + System.nanoTime();
 
         // This class template implements a simple filtering method which we'll

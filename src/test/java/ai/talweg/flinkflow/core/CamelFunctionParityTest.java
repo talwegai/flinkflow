@@ -3,6 +3,7 @@ package ai.talweg.flinkflow.core;
 import org.apache.flink.api.common.functions.ReduceFunction;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.junit.jupiter.api.Test;
+import org.apache.flink.api.common.functions.OpenContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +16,7 @@ public class CamelFunctionParityTest {
     @Test
     public void testCamelSimpleMap() throws Exception {
         DynamicCamelMapFunction function = new DynamicCamelMapFunction("${body.toUpperCase()}", "simple");
-        function.open(null);
+        function.open((OpenContext) null);
         String result = function.map("hello");
         assertEquals("HELLO", result);
         function.close();
@@ -24,7 +25,7 @@ public class CamelFunctionParityTest {
     @Test
     public void testCamelJsonPathMap() throws Exception {
         DynamicCamelMapFunction function = new DynamicCamelMapFunction("$.user.name", "jsonpath");
-        function.open(null);
+        function.open((OpenContext) null);
         String result = function.map("{\"user\": {\"name\": \"Alice\"}}");
         assertEquals("Alice", result);
         function.close();
@@ -33,7 +34,7 @@ public class CamelFunctionParityTest {
     @Test
     public void testCamelSimpleFilter() throws Exception {
         DynamicCamelFilterFunction function = new DynamicCamelFilterFunction("${body} contains 'Apple'", "simple");
-        function.open(null);
+        function.open((OpenContext) null);
         assertTrue(function.filter("Apple Pie"));
         function.close();
     }
@@ -49,7 +50,7 @@ public class CamelFunctionParityTest {
     @Test
     public void testCamelSimpleFlatMap() throws Exception {
         DynamicCamelFlatMapFunction function = new DynamicCamelFlatMapFunction("${body}", "simple");
-        function.open(null);
+        function.open((OpenContext) null);
         List<String> results = new ArrayList<>();
         org.apache.flink.util.Collector<String> collector = new org.apache.flink.util.Collector<String>() {
             @Override public void collect(String record) { results.add(record); }
@@ -73,7 +74,7 @@ public class CamelFunctionParityTest {
     public void testCamelYamlMap() throws Exception {
         String yaml = "- route:\n    from:\n      uri: \"direct:start\"\n      steps:\n        - setBody:\n            simple: \"${body.toUpperCase()}\"";
         DynamicCamelYamlMapFunction function = new DynamicCamelYamlMapFunction(yaml);
-        function.open(null);
+        function.open((OpenContext) null);
         String result = function.map("yaml");
         assertEquals("YAML", result);
         function.close();
@@ -83,7 +84,7 @@ public class CamelFunctionParityTest {
     public void testCamelYamlFilter() throws Exception {
         String yaml = "- route:\n    from:\n      uri: \"direct:start\"\n      steps:\n        - filter:\n            simple: \"${body} contains 'OK'\"\n            steps:\n              - setBody:\n                  constant: \"true\"";
         DynamicCamelYamlFilterFunction function = new DynamicCamelYamlFilterFunction(yaml);
-        function.open(null);
+        function.open((OpenContext) null);
         assertTrue(function.filter("Everything is OK"));
         function.close();
     }
@@ -101,7 +102,7 @@ public class CamelFunctionParityTest {
     public void testCamelYamlFlatMap() throws Exception {
         String yaml = "- route:\n    from:\n      uri: \"direct:start\"\n      steps:\n        - setBody:\n            simple: \"${body.toUpperCase()}\"";
         DynamicCamelYamlFlatMapFunction function = new DynamicCamelYamlFlatMapFunction(yaml);
-        function.open(null);
+        function.open((OpenContext) null);
         List<String> results = new ArrayList<>();
         org.apache.flink.util.Collector<String> collector = new org.apache.flink.util.Collector<String>() {
             @Override public void collect(String record) { results.add(record); }

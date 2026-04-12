@@ -22,6 +22,7 @@ import org.apache.flink.api.java.functions.KeySelector;
 import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.flink.api.common.functions.OpenContext;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class PythonParityTest {
@@ -39,7 +40,7 @@ public class PythonParityTest {
     public void testPythonReduce() throws Exception {
         String code = "import json\no1 = json.loads(value1)\no2 = json.loads(value2)\nreturn json.dumps({'total': o1['val'] + o2['val']})";
         ReduceFunction<String> reducer = new DynamicPythonReduceFunction(code);
-        ((DynamicPythonReduceFunction)reducer).open(null);
+        ((DynamicPythonReduceFunction)reducer).open((OpenContext) null);
         
         String v1 = "{\"val\": 10}";
         String v2 = "{\"val\": 25}";
@@ -51,7 +52,7 @@ public class PythonParityTest {
     public void testPythonSideOutput() throws Exception {
         String code = "if 'error' in input:\n    side_emit(input)\n    return None\nelse:\n    return input.upper()";
         DynamicPythonSideOutputFunction function = new DynamicPythonSideOutputFunction(code, "errors");
-        function.open(null);
+        function.open((OpenContext) null);
         
         List<String> mainOut = new ArrayList<>();
         List<String> sideOut = new ArrayList<>();
@@ -87,7 +88,7 @@ public class PythonParityTest {
     public void testPythonFilter() throws Exception {
         String code = "return 'skip' not in input";
         DynamicPythonFilterFunction function = new DynamicPythonFilterFunction(code);
-        function.open(null);
+        function.open((OpenContext) null);
         
         assertEquals(true, function.filter("hello"));
         assertEquals(false, function.filter("skip-this"));
@@ -97,7 +98,7 @@ public class PythonParityTest {
     public void testPythonFlatMap() throws Exception {
         String code = "if '-' in input:\n    return input.split('-')\nelse:\n    return input.upper()";
         DynamicPythonFlatMapFunction function = new DynamicPythonFlatMapFunction(code);
-        function.open(null);
+        function.open((OpenContext) null);
         
         List<String> results = new ArrayList<>();
         org.apache.flink.util.Collector<String> collector = new org.apache.flink.util.Collector<String>() {
@@ -131,7 +132,7 @@ public class PythonParityTest {
     public void testPythonProcess() throws Exception {
         String code = "return input.upper()";
         DynamicPythonMapFunction function = new DynamicPythonMapFunction(code);
-        function.open(null);
+        function.open((OpenContext) null);
         
         assertEquals("HELLO", function.map("hello"));
     }
@@ -140,7 +141,7 @@ public class PythonParityTest {
     public void testPythonJoin() throws Exception {
         String code = "return f'{left}-{right}'";
         DynamicPythonJoinFunction function = new DynamicPythonJoinFunction(code);
-        function.open(null);
+        function.open((OpenContext) null);
         
         List<String> results = new ArrayList<>();
         org.apache.flink.util.Collector<String> collector = new org.apache.flink.util.Collector<String>() {
@@ -166,7 +167,7 @@ public class PythonParityTest {
         // 1. Attempt to access Java classes - should fail because allowHostClassLookup is false
         String javaCode = "import java\nreturn java.lang.System.getProperty('java.version')";
         DynamicPythonMapFunction javaFunction = new DynamicPythonMapFunction(javaCode);
-        javaFunction.open(null);
+        javaFunction.open((OpenContext) null);
         
         org.junit.jupiter.api.Assertions.assertThrows(Exception.class, () -> {
             javaFunction.map("test");
@@ -175,7 +176,7 @@ public class PythonParityTest {
         // 2. Attempt to read from file system - should fail because allowIO is false
         String ioCode = "with open('/etc/hosts', 'r') as f: return f.read()";
         DynamicPythonMapFunction ioFunction = new DynamicPythonMapFunction(ioCode);
-        ioFunction.open(null);
+        ioFunction.open((OpenContext) null);
 
         org.junit.jupiter.api.Assertions.assertThrows(Exception.class, () -> {
             ioFunction.map("test");
@@ -189,41 +190,41 @@ public class PythonParityTest {
         org.junit.jupiter.api.Assertions.assertThrows(RuntimeException.class, () -> mapFunction.map("test"));
         mapFunction.close(); // closing uninitialized
 
-        mapFunction.open(null);
+        mapFunction.open((OpenContext) null);
         mapFunction.close(); // closing initialized
 
         // Test FilterFunction uninitialized
         DynamicPythonFilterFunction filterFunction = new DynamicPythonFilterFunction("return True");
         org.junit.jupiter.api.Assertions.assertThrows(RuntimeException.class, () -> filterFunction.filter("test"));
         filterFunction.close();
-        filterFunction.open(null);
+        filterFunction.open((OpenContext) null);
         filterFunction.close();
 
         // Test FlatMapFunction uninitialized & close
         DynamicPythonFlatMapFunction flatMapFunction = new DynamicPythonFlatMapFunction("return input");
         flatMapFunction.close(); // close uninitialized
-        flatMapFunction.open(null);
+        flatMapFunction.open((OpenContext) null);
         flatMapFunction.close(); // close initialized
 
         // Test SideOutputFunction uninitialized
         DynamicPythonSideOutputFunction sideOutput = new DynamicPythonSideOutputFunction("return input", "tag");
         org.junit.jupiter.api.Assertions.assertThrows(RuntimeException.class, () -> sideOutput.processElement("test", null, null));
         sideOutput.close();
-        sideOutput.open(null);
+        sideOutput.open((OpenContext) null);
         sideOutput.close();
 
         // Test ReduceFunction uninitialized
         DynamicPythonReduceFunction reduceConfig = new DynamicPythonReduceFunction("return value1");
         org.junit.jupiter.api.Assertions.assertThrows(RuntimeException.class, () -> reduceConfig.reduce("v1", "v2"));
         reduceConfig.close();
-        reduceConfig.open(null);
+        reduceConfig.open((OpenContext) null);
         reduceConfig.close();
 
         // Test JoinFunction uninitialized
         DynamicPythonJoinFunction joinFunction = new DynamicPythonJoinFunction("return left");
         org.junit.jupiter.api.Assertions.assertThrows(RuntimeException.class, () -> joinFunction.processElement("A", "B", null, null));
         joinFunction.close();
-        joinFunction.open(null);
+        joinFunction.open((OpenContext) null);
         joinFunction.close();
 
         // Test WindowReduce uninitialized

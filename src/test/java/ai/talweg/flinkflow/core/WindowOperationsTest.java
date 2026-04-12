@@ -23,7 +23,7 @@ import org.apache.flink.streaming.api.datastream.KeyedStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.windowing.assigners.TumblingProcessingTimeWindows;
 import org.apache.flink.streaming.api.windowing.assigners.SlidingProcessingTimeWindows;
-import org.apache.flink.streaming.api.windowing.time.Time;
+import java.time.Duration;
 import org.apache.flink.streaming.api.windowing.triggers.CountTrigger;
 import org.apache.flink.util.CloseableIterator;
 import org.junit.jupiter.api.Test;
@@ -90,7 +90,7 @@ public class WindowOperationsTest {
                 "return key + \",\" + v1 + \"+\" + v2;";
 
         DataStream<String> windowed = keyed
-                .window(TumblingProcessingTimeWindows.of(Time.seconds(60)))
+                .window(TumblingProcessingTimeWindows.of(Duration.ofSeconds(60)))
                 .trigger(CountTrigger.of(2))  // fire every 2 elements — deterministic
                 .reduce(ProcessorFactory.createWindowReducer(reduceCode));
 
@@ -125,7 +125,7 @@ public class WindowOperationsTest {
 
         // Sliding window, forced to fire after every 2 elements via CountTrigger
         DataStream<String> windowed = keyed
-                .window(SlidingProcessingTimeWindows.of(Time.seconds(60), Time.seconds(30)))
+                .window(SlidingProcessingTimeWindows.of(Duration.ofSeconds(60), Duration.ofSeconds(30)))
                 .trigger(CountTrigger.of(2))
                 .reduce(ProcessorFactory.createWindowReducer(reduceCode));
 

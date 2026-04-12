@@ -17,8 +17,10 @@
 
 package ai.talweg.flinkflow.core;
 
+import org.apache.flink.api.common.functions.OpenContext;
 import org.apache.flink.configuration.Configuration;
-import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
+import org.apache.flink.streaming.api.functions.ProcessFunction;
+import org.apache.flink.util.Collector;
 import org.codehaus.janino.SimpleCompiler;
 
 import java.lang.reflect.Method;
@@ -32,7 +34,7 @@ import java.time.Duration;
  * A Flink SinkFunction that triggers an external HTTP/Webhook service.
  * Supports configurable methods (POST/PUT) and dynamic authorization.
  */
-public class DynamicHttpSinkFunction extends RichSinkFunction<String> {
+public class DynamicHttpSinkFunction extends ProcessFunction<String, String> {
 
     private final String urlCode;
     private final String method;
@@ -50,7 +52,7 @@ public class DynamicHttpSinkFunction extends RichSinkFunction<String> {
     }
 
     @Override
-    public void open(Configuration parameters) throws Exception {
+    public void open(OpenContext parameters) throws Exception {
         httpClient = HttpClient.newBuilder()
                 .version(HttpClient.Version.HTTP_2)
                 .followRedirects(HttpClient.Redirect.NORMAL)
@@ -76,7 +78,7 @@ public class DynamicHttpSinkFunction extends RichSinkFunction<String> {
     }
 
     @Override
-    public void invoke(String value, Context context) throws Exception {
+    public void processElement(String value, Context context, Collector<String> out) throws Exception {
         String url = (String) urlMethod.invoke(dynamicHandlerInstance, value);
         String authHeader = (String) authMethod.invoke(dynamicHandlerInstance, value);
 

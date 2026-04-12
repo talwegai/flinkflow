@@ -19,7 +19,7 @@ Unlike the Kubernetes examples, these are plain YAML files that should be run us
 *(See: [Simple Language](https://camel.apache.org/components/latest/languages/simple-language.html) | [JsonPath](https://camel.apache.org/components/latest/languages/jsonpath-language.html) | [YAML DSL](https://camel.apache.org/manual/camel-yaml-dsl.html))*
 - **[`camel/iot-fleet-analytics-camel.yaml`](camel/iot-fleet-analytics-camel.yaml)**: High-scale sensor telemetry using 100% declarative Camel & Groovy.
 - **[`camel/camel-yaml-dsl-test.yaml`](camel/camel-yaml-dsl-test.yaml)**: Complex routing logic using the **Camel YAML DSL** (Choice/When/Otherwise).
-- **[`camel/fraud-detection-camel-yaml.yaml`](camel/fraud-detection-camel-yaml.yaml)**: Real-time fraud detection using Camel YAML DSL for risk scoring and alerting.
+- **[`camel/fraud-detection-camel.yaml`](camel/fraud-detection-camel.yaml)**: Real-time fraud detection using Camel YAML DSL for risk scoring and alerting.
 - **[`camel/camel-flatmap-test.yaml`](camel/camel-flatmap-test.yaml)**: Demonstrates "exploding" JSON arrays into individual records via JsonPath.
 - **[`camel/agent-support-triage.yaml`](camel/agent-support-triage.yaml)**: **[NEW]** Gemini-powered support ticket triage using Camel YAML DSL for robust formatting and error handling.
 

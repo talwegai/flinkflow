@@ -17,7 +17,7 @@
 
 package ai.talweg.flinkflow.core;
 
-import org.apache.flink.configuration.Configuration;
+import org.apache.flink.api.common.functions.OpenContext;
 import org.apache.flink.streaming.api.functions.ProcessFunction;
 import org.apache.flink.util.Collector;
 import org.apache.flink.util.OutputTag;
@@ -41,7 +41,7 @@ public class DynamicPythonSideOutputFunction extends ProcessFunction<String, Str
     }
 
     @Override
-    public void open(Configuration parameters) throws Exception {
+    public void open(OpenContext parameters) throws Exception {
         // Python signature: def process(input, side_emit)
         // side_emit is a function that can be called with a string
         evaluator = new PythonEvaluator(codeBody, "def process(input, side_emit)");

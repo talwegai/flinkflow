@@ -19,7 +19,7 @@ package ai.talweg.flinkflow.core;
 
 import net.sf.saxon.s9api.*;
 import org.apache.flink.api.common.functions.RichMapFunction;
-import org.apache.flink.configuration.Configuration;
+import org.apache.flink.api.common.functions.OpenContext;
 
 import javax.xml.transform.stream.StreamSource;
 import java.io.ByteArrayOutputStream;
@@ -61,7 +61,7 @@ public class DataMapperFunction extends RichMapFunction<String, String> {
      * @throws Exception if XSLT compilation fails
      */
     @Override
-    public void open(Configuration parameters) throws Exception {
+    public void open(OpenContext parameters) throws Exception {
         processor = new Processor(false);
         XsltCompiler compiler = processor.newXsltCompiler();
         executable = compiler.compile(new StreamSource(xsltPath));

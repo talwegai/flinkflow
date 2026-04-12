@@ -36,16 +36,23 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Build with Maven
+      - name: Build and Test with Maven
         run: mvn -B package --file pom.xml
-
-      - name: Run Unit Tests
-        run: mvn -B test --file pom.xml
 
       - name: Run Smoke Tests (YAML Validations)
         run: |
-          chmod +x deploy/scripts/smoke-test.sh
-          ./deploy/scripts/smoke-test.sh
+          chmod +x deploy/test/smoke-test.sh
+          ./deploy/test/smoke-test.sh
+
+      - name: Run Vulnerability Scan (Trivy)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
 
       - name: Log in to the Container registry
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'

@@ -9,7 +9,7 @@ steps:
   - type: datamapper
     name: complex-transform
     properties:
-      xsltPath: "mappings/transform.xsl"
+      xsltPath: "deploy/mappings/transform.xsl"
 
   - type: sink
     name: console-sink

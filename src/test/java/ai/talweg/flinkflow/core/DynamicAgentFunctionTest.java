@@ -8,6 +8,7 @@ import org.apache.flink.util.Collector;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.apache.flink.api.common.functions.OpenContext;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -76,7 +77,7 @@ public class DynamicAgentFunctionTest {
                 null
         );
 
-        agentFn.open(new org.apache.flink.configuration.Configuration());
+        agentFn.open((OpenContext) null);
 
         MockCollector collector = new MockCollector();
         agentFn.processElement("Hello", null, collector);
@@ -106,7 +107,7 @@ public class DynamicAgentFunctionTest {
                 null
         );
 
-        agentFn.open(new org.apache.flink.configuration.Configuration());
+        agentFn.open((OpenContext) null);
 
         MockCollector collector = new MockCollector();
         agentFn.processElement("Hello", null, collector);
@@ -124,12 +125,12 @@ public class DynamicAgentFunctionTest {
         oaiProps.put("apiKey", "dummy-key");
         org.apache.flink.streaming.api.functions.ProcessFunction<String, String> oaiFn = ProcessorFactory.createAgent(
                 "oai", "gpt-4o", "sys", false, oaiProps, null);
-        assertDoesNotThrow(() -> oaiFn.open(new org.apache.flink.configuration.Configuration()));
+        assertDoesNotThrow(() -> oaiFn.open((OpenContext) null));
 
         // Test Unsupported Anthropic
         org.apache.flink.streaming.api.functions.ProcessFunction<String, String> anthropicFn = ProcessorFactory.createAgent(
                 "claude", "claude-3-opus", "sys", false, new HashMap<>(), null);
-        assertThrows(IllegalArgumentException.class, () -> anthropicFn.open(new org.apache.flink.configuration.Configuration()));
+        assertThrows(IllegalArgumentException.class, () -> anthropicFn.open((OpenContext) null));
 
         // Test explicit provider
         Map<String, String> explicitProps = new HashMap<>();
@@ -137,19 +138,19 @@ public class DynamicAgentFunctionTest {
         explicitProps.put("apiKey", "dummy-key");
         org.apache.flink.streaming.api.functions.ProcessFunction<String, String> explicitFn = ProcessorFactory.createAgent(
                 "exp", "unknown-model-format", "sys", false, explicitProps, null);
-        assertDoesNotThrow(() -> explicitFn.open(new org.apache.flink.configuration.Configuration()));
+        assertDoesNotThrow(() -> explicitFn.open((OpenContext) null));
 
         // Test Ollama resolution (prefix-based and family-based)
         assertDoesNotThrow(() -> ProcessorFactory.createAgent(
-                "ollama-phi", "phi", "sys", false, new HashMap<>(), null).open(new org.apache.flink.configuration.Configuration()));
+                "ollama-phi", "phi", "sys", false, new HashMap<>(), null).open((OpenContext) null));
         assertDoesNotThrow(() -> ProcessorFactory.createAgent(
-                "ollama-mistral", "ollama:mistral", "sys", false, new HashMap<>(), null).open(new org.apache.flink.configuration.Configuration()));
+                "ollama-mistral", "ollama:mistral", "sys", false, new HashMap<>(), null).open((OpenContext) null));
         
         // Test Ollama resolution (explicit provider for non-prefixed models like qwen)
         Map<String, String> qwenProps = new HashMap<>();
         qwenProps.put("provider", "ollama");
         assertDoesNotThrow(() -> ProcessorFactory.createAgent(
-                "ollama-qwen", "qwen2", "sys", false, qwenProps, null).open(new org.apache.flink.configuration.Configuration()));
+                "ollama-qwen", "qwen2", "sys", false, qwenProps, null).open((OpenContext) null));
     }
 
     @Test
@@ -169,6 +170,6 @@ public class DynamicAgentFunctionTest {
         org.apache.flink.streaming.api.functions.ProcessFunction<String, String> agentFn = ProcessorFactory.createAgent(
                 "tools-agent", "gpt-4", "sys", false, props, catalog);
         
-        assertDoesNotThrow(() -> agentFn.open(new org.apache.flink.configuration.Configuration()));
+        assertDoesNotThrow(() -> agentFn.open((OpenContext) null));
     }
 }

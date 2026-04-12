@@ -17,11 +17,11 @@
 
 package ai.talweg.flinkflow.core;
 
+import org.apache.flink.api.common.functions.OpenContext;
 import org.apache.flink.api.common.functions.RichReduceFunction;
 import org.codehaus.janino.SimpleCompiler;
 
 import java.lang.reflect.Method;
-import org.apache.flink.configuration.Configuration;
 
 /**
  * A Flink ReduceFunction that allows for dynamic Java code execution.
@@ -62,7 +62,7 @@ public class DynamicReduceFunction extends RichReduceFunction<String> {
      * @throws Exception if code compilation or instance creation fails
      */
     @Override
-    public void open(Configuration parameters) throws Exception {
+    public void open(OpenContext parameters) throws Exception {
         if (dynamicReduceInstance == null) {
             String className = "DynamicReduce_" + System.nanoTime();
 

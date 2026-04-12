@@ -14,6 +14,8 @@ This file is the **Single Source of Truth** for the Flinkflow project roadmap an
 - [x] **Flowlet System**: Parameterized reusable components with K8s CRD discovery.
 - [x] **Basic Connectors**: Kafka (Apache/Confluent), File/S3, DataGen, JDBC, HTTP Sinks.
 - [x] **Deployment Options**: Local script, Docker, and K8s (Manual, Operator, Native, and Pipeline CR).
+- [x] **Flink 2.2 Migration**: Full support for Flink 2.2.0 and the new `OpenContext` lifecycle.
+- [x] **Flink State V2**: Asynchronous, non-blocking managed state for AI Agents.
 
 ### 🐫 Low-Code & Polyglot
 - [x] **Python Snippets**: Support for inline Python syntax across core steps (GraalVM).
@@ -26,7 +28,6 @@ This file is the **Single Source of Truth** for the Flinkflow project roadmap an
 - [x] **YAML Schema Enforcement**: OpenAPI v3 validation for Pipeline and Flowlet CRDs.
 - [x] **Graph Validation**: Detect disconnected DAGs or missing sinks at submission time.
 - [x] **Advanced Metrics**: Native Prometheus/Grafana export with pre-built templates.
-- [x] **Schema Registry (Confluent Avro)**: Support for Avro serialization with automatic schema fetching.
 - [x] **Test Coverage**: Comprehensive unit/lifecycle tests for all polyglot runtimes (Java, Python, Camel). Line coverage ≥ 80%.
 
 ---
@@ -117,4 +118,4 @@ This file is the **Single Source of Truth** for the Flinkflow project roadmap an
 - [ ] **Air-Gapped Gallery**: Hardened container images with pre-loaded LLM models for offline AI.
 
 ---
-*Last updated: April 10, 2026*
+*Last updated: April 11, 2026*

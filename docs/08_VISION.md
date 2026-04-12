@@ -35,7 +35,7 @@ The execution of the Flinkflow vision is tracked via our unified project backlog
 
 ### Strategic Milestones
 *   **Milestone 1 (v1.0) — Production Ready**: Focus on security (Vault/Secrets), operational safety (validation), and log observability.
-*   **Milestone 2 (v1.5) — Ecosystem Expansion**: Expanding the Flowlet Catalog (Iceberg, Snowflake, CDC) and introducing the `flinkflow` CLI.
+*   **Milestone 2 (v1.5) — Ecosystem Expansion**: Expanding the Flowlet Catalog (Iceberg, Snowflake, CDC).
 *   **Milestone 3 (v2.0) — The Platform**: Delivering the Visual IDE, **Declarative Agentic Bridge**, and enterprise governance features.
 
 👉 **View the detailed task-level roadmap here: [Project Backlog (TODO)](/docs/10_TODO)**

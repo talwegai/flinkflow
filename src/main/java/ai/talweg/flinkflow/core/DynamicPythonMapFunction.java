@@ -17,8 +17,8 @@
 
 package ai.talweg.flinkflow.core;
 
+import org.apache.flink.api.common.functions.OpenContext;
 import org.apache.flink.api.common.functions.RichMapFunction;
-import org.apache.flink.configuration.Configuration;
 
 /**
  * A Flink RichMapFunction that executes inline Python code via GraalVM Polyglot.
@@ -59,7 +59,7 @@ public class DynamicPythonMapFunction extends RichMapFunction<String, String> {
      * @throws Exception if the Python context cannot be created
      */
     @Override
-    public void open(Configuration parameters) throws Exception {
+    public void open(OpenContext parameters) throws Exception {
         evaluator = new PythonEvaluator(codeBody, "def process(input)");
         evaluator.open();
     }

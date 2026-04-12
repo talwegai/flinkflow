@@ -46,6 +46,23 @@ export MAVEN_OPTS="-XX:+IgnoreUnrecognizedVMOptions \
                    --add-exports java.base/sun.net.util=ALL-UNNAMED \
                    -Dsun.misc.Unsafe.allowTerminallyDeprecated=true"
 
-mvn exec:exec -P local-run \
- -Dexec.executable="java" \
- -Dexec.args="-classpath %classpath -XX:+IgnoreUnrecognizedVMOptions --sun-misc-unsafe-memory-access=allow --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.lang.reflect=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.time=ALL-UNNAMED --add-opens java.base/java.nio=ALL-UNNAMED --add-opens java.base/sun.nio.ch=ALL-UNNAMED --add-opens java.base/sun.net.util=ALL-UNNAMED --add-exports java.base/sun.net.util=ALL-UNNAMED -Dsun.misc.Unsafe.allowTerminallyDeprecated=true ai.talweg.flinkflow.FlinkflowApp ${REMAINING_ARGS[@]}"
+JARPrefix="target/flinkflow-"
+# Ensure the fat JAR exists (pick the shaded one if multiple exist, fallback to main if needed, but it should be fixed context)
+# We know version is 0.9.0-BETA based on context, but let's just use wildcard if safe, or exact name
+JARFile="target/flinkflow-*-shaded.jar"
+if ! ls $JARFile 1> /dev/null 2>&1; then
+   JARFile="target/flinkflow-0.9.0-BETA.jar"
+fi
+
+java -cp target/flinkflow-0.9.0-BETA.jar -XX:+IgnoreUnrecognizedVMOptions \
+  --sun-misc-unsafe-memory-access=allow \
+  --add-opens java.base/java.lang=ALL-UNNAMED \
+  --add-opens java.base/java.lang.reflect=ALL-UNNAMED \
+  --add-opens java.base/java.util=ALL-UNNAMED \
+  --add-opens java.base/java.time=ALL-UNNAMED \
+  --add-opens java.base/java.nio=ALL-UNNAMED \
+  --add-opens java.base/sun.nio.ch=ALL-UNNAMED \
+  --add-opens java.base/sun.net.util=ALL-UNNAMED \
+  --add-exports java.base/sun.net.util=ALL-UNNAMED \
+  -Dsun.misc.Unsafe.allowTerminallyDeprecated=true \
+  ai.talweg.flinkflow.FlinkflowApp "${REMAINING_ARGS[@]}"

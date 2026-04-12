@@ -17,7 +17,7 @@
 
 package ai.talweg.flinkflow.core;
 
-import org.apache.flink.configuration.Configuration;
+import org.apache.flink.api.common.functions.OpenContext;
 import org.apache.flink.streaming.api.functions.co.ProcessJoinFunction;
 import org.apache.flink.util.Collector;
 import org.codehaus.janino.SimpleCompiler;
@@ -66,7 +66,7 @@ public class DynamicJoinFunction extends ProcessJoinFunction<String, String, Str
      * @throws Exception if code compilation or instance creation fails
      */
     @Override
-    public void open(Configuration parameters) throws Exception {
+    public void open(OpenContext parameters) throws Exception {
         String className = "DynamicJoiner_" + System.nanoTime();
 
         String classCode = "import org.apache.flink.metrics.MetricGroup;\n" +

@@ -18,8 +18,8 @@
 package ai.talweg.flinkflow.core;
 
 import ai.talweg.flinkflow.core.DynamicAsyncHttpFunction;
+import org.apache.flink.api.common.functions.OpenContext;
 import org.apache.flink.api.common.functions.RuntimeContext;
-import org.apache.flink.configuration.Configuration;
 import org.apache.flink.metrics.groups.OperatorMetricGroup;
 import org.apache.flink.util.Collector;
 import org.junit.jupiter.api.Test;
@@ -67,7 +67,7 @@ public class CoreCoverageTest {
         when(mockRuntimeContext.getMetricGroup()).thenReturn(mockMetricGroup);
         
         joinFunction.setRuntimeContext(mockRuntimeContext);
-        joinFunction.open(new Configuration());
+        joinFunction.open((OpenContext) null);
         
         List<String> results = new ArrayList<>();
         Collector<String> stubCollector = new Collector<String>() {
@@ -109,8 +109,8 @@ public class CoreCoverageTest {
             
             DynamicHttpSinkFunction sink = new DynamicHttpSinkFunction(urlCode, "POST", authCode);
             
-            sink.open(new Configuration());
-            sink.invoke("payload", null);
+            sink.open((OpenContext) null);
+            sink.processElement("payload", null, null);
             
             assertEquals("payload", receivedBody[0]);
         } finally {
@@ -124,7 +124,7 @@ public class CoreCoverageTest {
         
         when(mockRuntimeContext.getMetricGroup()).thenReturn(mockMetricGroup);
         mapFunction.setRuntimeContext(mockRuntimeContext);
-        mapFunction.open(new Configuration());
+        mapFunction.open((OpenContext) null);
         
         assertEquals("HELLO", mapFunction.map("hello"));
     }
@@ -136,7 +136,7 @@ public class CoreCoverageTest {
         
         when(mockRuntimeContext.getMetricGroup()).thenReturn(mockMetricGroup);
         filterFunction.setRuntimeContext(mockRuntimeContext);
-        filterFunction.open(new Configuration());
+        filterFunction.open((OpenContext) null);
         
         assertTrue(filterFunction.filter("hello"));
         assertFalse(filterFunction.filter("hi"));
@@ -149,7 +149,7 @@ public class CoreCoverageTest {
         
         when(mockRuntimeContext.getMetricGroup()).thenReturn(mockMetricGroup);
         flatMapFunction.setRuntimeContext(mockRuntimeContext);
-        flatMapFunction.open(new Configuration());
+        flatMapFunction.open((OpenContext) null);
         
         List<String> results = new ArrayList<>();
         Collector<String> stubCollector = new Collector<String>() {
@@ -183,7 +183,7 @@ public class CoreCoverageTest {
         
         when(mockRuntimeContext.getMetricGroup()).thenReturn(mockMetricGroup);
         reduceFunction.setRuntimeContext(mockRuntimeContext);
-        reduceFunction.open(new Configuration());
+        reduceFunction.open((OpenContext) null);
         
         assertEquals("a-b", reduceFunction.reduce("a", "b"));
     }
@@ -231,7 +231,7 @@ public class CoreCoverageTest {
             String authCode = "return \"Token\";";
 
             ai.talweg.flinkflow.core.DynamicAsyncHttpFunction func = new ai.talweg.flinkflow.core.DynamicAsyncHttpFunction(urlCode, responseCode, authCode, "java");
-            func.open(new Configuration());
+            func.open((OpenContext) null);
 
             java.util.concurrent.atomic.AtomicReference<String> result = new java.util.concurrent.atomic.AtomicReference<>();
             org.apache.flink.streaming.api.functions.async.ResultFuture<String> mockFuture = mock(org.apache.flink.streaming.api.functions.async.ResultFuture.class);
@@ -239,7 +239,7 @@ public class CoreCoverageTest {
                 java.util.Collection<String> col = invocation.getArgument(0);
                 result.set(col.iterator().next());
                 return null;
-            }).when(mockFuture).complete(any());
+            }).when(mockFuture).complete(any(java.util.Collection.class));
 
             func.asyncInvoke("input1", mockFuture);
             
@@ -278,13 +278,13 @@ public class CoreCoverageTest {
             String urlCode = "return \"" + url + "\";";
             
             DynamicHttpSinkFunction sinkPut = new DynamicHttpSinkFunction(urlCode, "PUT", null);
-            sinkPut.open(new Configuration());
+            sinkPut.open((OpenContext) null);
             
-            assertThrows(RuntimeException.class, () -> sinkPut.invoke("payload", null));
+            assertThrows(RuntimeException.class, () -> sinkPut.processElement("payload", null, null));
             
             DynamicHttpSinkFunction sinkInvalid = new DynamicHttpSinkFunction(urlCode, "INVALID_METHOD", null);
-            sinkInvalid.open(new Configuration());
-            assertThrows(IllegalArgumentException.class, () -> sinkInvalid.invoke("payload", null));
+            sinkInvalid.open((OpenContext) null);
+            assertThrows(IllegalArgumentException.class, () -> sinkInvalid.processElement("payload", null, null));
         } finally {
             server.stop(0);
         }
