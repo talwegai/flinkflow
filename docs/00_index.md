@@ -53,6 +53,7 @@ Flinkflow is maintained by **[Talweg](https://talweg.ai)**. While the core engin
 | **In-stream ML & AI Validation Assist** | ❌ | ✅ |
 | **Live Hot-Reloading** | ❌ | ✅ |
 | **Enterprise RBAC & SSO** | ❌ | ✅ |
+| **Data Security (Format-Preserved Encryption)** | ❌ | ✅ |
 | **Air-Gapped Container Gallery** | ❌ | ✅ |
 | **Advanced Observability (SLA/Audit)** | ❌ | ✅ |
 | **Proprietary High-Perf Connectors** | ❌ | ✅ |

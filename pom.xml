@@ -322,6 +322,24 @@
        =================================================================== -->
   <dependencyManagement>
     <dependencies>
+      <!-- LZ4 Compression -->
+      <dependency>
+        <groupId>org.lz4</groupId>
+        <artifactId>lz4-java</artifactId>
+        <version>1.8.1</version>
+      </dependency>
+      <!-- gRPC Netty Shaded -->
+      <dependency>
+        <groupId>io.grpc</groupId>
+        <artifactId>grpc-netty-shaded</artifactId>
+        <version>1.75.0</version>
+      </dependency>
+      <!-- Google Protobuf -->
+      <dependency>
+        <groupId>com.google.protobuf</groupId>
+        <artifactId>protobuf-java</artifactId>
+        <version>3.25.5</version>
+      </dependency>
       <!-- Apache Avro -->
       <dependency>
         <groupId>org.apache.avro</groupId>

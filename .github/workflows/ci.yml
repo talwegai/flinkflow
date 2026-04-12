@@ -36,11 +36,8 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Build with Maven
+      - name: Build and Test with Maven
         run: mvn -B package --file pom.xml
-
-      - name: Run Unit Tests
-        run: mvn -B test --file pom.xml
 
       - name: Run Smoke Tests (YAML Validations)
         run: |
