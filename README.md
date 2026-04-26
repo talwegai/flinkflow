@@ -478,11 +478,11 @@ Flinkflow implements a strict, **deny-by-default** security model for guest code
 > [!IMPORTANT]
 > This security architecture makes Flinkflow uniquely suited for **LLM-generated pipelines** and **Multi-Tenant environments**, where safety and isolation are paramount.
 
-## 🏢 Talweg Enterprise & Services
+## 🏢 Flinkflow Enterprise Edition & Services
 
 Flinkflow is maintained by **[Talweg](https://talweg.ai)**. While the core engine is free and open-source, we offer professional services and an enterprise-grade distribution for organization-wide streaming platforms.
 
-| Feature | Community Edition | Talweg Enterprise |
+| Feature | Flinkflow Community Edition | Flinkflow Enterprise Edition |
 | :--- | :---: | :---: |
 | **Core DSL & Polyglot Runtimes** | ✅ | ✅ |
 | **Agentic Bridge (LLM Integration)** | ✅ | ✅ |
