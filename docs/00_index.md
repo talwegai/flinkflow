@@ -40,11 +40,11 @@ Our mission is to be the **"Glue Layer"** for real-time event-driven architectur
 
 ---
 
-## 🏢 Talweg Enterprise & Services
+## 🏢 Flinkflow Enterprise Edition & Services
 
 Flinkflow is maintained by **[Talweg](https://talweg.ai)**. While the core engine is free and open-source, we offer professional services and an enterprise-grade distribution for organization-wide streaming platforms.
 
-| Feature | Community Edition | Talweg Enterprise |
+| Feature | Flinkflow Community Edition | Flinkflow Enterprise Edition |
 | :--- | :---: | :---: |
 | **Core DSL & Polyglot Runtimes** | ✅ | ✅ |
 | **Agentic Bridge (LLM Integration)** | ✅ | ✅ |

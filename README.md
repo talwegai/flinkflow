@@ -232,6 +232,16 @@ mvn exec:exec -P local-run -Dapp.args="examples/standalone/java/complex-enrichme
 
 ### Docker Deployment
 
+#### Pre-built Images (GHCR)
+
+You can pull the official pre-built Docker image from the GitHub Container Registry. Images are tagged using semantic versioning and the commit SHA.
+
+```bash
+docker pull ghcr.io/talwegai/flinkflow:v0.9.0-beta-sha-71acae7
+```
+
+#### Building Locally
+
 1. Build the Docker image:
    (Ensure you have run `mvn clean package` first to generate the JAR)
 
@@ -478,11 +488,11 @@ Flinkflow implements a strict, **deny-by-default** security model for guest code
 > [!IMPORTANT]
 > This security architecture makes Flinkflow uniquely suited for **LLM-generated pipelines** and **Multi-Tenant environments**, where safety and isolation are paramount.
 
-## 🏢 Talweg Enterprise & Services
+## 🏢 Flinkflow Enterprise Edition & Services
 
 Flinkflow is maintained by **[Talweg](https://talweg.ai)**. While the core engine is free and open-source, we offer professional services and an enterprise-grade distribution for organization-wide streaming platforms.
 
-| Feature | Community Edition | Talweg Enterprise |
+| Feature | Flinkflow Community Edition | Flinkflow Enterprise Edition |
 | :--- | :---: | :---: |
 | **Core DSL & Polyglot Runtimes** | ✅ | ✅ |
 | **Agentic Bridge (LLM Integration)** | ✅ | ✅ |
