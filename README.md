@@ -232,6 +232,16 @@ mvn exec:exec -P local-run -Dapp.args="examples/standalone/java/complex-enrichme
 
 ### Docker Deployment
 
+#### Pre-built Images (GHCR)
+
+You can pull the official pre-built Docker image from the GitHub Container Registry. Images are tagged using semantic versioning and the commit SHA.
+
+```bash
+docker pull ghcr.io/talwegai/flinkflow:v0.9.0-beta-sha-71acae7
+```
+
+#### Building Locally
+
 1. Build the Docker image:
    (Ensure you have run `mvn clean package` first to generate the JAR)
 
