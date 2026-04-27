@@ -1,0 +1,26 @@
+name: "HTTP Webhook Sink Pipeline"
+parallelism: 1
+
+# Generic webhook sink — language injected via --lang for pre-formatting
+# Usage:
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/http-sink.yaml --lang java
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/http-sink.yaml --lang python
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/http-sink.yaml --lang camel
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/http-sink.yaml --lang camel-groovy
+
+steps:
+  - type: source
+    name: static-source
+    properties:
+      content: '{"id":1, "status":"active"}|{"id":2, "status":"inactive"}'
+
+  - type: process
+    name: format-payload
+    language: "${lang}"
+    code: "file:snippets/${lang}/http-sink-format.${ext}"
+
+  - type: sink
+    name: http-sink
+    properties:
+      url: "https://httpbin.org/post"
+      method: "POST"

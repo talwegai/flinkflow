@@ -1,0 +1,1 @@
+return "Processed: ${body.toUpperCase()}"

@@ -1,0 +1,1 @@
+${body},STATUS:${jsonpath($.averageTemperature) > 0 ? 'CRITICAL_ALERT' : 'NORMAL'}

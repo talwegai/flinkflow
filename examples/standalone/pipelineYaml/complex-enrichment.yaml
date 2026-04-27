@@ -1,0 +1,36 @@
+name: "Two-Topic Join Enrichment Pipeline"
+parallelism: 1
+
+# Generic two-topic enrichment — language injected via --lang
+# Usage:
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/complex-enrichment.yaml --lang java
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/complex-enrichment.yaml --lang python
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/complex-enrichment.yaml --lang camel-groovy
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/complex-enrichment.yaml --lang camel
+
+steps:
+  - type: source
+    name: kafka-source
+    properties:
+      bootstrap.servers: "localhost:9092"
+      topic: "customer-orders"
+      group.id: "enrichment-group"
+
+  - type: join
+    name: kafka-source
+    language: "${lang}"
+    properties:
+      bootstrap.servers: "localhost:9092"
+      topic: "customer-profiles"
+      group.id: "enrichment-group-secondary"
+      leftKey: "file:snippets/${lang}/complex-enrichment-left-key.${ext}"
+      rightKey: "file:snippets/${lang}/complex-enrichment-right-key.${ext}"
+      lowerBound: -3600
+      upperBound: 3600
+    code: "file:snippets/${lang}/complex-enrichment-join.${ext}"
+
+  - type: sink
+    name: kafka-sink
+    properties:
+      bootstrap.servers: "localhost:9092"
+      topic: "enriched-orders"

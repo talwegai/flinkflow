@@ -1,0 +1,28 @@
+name: "Kafka Transform Pipeline"
+parallelism: 1
+
+# Generic kafka transform pipeline — language injected via --lang
+# Usage:
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/kafka-transform.yaml --lang java
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/kafka-transform.yaml --lang python
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/kafka-transform.yaml --lang camel
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/kafka-transform.yaml --lang camel-groovy
+
+steps:
+  - type: source
+    name: kafka-source
+    properties:
+      bootstrap.servers: "localhost:9092"
+      topic: "source-topic"
+      group.id: "flinkflow-group"
+
+  - type: process
+    name: transformation
+    language: "${lang}"
+    code: "file:snippets/${lang}/kafka-transform.${ext}"
+
+  - type: sink
+    name: kafka-sink
+    properties:
+      bootstrap.servers: "localhost:9092"
+      topic: "sink-topic"

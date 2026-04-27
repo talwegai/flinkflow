@@ -1,0 +1,25 @@
+name: "Filter Pipeline"
+parallelism: 1
+
+# Generic filter pipeline — language is injected at runtime via --lang <language>
+# Usage:
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/filter.yaml --lang java
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/filter.yaml --lang python
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/filter.yaml --lang camel
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/filter.yaml --lang camel-groovy
+#
+# Keeps only words longer than 3 characters.
+
+steps:
+  - type: source
+    name: static-source
+    properties:
+      content: "Hello|Hi|Flink|Go|Stream|Run|Apache|AI"
+
+  - type: filter
+    name: filter-long-words
+    language: "${lang}"
+    code: "file:snippets/${lang}/filter.${ext}"
+
+  - type: sink
+    name: console-sink

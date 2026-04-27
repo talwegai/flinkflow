@@ -1,0 +1,19 @@
+- from:
+    uri: "direct:start"
+    steps:
+      - unmarshal:
+          json: {}
+      - choice:
+          when:
+            - simple: "${body[temperature]} > 30"
+              steps:
+                - setHeader:
+                    name: "status"
+                    constant: "CRITICAL"
+          otherwise:
+            steps:
+              - setHeader:
+                  name: "status"
+                  constant: "NORMAL"
+      - setBody:
+          simple: "Truck ${body[truckId]} is ${header.status} (${body[temperature]}°C)"

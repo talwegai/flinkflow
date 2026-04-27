@@ -1,0 +1,32 @@
+name: "Join Pipeline"
+parallelism: 1
+
+# Generic join pipeline — language injected via --lang
+# Usage:
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/join.yaml --lang java
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/join.yaml --lang python
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/join.yaml --lang camel-groovy
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/join.yaml --lang camel
+#
+# Joins orders (left stream) with customers (right static source) on customer ID.
+# leftKey / rightKey are also loaded from language-specific snippet files.
+
+steps:
+  - type: source
+    name: static-source
+    properties:
+      content: "order1:cust1|order2:cust2|order3:cust1"
+
+  - type: join
+    name: customer-lookup
+    language: "${lang}"
+    properties:
+      content: "cust1:Alice|cust2:Bob"
+      leftKey: "file:snippets/${lang}/join-left-key.${ext}"
+      rightKey: "file:snippets/${lang}/join-right-key.${ext}"
+      lowerBound: -60
+      upperBound: 60
+    code: "file:snippets/${lang}/join-merge.${ext}"
+
+  - type: sink
+    name: console-sink

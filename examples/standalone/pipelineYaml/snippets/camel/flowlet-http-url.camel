@@ -1,0 +1,1 @@
+https://internal-customer-api.svc.cluster.local/customers/${body.split(',')[1].trim()}

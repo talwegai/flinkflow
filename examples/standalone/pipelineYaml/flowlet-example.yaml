@@ -1,0 +1,46 @@
+name: "Confluent CFK Pipeline - Flowlet Example"
+parallelism: 2
+
+# Generic flowlet pipeline — language injected via --lang for custom logic
+# Usage:
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/flowlet-example.yaml --lang java
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/flowlet-example.yaml --lang python
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/flowlet-example.yaml --lang camel-groovy
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/flowlet-example.yaml --lang camel
+
+steps:
+  - type: flowlet
+    name: confluent-kafka-source
+    with:
+      bootstrapServers: "pkc-xxx.us-east-1.aws.confluent.cloud:9092"
+      topic: "orders-raw"
+      apiKey: "${KAFKA_API_KEY}"
+      apiSecret: "${KAFKA_API_SECRET}"
+      groupId: "flinkflow-orders-group"
+
+  - type: flowlet
+    name: log-transform
+    with:
+      prefix: "[RAW ORDER]"
+
+  - type: process
+    name: normalize-order
+    language: "${lang}"
+    code: "file:snippets/${lang}/flowlet-normalize-order.${ext}"
+
+  - type: flowlet
+    name: http-enrich
+    with:
+      language: "${lang}"
+      urlCode: "file:snippets/${lang}/flowlet-http-url.${ext}"
+      mergeCode: "file:snippets/${lang}/flowlet-http-merge.${ext}"
+      timeout: "5000"
+      capacity: "50"
+
+  - type: flowlet
+    name: confluent-kafka-sink
+    with:
+      bootstrapServers: "pkc-xxx.us-east-1.aws.confluent.cloud:9092"
+      topic: "orders-enriched"
+      apiKey: "${KAFKA_API_KEY}"
+      apiSecret: "${KAFKA_API_SECRET}"

@@ -1,0 +1,37 @@
+name: "Fraud Detection Pipeline"
+parallelism: 1
+
+# Generic fraud detection pipeline — language injected via --lang
+# Usage:
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/fraud-detection.yaml --lang java
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/fraud-detection.yaml --lang python
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/fraud-detection.yaml --lang camel-groovy
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/fraud-detection.yaml --lang camel
+#
+# Simulates a real-time fraud scoring pipeline:
+#   datagen → simulate transaction → add fraud score → filter high-risk → sink
+
+steps:
+  - type: source
+    name: datagen
+    properties:
+      rowsPerSecond: "2"
+      payload: "sensor"
+
+  - type: process
+    name: simulate-transaction
+    language: "${lang}"
+    code: "file:snippets/${lang}/fraud-simulate-transaction.${ext}"
+
+  - type: process
+    name: score-transaction
+    language: "${lang}"
+    code: "file:snippets/${lang}/fraud-score-transaction.${ext}"
+
+  - type: process
+    name: filter-high-risk
+    language: "${lang}"
+    code: "file:snippets/${lang}/fraud-filter-high-risk.${ext}"
+
+  - type: sink
+    name: console-sink

@@ -1,0 +1,25 @@
+name: "JSON Enrich Pipeline"
+parallelism: 1
+
+# Generic JSON enrichment pipeline — language injected via --lang
+# Usage:
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/json-enrich.yaml --lang java
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/json-enrich.yaml --lang python
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/json-enrich.yaml --lang camel-groovy
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/json-enrich.yaml --lang camel
+#
+# Adds tax (7%), total_amount, processing timestamp and engine label to each JSON order.
+
+steps:
+  - type: source
+    name: static-source
+    properties:
+      content: '{"id": "ORD-101", "amount": 250.50}|{"id": "ORD-102", "amount": 120.00}|{"id": "ORD-103", "amount": 45.75}'
+
+  - type: process
+    name: enrich-with-metadata
+    language: "${lang}"
+    code: "file:snippets/${lang}/json-enrich.${ext}"
+
+  - type: sink
+    name: console-sink

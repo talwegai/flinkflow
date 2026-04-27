@@ -1,0 +1,36 @@
+name: "Agentic Tool-Calling Smoke Test"
+parallelism: 1
+
+# Generic agent smoke test — formatter language injected via --lang
+# Usage:
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/agent-smoke.yaml --lang java
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/agent-smoke.yaml --lang python
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/agent-smoke.yaml --lang camel
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/agent-smoke.yaml --lang camel-groovy
+
+steps:
+  - name: user-input
+    type: source
+    connector: static-source
+    properties:
+      content: "Can you lookup the data for user-123 and tell me what you find?"
+
+  - name: support-ai
+    type: agent
+    properties:
+      model: "gpt-4o"
+      systemPrompt: |
+        You are a helpful assistant.
+        If a user asks for data or information, you MUST use the 'data_lookup' tool.
+        Return the result of the tool invocation.
+      memory: "true"
+      apiKey: "demo-key-placeholder"
+
+  - name: format-output
+    type: process
+    language: "${lang}"
+    code: "file:snippets/${lang}/agent-smoke-format.${ext}"
+
+  - name: logger
+    type: sink
+    connector: console-sink

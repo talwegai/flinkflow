@@ -1,0 +1,1 @@
+${jsonpath($.fraudScore)} > 0.85

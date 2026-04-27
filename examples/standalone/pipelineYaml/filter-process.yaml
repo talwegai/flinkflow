@@ -1,0 +1,30 @@
+name: "Filter Process Chain Pipeline"
+parallelism: 1
+
+# Generic filter → process chain — language injected via --lang
+# Usage:
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/filter-process.yaml --lang java
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/filter-process.yaml --lang python
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/filter-process.yaml --lang camel-groovy
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/filter-process.yaml --lang camel
+#
+# Filters out records containing "skip", then uppercases the remaining records.
+
+steps:
+  - type: source
+    name: static-source
+    properties:
+      content: "hello world|graalvm rocks|flink is fast|skip this line"
+
+  - type: filter
+    name: drop-skipped
+    language: "${lang}"
+    code: "file:snippets/${lang}/filter-process-filter.${ext}"
+
+  - type: process
+    name: uppercase
+    language: "${lang}"
+    code: "file:snippets/${lang}/filter-process-transform.${ext}"
+
+  - type: sink
+    name: console-sink

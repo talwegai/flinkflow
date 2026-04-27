@@ -1,0 +1,28 @@
+name: "Side Output Pipeline"
+parallelism: 2
+
+# Generic side-output pipeline — language injected via --lang
+# Usage:
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/sideoutput.yaml --lang java
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/sideoutput.yaml --lang python
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/sideoutput.yaml --lang camel-groovy
+#
+# Routes ERROR: prefixed records to a dead-letter side output;
+# other records pass through to the main console sink.
+# Note: camel-groovy side-output falls back to Janino (uses ctx/out API).
+
+steps:
+  - type: source
+    name: static-source
+    properties:
+      content: "INFO: login|WARN: retry|ERROR: null_pointer|INFO: click|ERROR: timeout"
+
+  - type: sideoutput
+    name: route-errors
+    language: "${lang}"
+    properties:
+      outputName: "dlq-errors"
+    code: "file:snippets/${lang}/sideoutput-route.${ext}"
+
+  - type: sink
+    name: console-sink

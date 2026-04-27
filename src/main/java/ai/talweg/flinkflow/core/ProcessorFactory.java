@@ -233,6 +233,12 @@ public class ProcessorFactory {
     public static ProcessJoinFunction<String, String, String> createJoiner(String codeBody, String language) {
         if ("python".equalsIgnoreCase(language)) {
             return new DynamicPythonJoinFunction(codeBody);
+        } else if ("camel".equalsIgnoreCase(language) || "camel-simple".equalsIgnoreCase(language)) {
+            return new DynamicCamelJoinFunction(codeBody, "simple");
+        } else if ("jsonpath".equalsIgnoreCase(language) || "camel-jsonpath".equalsIgnoreCase(language)) {
+            return new DynamicCamelJoinFunction(codeBody, "jsonpath");
+        } else if ("groovy".equalsIgnoreCase(language) || "camel-groovy".equalsIgnoreCase(language)) {
+            return new DynamicCamelJoinFunction(codeBody, "groovy");
         }
         return new DynamicJoinFunction(codeBody);
     }

@@ -1,0 +1,30 @@
+name: "KeyBy Process Pipeline"
+parallelism: 2
+
+# Generic keyby → process pipeline — language injected via --lang
+# Usage:
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/keyby-process.yaml --lang java
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/keyby-process.yaml --lang python
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/keyby-process.yaml --lang camel-groovy
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/keyby-process.yaml --lang camel
+#
+# Partitions the stream by user ID, then runs a process step on each partitioned record.
+
+steps:
+  - type: source
+    name: static-source
+    properties:
+      content: "user1,login|user2,login|user1,click|user3,login|user2,click"
+
+  - type: keyby
+    name: partition-by-user
+    language: "${lang}"
+    code: "file:snippets/${lang}/keyby-process-keyby.${ext}"
+
+  - type: process
+    name: process-partitioned
+    language: "${lang}"
+    code: "file:snippets/${lang}/keyby-process-transform.${ext}"
+
+  - type: sink
+    name: console-sink

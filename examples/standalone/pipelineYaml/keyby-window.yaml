@@ -1,0 +1,32 @@
+name: "KeyBy Window Pipeline"
+parallelism: 2
+
+# Generic keyby → tumbling window pipeline — language injected via --lang
+# Usage:
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/keyby-window.yaml --lang java
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/keyby-window.yaml --lang python
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/keyby-window.yaml --lang camel-groovy
+#
+# Partitions records by sensor name then sums values in a 5-second tumbling window.
+
+steps:
+  - type: source
+    name: static-source
+    properties:
+      content: "sensor1,10|sensor2,15|sensor1,25|sensor3,5|sensor2,20"
+
+  - type: keyby
+    name: partition-by-sensor
+    language: "${lang}"
+    code: "file:snippets/${lang}/keyby-window-keyby.${ext}"
+
+  - type: window
+    name: sum-window
+    properties:
+      windowType: tumbling
+      size: 5
+    language: "${lang}"
+    code: "file:snippets/${lang}/keyby-window-sum.${ext}"
+
+  - type: sink
+    name: console-sink

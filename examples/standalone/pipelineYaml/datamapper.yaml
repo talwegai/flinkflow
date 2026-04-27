@@ -1,0 +1,35 @@
+name: "Flinkflow DataMapper Demo"
+parallelism: 1
+
+# Generic datamapper pipeline — language injected via --lang for optional pre/post processing
+# Usage:
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/datamapper.yaml --lang java
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/datamapper.yaml --lang python
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/datamapper.yaml --lang camel
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/datamapper.yaml --lang camel-groovy
+
+steps:
+  - type: source
+    name: static-source
+    properties:
+      content: '{"id": 101, "name": "Alice Smith", "email": "alice@example.com"}|{"id": 102, "name": "Bob Jones", "email": "bob@example.com"}'
+
+  - type: process
+    name: before-mapping
+    language: "${lang}"
+    code: "file:snippets/${lang}/datamapper-before.${ext}"
+
+  - type: datamapper
+    name: complex-transform
+    properties:
+      xsltPath: "deploy/mappings/transform.xsl"
+
+  - type: process
+    name: after-mapping
+    language: "${lang}"
+    code: "file:snippets/${lang}/datamapper-after.${ext}"
+
+  - type: sink
+    name: console-sink
+    properties:
+      type: console

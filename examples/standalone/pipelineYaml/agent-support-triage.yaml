@@ -1,0 +1,42 @@
+name: "Customer Support Triage Agent"
+parallelism: 1
+
+# Generic support triage agent — formatter language injected via --lang
+# Usage:
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/agent-support-triage.yaml --lang java
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/agent-support-triage.yaml --lang python
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/agent-support-triage.yaml --lang camel-yaml
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/agent-support-triage.yaml --lang camel-groovy
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/agent-support-triage.yaml --lang camel
+
+steps:
+  - name: support-tickets
+    type: source
+    connector: static-source
+    properties:
+      content: |
+        {"ticketId": "T-001", "customer": "alice@acme.com", "message": "I was charged twice for my subscription this month and need an immediate refund!"}|
+        {"ticketId": "T-002", "customer": "bob@startup.io", "message": "How do I export my data to CSV?"}|
+        {"ticketId": "T-003", "customer": "charlie@enterprise.com", "message": "The API is returning 500 errors for the last 10 minutes. This is stopping our production line."}|
+        {"ticketId": "T-004", "customer": "dana@global.co", "message": "Can you add more members to my team? It seems I hit the limit."}|
+        {"ticketId": "T-005", "customer": "eve@security.net", "message": "I noticed a suspicious login attempt from a country I've never visited. Is my account safe?"}
+
+  - name: support-triage-ai
+    type: agent
+    properties:
+      model: "gemini-2.5-flash"
+      memory: "false"
+      apiKey: "your-key-here"
+      systemPrompt: |
+        You are a Support Triage Agent for a SaaS platform.
+        Analyze incoming support tickets and return ONLY valid JSON:
+        {"ticketId":"...","urgency":"CRITICAL|HIGH|MEDIUM|LOW","category":"BILLING|TECHNICAL|FEATURE_REQUEST|SECURITY","action":"..."}
+
+  - name: table-formatter
+    type: process
+    language: "${lang}"
+    code: "file:snippets/${lang}/agent-triage-table-formatter.${ext}"
+
+  - name: triage-output
+    type: sink
+    connector: console-sink

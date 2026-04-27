@@ -1,0 +1,1 @@
+{"userId":"USER_001","amount":${random(10,5000)},"location":"NYC"}

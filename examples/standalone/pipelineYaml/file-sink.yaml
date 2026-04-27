@@ -1,0 +1,28 @@
+name: "File Sink Example Pipeline"
+parallelism: 1
+
+# Generic file sink pipeline — language injected via --lang
+# Usage:
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/file-sink.yaml --lang java
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/file-sink.yaml --lang python
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/file-sink.yaml --lang camel
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/file-sink.yaml --lang camel-groovy
+
+steps:
+  - type: source
+    name: static-source
+    properties:
+      content: "record1|record2|record3"
+
+  - type: process
+    name: process-content
+    language: "${lang}"
+    code: "file:snippets/${lang}/file-sink-process.${ext}"
+
+  - type: sink
+    name: file-sink
+    properties:
+      path: "/tmp/flinkflow-output"
+      rolloverInterval: "10"
+      inactivityInterval: "5"
+      maxPartSize: "1mb"

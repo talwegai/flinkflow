@@ -1,0 +1,36 @@
+name: "JDBC Sink Pipeline"
+parallelism: 1
+
+# Generic JDBC sink — language injected via --lang for payload shaping
+# Usage:
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/jdbc-sink.yaml --lang java
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/jdbc-sink.yaml --lang python
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/jdbc-sink.yaml --lang camel
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/jdbc-sink.yaml --lang camel-groovy
+#
+# Note: jdbc-sink statement builder itself is Java-based; the language-specific
+# step prepares input into "id,name" format.
+
+steps:
+  - type: source
+    name: static-source
+    properties:
+      content: "1,Alice|2,Bob|3,Charlie"
+
+  - type: process
+    name: normalize-row
+    language: "${lang}"
+    code: "file:snippets/${lang}/jdbc-normalize.${ext}"
+
+  - type: sink
+    name: jdbc-sink
+    properties:
+      url: "jdbc:postgresql://localhost:5432/testdb"
+      username: "postgres"
+      password: "password"
+      driverName: "org.postgresql.Driver"
+      sql: "INSERT INTO users (id, name) VALUES (?, ?)"
+      batchSize: "100"
+      batchIntervalMs: "200"
+      maxRetries: "3"
+    code: "file:snippets/java/jdbc-sink-statement.java"

@@ -1,0 +1,1 @@
+{"truckId": "TRUCK_01", "temperature": ${random(20,40)}}

@@ -1,0 +1,6 @@
+- from:
+    uri: "direct:start"
+    steps:
+      - setBody:
+          simple: >
+            {"truckId": "TRUCK_01", "temperature": ${random(20,40)}}

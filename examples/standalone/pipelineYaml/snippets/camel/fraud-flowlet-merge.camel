@@ -1,0 +1,1 @@
+${body},fraudScore=${header.response}

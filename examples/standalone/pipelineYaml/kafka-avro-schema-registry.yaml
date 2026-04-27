@@ -1,0 +1,33 @@
+name: "Kafka Avro Schema Registry Example"
+parallelism: 1
+
+# Generic kafka avro pipeline — language injected via --lang
+# Usage:
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/kafka-avro-schema-registry.yaml --lang java
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/kafka-avro-schema-registry.yaml --lang python
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/kafka-avro-schema-registry.yaml --lang camel-groovy
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/kafka-avro-schema-registry.yaml --lang camel
+
+steps:
+  - type: source
+    name: kafka-source
+    properties:
+      format: "avro"
+      bootstrap.servers: "localhost:9092"
+      topic: "users-avro"
+      group.id: "avro-consumer-group"
+      schema.registry.url: "http://localhost:8081"
+
+  - type: process
+    name: enrich-user
+    language: "${lang}"
+    code: "file:snippets/${lang}/kafka-avro-enrich.${ext}"
+
+  - type: sink
+    name: kafka-sink
+    properties:
+      format: "avro"
+      bootstrap.servers: "localhost:9092"
+      topic: "users-processed-avro"
+      schema.registry.url: "http://localhost:8081"
+      schema.subject: "users-processed-avro-value"

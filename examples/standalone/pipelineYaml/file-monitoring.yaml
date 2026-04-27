@@ -1,0 +1,24 @@
+name: "File Monitor Example Pipeline"
+parallelism: 1
+
+# Generic file monitor pipeline — language injected via --lang
+# Usage:
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/file-monitoring.yaml --lang java
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/file-monitoring.yaml --lang python
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/file-monitoring.yaml --lang camel
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/file-monitoring.yaml --lang camel-groovy
+
+steps:
+  - type: source
+    name: file-source
+    properties:
+      path: "/tmp/flinkflow-input"
+      monitorInterval: "5"
+
+  - type: process
+    name: process-content
+    language: "${lang}"
+    code: "file:snippets/${lang}/file-monitoring-process.${ext}"
+
+  - type: sink
+    name: console-sink

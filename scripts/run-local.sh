@@ -4,12 +4,17 @@ set -e
 
 # --- Argument Parsing ---
 COMPILE=true
+FULL_REBUILD=false
 REMAINING_ARGS=()
 
 while [[ $# -gt 0 ]]; do
   case $1 in
     --no-compile|-n)
       COMPILE=false
+      shift
+      ;;
+    --full-rebuild|-r)
+      FULL_REBUILD=true
       shift
       ;;
     *)
@@ -20,15 +25,52 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [ ${#REMAINING_ARGS[@]} -eq 0 ]; then
-    echo "Usage: ./scripts/run-local.sh [--no-compile|-n] <pipeline-yaml> [other-args]"
+    echo "Usage: ./scripts/run-local.sh [--no-compile|-n] [--full-rebuild|-r] <pipeline-yaml> [other-args]"
     exit 1
 fi
 
 PIPELINE_FILE="${REMAINING_ARGS[0]}"
+PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$PROJECT_ROOT"
+
+JAR_FILE="target/flinkflow-0.9.0-BETA.jar"
+
+needs_compile() {
+  if [ ! -f "$JAR_FILE" ]; then
+    return 0
+  fi
+
+  if [ "$FULL_REBUILD" = true ]; then
+    return 0
+  fi
+
+  if [ "pom.xml" -nt "$JAR_FILE" ]; then
+    return 0
+  fi
+
+  if [ -d "src/main" ] && find src/main -type f -newer "$JAR_FILE" | head -n 1 | grep -q .; then
+    return 0
+  fi
+
+  if [ -d "src/test" ] && find src/test -type f -newer "$JAR_FILE" | head -n 1 | grep -q .; then
+    return 0
+  fi
+
+  return 1
+}
 
 if [ "$COMPILE" = true ]; then
-    echo "Compiling..."
-    mvn clean package -P local-run -DskipTests
+    if needs_compile; then
+        if [ "$FULL_REBUILD" = true ]; then
+            echo "Full rebuild (clean + package)..."
+            mvn -q clean package -P local-run -DskipTests
+        else
+            echo "Incremental package..."
+            mvn -q package -P local-run -DskipTests
+        fi
+    else
+        echo "No source changes detected. Skipping compilation."
+    fi
 else
     echo "Skipping compilation..."
 fi
@@ -46,15 +88,13 @@ export MAVEN_OPTS="-XX:+IgnoreUnrecognizedVMOptions \
                    --add-exports java.base/sun.net.util=ALL-UNNAMED \
                    -Dsun.misc.Unsafe.allowTerminallyDeprecated=true"
 
-JARPrefix="target/flinkflow-"
-# Ensure the fat JAR exists (pick the shaded one if multiple exist, fallback to main if needed, but it should be fixed context)
-# We know version is 0.9.0-BETA based on context, but let's just use wildcard if safe, or exact name
-JARFile="target/flinkflow-*-shaded.jar"
-if ! ls $JARFile 1> /dev/null 2>&1; then
-   JARFile="target/flinkflow-0.9.0-BETA.jar"
+if [ ! -f "$JAR_FILE" ]; then
+  echo "Error: JAR not found at $JAR_FILE"
+  echo "Run without --no-compile or use --full-rebuild to build it."
+  exit 1
 fi
 
-java -cp target/flinkflow-0.9.0-BETA.jar -XX:+IgnoreUnrecognizedVMOptions \
+java -cp "$JAR_FILE" -XX:+IgnoreUnrecognizedVMOptions \
   --sun-misc-unsafe-memory-access=allow \
   --add-opens java.base/java.lang=ALL-UNNAMED \
   --add-opens java.base/java.lang.reflect=ALL-UNNAMED \

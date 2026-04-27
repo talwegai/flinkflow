@@ -1,0 +1,1 @@
+http://internal-fraud-ml-service/score?userId=${jsonpath($.userId)}&amount=${jsonpath($.amount)}

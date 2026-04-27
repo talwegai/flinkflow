@@ -1,0 +1,1 @@
+Order: ${body.split(',')[2]} | Customer: ${header.right.split(',')[1]}

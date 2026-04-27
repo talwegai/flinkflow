@@ -1,0 +1,34 @@
+name: "Kafka Auth Example Pipeline"
+parallelism: 1
+
+# Generic secured kafka pipeline — language injected via --lang
+# Usage:
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/kafka-auth.yaml --lang java
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/kafka-auth.yaml --lang python
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/kafka-auth.yaml --lang camel
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/kafka-auth.yaml --lang camel-groovy
+
+steps:
+  - type: source
+    name: kafka-source
+    properties:
+      bootstrap.servers: "my-secure-kafka:9093"
+      topic: "secure-input"
+      group.id: "flinkflow-auth-group"
+      security.protocol: "SASL_SSL"
+      sasl.mechanism: "SCRAM-SHA-256"
+      sasl.jaas.config: "org.apache.kafka.common.security.scram.ScramLoginModule required username='my-user' password='my-password';"
+
+  - type: process
+    name: transformation
+    language: "${lang}"
+    code: "file:snippets/${lang}/kafka-auth-transform.${ext}"
+
+  - type: sink
+    name: kafka-sink
+    properties:
+      bootstrap.servers: "my-secure-kafka:9093"
+      topic: "secure-output"
+      security.protocol: "SASL_SSL"
+      sasl.mechanism: "SCRAM-SHA-256"
+      sasl.jaas.config: "org.apache.kafka.common.security.scram.ScramLoginModule required username='my-user' password='my-password';"

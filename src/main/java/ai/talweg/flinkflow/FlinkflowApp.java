@@ -57,6 +57,9 @@ import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import ai.talweg.flinkflow.config.SecretResolver;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.time.Duration;
 import java.util.Map;
 
@@ -98,6 +101,7 @@ public class FlinkflowApp {
         String localConfigPath = null;
         boolean dryRun = false;
         String flowletDirPath = null;
+        String lang = null;
 
         for (int i = 0; i < args.length; i++) {
             if (args[i].startsWith("--")) {
@@ -120,6 +124,10 @@ public class FlinkflowApp {
                         if (i + 1 < args.length)
                             flowletDirPath = args[++i];
                         break;
+                    case "--lang":
+                        if (i + 1 < args.length)
+                            lang = args[++i];
+                        break;
                     default:
                         break;
                 }
@@ -138,6 +146,7 @@ public class FlinkflowApp {
             System.err.println("  --k8s-namespace <ns>       Kubernetes namespace to query (default: in-cluster ns)");
             System.err.println("  --flowlet-dir <dir>        Load local Flowlet definitions from a directory");
             System.err.println("  --dry-run                  Resolve config and print expanded YAML without actually executing");
+            System.err.println("  --lang <language>          Substitute ${lang}/${ext} placeholders in the YAML (e.g., java, python, camel)");
             return 1;
         }
 
@@ -154,7 +163,18 @@ public class FlinkflowApp {
                 return 1;
             }
             ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-            jobConfig = mapper.readValue(configFile, JobConfig.class);
+            String yamlContent = Files.readString(configFile.toPath(), StandardCharsets.UTF_8);
+            if (lang != null) {
+                try {
+                    lang = normalizeLanguageArg(lang);
+                    String ext = langToExtension(lang);
+                    yamlContent = yamlContent.replace("${lang}", lang).replace("${ext}", ext);
+                } catch (IllegalArgumentException e) {
+                    System.err.println(e.getMessage());
+                    return 1;
+                }
+            }
+            jobConfig = mapper.readValue(yamlContent, JobConfig.class);
         }
 
         // Build the Flowlet registry with local directory and discovery from Kubernetes CRs
@@ -170,6 +190,12 @@ public class FlinkflowApp {
                 resolvedSteps.add(step);
             }
         }
+
+        // Resolve external code references like: code: "file:snippets/my-transform.java"
+        File configBaseDir = localConfigPath != null
+                ? new File(localConfigPath).getAbsoluteFile().getParentFile()
+                : new File(".").getAbsoluteFile();
+        resolveExternalCodeReferences(resolvedSteps, configBaseDir);
 
         // Resolve Kubernetes secrets starting with 'secret:' in all steps
         try (SecretResolver secretResolver = new SecretResolver()) {
@@ -325,6 +351,82 @@ public class FlinkflowApp {
 
         env.execute(jobConfig.getName());
         return 0;
+    }
+
+    private static String normalizeLanguageArg(String lang) {
+        if (lang == null) {
+            return null;
+        }
+        String normalized = lang.trim().toLowerCase();
+        switch (normalized) {
+            case "py":
+            case "pyhon":
+            case "pythn":
+                return "python";
+            default:
+                return normalized;
+        }
+    }
+
+    private static String langToExtension(String lang) {
+        switch (lang.toLowerCase()) {
+            case "java":
+                return "java";
+            case "python":
+                return "py";
+            case "camel":
+            case "camel-simple":
+                return "camel";
+            case "camel-yaml":
+                return "camel.yaml";
+            case "camel-groovy":
+            case "groovy":
+                return "groovy";
+            case "jsonpath":
+            case "camel-jsonpath":
+                return "jsonpath";
+            default:
+                throw new IllegalArgumentException("Unsupported --lang value: '" + lang
+                        + "'. Supported values include: java, python, camel");
+        }
+    }
+
+    private static void resolveExternalCodeReferences(java.util.List<StepConfig> steps, File baseDir) {
+        if (steps == null) {
+            return;
+        }
+        for (StepConfig step : steps) {
+            // Resolve code: field
+            String code = step.getCode();
+            if (code != null && code.trim().startsWith("file:")) {
+                step.setCode(loadFileRef(code.trim(), step.getName(), "code", baseDir));
+            }
+
+            // Resolve join step leftKey / rightKey properties
+            Map<String, String> props = step.getProperties();
+            if (props != null) {
+                for (String propKey : new java.util.ArrayList<>(props.keySet())) {
+                    String val = props.get(propKey);
+                    if (val != null && val.trim().startsWith("file:")) {
+                        props.put(propKey, loadFileRef(val.trim(), step.getName(), propKey, baseDir));
+                    }
+                }
+            }
+        }
+    }
+
+    private static String loadFileRef(String fileExpr, String stepName, String field, File baseDir) {
+        String fileRef = fileExpr.substring("file:".length()).trim();
+        java.nio.file.Path resolvedPath = java.nio.file.Path.of(fileRef);
+        if (!resolvedPath.isAbsolute()) {
+            resolvedPath = baseDir.toPath().resolve(fileRef).normalize();
+        }
+        try {
+            return Files.readString(resolvedPath, StandardCharsets.UTF_8).stripTrailing();
+        } catch (IOException e) {
+            throw new RuntimeException(
+                    "Failed to load external " + field + " for step '" + stepName + "' from '" + fileRef + "'", e);
+        }
     }
 
     /**

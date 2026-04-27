@@ -1,0 +1,27 @@
+name: "HTTP Lookup Example Pipeline"
+parallelism: 1
+
+# Generic async HTTP enrichment — language injected via --lang
+# Usage:
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/http-lookup.yaml --lang java
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/http-lookup.yaml --lang python
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/http-lookup.yaml --lang camel-groovy
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/http-lookup.yaml --lang camel
+
+steps:
+  - type: source
+    name: static-source
+    properties:
+      content: "101|102|103"
+
+  - type: http-lookup
+    language: "${lang}"
+    properties:
+      urlCode: "file:snippets/${lang}/http-lookup-url.${ext}"
+      authCode: "file:snippets/${lang}/http-lookup-auth.${ext}"
+      timeout: "5000"
+      capacity: "10"
+    code: "file:snippets/${lang}/http-lookup-merge.${ext}"
+
+  - type: sink
+    name: console-sink

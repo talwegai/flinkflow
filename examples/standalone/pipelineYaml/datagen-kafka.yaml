@@ -1,0 +1,30 @@
+name: "DataGen to Kafka Pipeline"
+parallelism: 1
+
+# Generic datagen → kafka sink pipeline — language injected via --lang
+# Usage:
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/datagen-kafka.yaml --lang java
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/datagen-kafka.yaml --lang python
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/datagen-kafka.yaml --lang camel
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/datagen-kafka.yaml --lang camel-groovy
+#
+# Generates synthetic events via datagen source, enriches them, then writes to Kafka.
+# Demonstrates the datagen → process → kafka-sink pattern.
+
+steps:
+  - type: source
+    name: datagen-source
+    properties:
+      rowsPerSecond: "5"
+      payload: "datagen-event"
+
+  - type: process
+    name: enrich-event
+    language: "${lang}"
+    code: "file:snippets/${lang}/datagen-kafka-process.${ext}"
+
+  - type: sink
+    name: kafka-sink
+    properties:
+      bootstrap.servers: "localhost:9092"
+      topic: "flinkflow-sink"

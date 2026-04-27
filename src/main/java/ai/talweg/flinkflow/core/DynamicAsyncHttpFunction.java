@@ -30,6 +30,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -56,6 +58,11 @@ public class DynamicAsyncHttpFunction extends RichAsyncFunction<String, String> 
     private transient PythonEvaluator responseEvaluator;
     private transient PythonEvaluator authEvaluator;
 
+    // Camel-family Handlers
+    private transient CamelEvaluator urlCamelEvaluator;
+    private transient CamelEvaluator responseCamelEvaluator;
+    private transient CamelEvaluator authCamelEvaluator;
+
     public DynamicAsyncHttpFunction(String urlCode, String responseCode, String authCode, String language) {
         this.urlCode = urlCode;
         this.responseCode = responseCode;
@@ -81,6 +88,18 @@ public class DynamicAsyncHttpFunction extends RichAsyncFunction<String, String> 
             if (authCode != null && !authCode.isEmpty()) {
                 authEvaluator = new PythonEvaluator(authCode, "def process(input)");
                 authEvaluator.open();
+            }
+        } else if (isCamelLanguage(language)) {
+            String camelDialect = toCamelDialect(language);
+            urlCamelEvaluator = new CamelEvaluator(urlCode, camelDialect);
+            urlCamelEvaluator.open();
+
+            responseCamelEvaluator = new CamelEvaluator(responseCode, camelDialect);
+            responseCamelEvaluator.open();
+
+            if (authCode != null && !authCode.isEmpty()) {
+                authCamelEvaluator = new CamelEvaluator(authCode, camelDialect);
+                authCamelEvaluator.open();
             }
         } else {
             String className = "DynamicHttpHandler_" + System.nanoTime();
@@ -114,6 +133,11 @@ public class DynamicAsyncHttpFunction extends RichAsyncFunction<String, String> 
         if ("python".equals(language)) {
             url = urlEvaluator.execute(input).asString();
             authHeader = (authEvaluator != null) ? authEvaluator.execute(input).asString() : null;
+        } else if (isCamelLanguage(language)) {
+            Object urlObj = urlCamelEvaluator.evaluate(input);
+            url = urlObj != null ? urlObj.toString() : "";
+            Object authObj = (authCamelEvaluator != null) ? authCamelEvaluator.evaluate(input) : null;
+            authHeader = authObj != null ? authObj.toString() : null;
         } else {
             url = (String) urlMethod.invoke(dynamicHandlerInstance, input);
             authHeader = (String) authMethod.invoke(dynamicHandlerInstance, input);
@@ -137,6 +161,12 @@ public class DynamicAsyncHttpFunction extends RichAsyncFunction<String, String> 
                 String result;
                 if ("python".equals(language)) {
                     result = responseEvaluator.execute(input, response.body()).asString();
+                } else if (isCamelLanguage(language)) {
+                    Map<String, Object> headers = new HashMap<>();
+                    headers.put("input", input);
+                    headers.put("response", response.body());
+                    Object out = responseCamelEvaluator.evaluate(input, headers);
+                    result = out != null ? out.toString() : null;
                 } else {
                     result = (String) responseMethod.invoke(dynamicHandlerInstance, input, response.body());
                 }
@@ -155,6 +185,32 @@ public class DynamicAsyncHttpFunction extends RichAsyncFunction<String, String> 
         if (urlEvaluator != null) urlEvaluator.close();
         if (responseEvaluator != null) responseEvaluator.close();
         if (authEvaluator != null) authEvaluator.close();
+        if (urlCamelEvaluator != null) urlCamelEvaluator.close();
+        if (responseCamelEvaluator != null) responseCamelEvaluator.close();
+        if (authCamelEvaluator != null) authCamelEvaluator.close();
+    }
+
+    private static boolean isCamelLanguage(String language) {
+        return "camel".equals(language)
+                || "camel-simple".equals(language)
+                || "jsonpath".equals(language)
+                || "camel-jsonpath".equals(language)
+                || "groovy".equals(language)
+                || "camel-groovy".equals(language)
+                || "camel-yaml".equals(language);
+    }
+
+    private static String toCamelDialect(String language) {
+        if ("camel".equals(language) || "camel-simple".equals(language)) {
+            return "simple";
+        }
+        if ("jsonpath".equals(language) || "camel-jsonpath".equals(language)) {
+            return "jsonpath";
+        }
+        if ("groovy".equals(language) || "camel-groovy".equals(language)) {
+            return "groovy";
+        }
+        return "simple";
     }
 
     @Override

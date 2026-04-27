@@ -1,0 +1,33 @@
+name: "Telemetry Classify Pipeline"
+parallelism: 1
+
+# Generic telemetry → classify pipeline — language injected via --lang
+# Usage:
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/telemetry-classify.yaml --lang camel
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/telemetry-classify.yaml --lang camel-yaml
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/telemetry-classify.yaml --lang camel-groovy
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/telemetry-classify.yaml --lang java
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/telemetry-classify.yaml --lang python
+#
+# Generates sensor readings, simulates a temperature telemetry payload,
+# then classifies temperature into CRITICAL / NORMAL status.
+
+steps:
+  - type: source
+    name: datagen
+    properties:
+      rowsPerSecond: "5"
+      payload: "sensor"
+
+  - type: process
+    name: simulate-telemetry
+    language: "${lang}"
+    code: "file:snippets/${lang}/telemetry-simulate.${ext}"
+
+  - type: process
+    name: classify-temp
+    language: "${lang}"
+    code: "file:snippets/${lang}/telemetry-classify.${ext}"
+
+  - type: sink
+    name: console-sink

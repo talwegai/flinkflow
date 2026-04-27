@@ -1,0 +1,29 @@
+name: "KeyBy Reduce Pipeline"
+parallelism: 2
+
+# Generic keyby → reduce pipeline — language injected via --lang
+# Usage:
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/keyby-reduce.yaml --lang java
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/keyby-reduce.yaml --lang python
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/keyby-reduce.yaml --lang camel-groovy
+#
+# Partitions records by fruit name then sums counts using a running reduce.
+
+steps:
+  - type: source
+    name: static-source
+    properties:
+      content: "apple,1|banana,2|apple,3|cherry,1|banana,4"
+
+  - type: keyby
+    name: partition-by-fruit
+    language: "${lang}"
+    code: "file:snippets/${lang}/keyby-reduce-keyby.${ext}"
+
+  - type: reduce
+    name: sum-counts
+    language: "${lang}"
+    code: "file:snippets/${lang}/keyby-reduce-sum.${ext}"
+
+  - type: sink
+    name: console-sink

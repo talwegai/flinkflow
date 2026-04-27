@@ -1,0 +1,26 @@
+name: "Simple Transform Pipeline"
+parallelism: 1
+
+# Generic pipeline — language is injected at runtime via --lang <language>
+# Usage:
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/simple-transform.yaml --lang java
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/simple-transform.yaml --lang python
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/simple-transform.yaml --lang camel
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/simple-transform.yaml --lang camel-groovy
+#
+# At runtime ${lang} is replaced by the language name and ${ext} by its file extension.
+# The matching snippet is loaded from snippets/${lang}/simple-transform.${ext}
+
+steps:
+  - type: source
+    name: static-source
+    properties:
+      content: "hello world|foo bar|baz qux|stream me"
+
+  - type: process
+    name: transform
+    language: "${lang}"
+    code: "file:snippets/${lang}/simple-transform.${ext}"
+
+  - type: sink
+    name: console-sink

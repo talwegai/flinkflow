@@ -1,0 +1,24 @@
+name: "FlatMap Pipeline"
+parallelism: 1
+
+# Generic flatmap pipeline — language is injected at runtime via --lang <language>
+# Usage:
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/flatmap.yaml --lang java
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/flatmap.yaml --lang python
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/flatmap.yaml --lang camel-groovy
+#
+# Splits each sentence into individual words (one word per output record).
+
+steps:
+  - type: source
+    name: static-source
+    properties:
+      content: "Hello World|Flink Rocks|Stream Now"
+
+  - type: flatmap
+    name: split-words
+    language: "${lang}"
+    code: "file:snippets/${lang}/flatmap.${ext}"
+
+  - type: sink
+    name: console-sink

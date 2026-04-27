@@ -1,0 +1,14 @@
+- from:
+    uri: "direct:start"
+    steps:
+      - unmarshal:
+          json: {}
+      - setHeader:
+          name: "raw"
+          simple: "${body[output]}"
+      - setBody:
+          simple: "${header.raw.replaceAll('(?s)```json\\s*', '').replaceAll('```', '').trim()}"
+      - unmarshal:
+          json: {}
+      - setBody:
+          simple: "${body[ticketId]} | ${body[urgency]} | ${body[category]} | ${body[action]}"

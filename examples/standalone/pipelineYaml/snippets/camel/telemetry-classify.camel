@@ -1,0 +1,1 @@
+Truck ${body[truckId]} is ${body[temperature] > 30 ? 'CRITICAL' : 'NORMAL'} (${body[temperature]}C)

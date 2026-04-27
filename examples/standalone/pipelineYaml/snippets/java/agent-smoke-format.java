@@ -1,0 +1,1 @@
+return "AGENT RESULT: " + input;

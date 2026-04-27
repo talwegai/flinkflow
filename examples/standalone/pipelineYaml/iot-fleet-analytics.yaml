@@ -1,0 +1,50 @@
+name: "IoT Sensor Fleet Analytics"
+parallelism: 2
+
+# Generic IoT fleet analytics pipeline — language injected via --lang
+# Usage:
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/iot-fleet-analytics.yaml --lang java
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/iot-fleet-analytics.yaml --lang python
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/iot-fleet-analytics.yaml --lang camel-groovy
+#   ./scripts/run-local.sh examples/standalone/pipelineYaml/iot-fleet-analytics.yaml --lang camel
+#
+# Simulates refrigerated truck fleet telemetry:
+#   datagen → simulate telemetry → keyby truck → 5s window avg → augment alerts → filter critical → sink
+
+steps:
+  - type: source
+    name: datagen
+    properties:
+      rowsPerSecond: "15"
+      payload: "sensor"
+
+  - type: process
+    name: simulate-telemetry
+    language: "${lang}"
+    code: "file:snippets/${lang}/iot-simulate-telemetry.${ext}"
+
+  - type: keyby
+    name: partition-by-truck
+    language: "${lang}"
+    code: "file:snippets/${lang}/iot-partition-by-truck.${ext}"
+
+  - type: window
+    name: calculate-average-temp
+    properties:
+      windowType: "tumbling"
+      size: "5"
+    language: "${lang}"
+    code: "file:snippets/${lang}/iot-calculate-average-temp.${ext}"
+
+  - type: process
+    name: augment-temperature-alerts
+    language: "${lang}"
+    code: "file:snippets/${lang}/iot-augment-alerts.${ext}"
+
+  - type: filter
+    name: filter-alerts
+    language: "${lang}"
+    code: "file:snippets/${lang}/iot-filter-alerts.${ext}"
+
+  - type: sink
+    name: console-sink
