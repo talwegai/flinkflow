@@ -140,7 +140,12 @@ public class DynamicAsyncHttpFunction extends RichAsyncFunction<String, String> 
                 } else {
                     result = (String) responseMethod.invoke(dynamicHandlerInstance, input, response.body());
                 }
-                resultFuture.complete(Collections.singleton(result));
+
+                if (result != null) {
+                    resultFuture.complete(Collections.singleton(result));
+                } else {
+                    resultFuture.complete(Collections.emptyList());
+                }
             } catch (Exception e) {
                 resultFuture.completeExceptionally(e);
             }
