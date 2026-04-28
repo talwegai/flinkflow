@@ -3,7 +3,7 @@
 This guide explains how to build the Flinkflow application and deploy it to a Kubernetes cluster that has the [Apache Flink Kubernetes Operator](https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-main/) installed.
 
 > [!NOTE]
-> Flinkflow supports **Polyglot Logic Snippets**. You can embed both **Java (Janino)** and **Python (GraalVM)** code directly in your `Pipeline` Custom Resources.
+> Flinkflow supports **Polyglot Logic Snippets**. You can embed **Camel Expressions**, **Java (Janino)** and **Python (GraalVM)** code directly in your `Pipeline` Custom Resources.
 
 ## Prerequisites
 
@@ -22,9 +22,24 @@ mvn clean package
 
 The resulting JAR will be at `target/flinkflow-0.9.0-BETA.jar`.
 
-## 2. Build and Push the Docker Image
+## 2. Docker Image Selection
 
-The application needs to be containerized to run in Kubernetes.
+The application needs to be containerized to run in Kubernetes. You can either use the official public image or build your own.
+
+### Option A: Use Public Image (Recommended)
+
+You can pull the official Flinkflow image from the GitHub Container Registry. This is the fastest way to get started.
+
+```bash
+docker pull ghcr.io/talwegai/flinkflow:v0.9.2
+```
+
+> [!NOTE]
+> When using the public image, ensure you update the `image` field in your deployment manifests (e.g., `deploy/k8s/flink-operator-deployment.yaml`) to `ghcr.io/talwegai/flinkflow:v0.9.2`.
+
+### Option B: Build Image Locally
+
+If you have made custom changes to the Flinkflow core or need a specific base image:
 
 1. **Build the image**:
    ```bash

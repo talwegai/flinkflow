@@ -66,7 +66,7 @@ This file is the **Single Source of Truth** for the Flinkflow project roadmap an
 ---
 
 ## 🎨 Milestone 3 — v2.0: Platform & Enterprise
-*Self-service platform with visual design, AI assistance, and governance.*
+*Self-service platform with agentic developer tools and governance.*
 
 ### 🛡️ Governance & Compliance
 - [ ] **Secret Auditing**: Implementation of job-level audit logs for secret resolution.
@@ -102,8 +102,7 @@ This file is the **Single Source of Truth** for the Flinkflow project roadmap an
 - [ ] **Legacy Systems**: Specialized connectors for **SAP**, **Salesforce (CDC)**, and **Mainframe (CDC)**.
 
 ### 📊 Advanced Observability & Developer Tools
-- [ ] **Visual Designer**: Drag-and-drop Pipeline IDE with real-time YAML sync.
-- [ ] **AI-Driven Synthesis**: Generate visual DAGs and logic snippets from NL prompts via the UI.
+- [ ] **Agentic Development Tool**: Agent-based development tool for pipeline authoring and logic injection, integrated directly into any modern IDE (VS Code, Cursor, IntelliJ).
 - [ ] **Flowlet Marketplace**: UI for browsing and installing community/commercial Flowlets.
 - [ ] **Live Log Streaming**: WebSocket-based container log tailing in the dashboard.
 - [ ] **Log Filtering**: Dashboard controls for log levels and keyword highlighting.
@@ -118,4 +117,4 @@ This file is the **Single Source of Truth** for the Flinkflow project roadmap an
 - [ ] **Air-Gapped Gallery**: Hardened container images with pre-loaded LLM models for offline AI.
 
 ---
-*Last updated: April 11, 2026*
+*Last updated: April 28, 2026*
