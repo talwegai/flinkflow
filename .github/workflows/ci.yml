@@ -123,7 +123,7 @@ jobs:
   # ──────────────────────────────────────────────────────────────────
   deploy-docs:
     name: Deploy to GitHub Pages
-    needs: build-docs
+    needs: [build, build-docs]
     runs-on: ubuntu-latest
 
     # Only deploy on pushes to main, not on pull requests
@@ -137,3 +137,20 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+  # ──────────────────────────────────────────────────────────────────
+  # Job 4: Status Gate (Required Status Check)
+  # ──────────────────────────────────────────────────────────────────
+  all-checks-passed:
+    name: All Checks Passed
+    needs: [build, build-docs]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Verify job results
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: |
+          echo "One or more jobs failed or were cancelled."
+          exit 1
+      - name: Success
+        run: echo "All checks passed successfully."
