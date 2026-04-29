@@ -435,6 +435,12 @@
         <artifactId>netty-transport</artifactId>
         <version>${netty.version}</version>
       </dependency>
+      <!-- Apache Kafka Clients (Patched for CVE-2026-35554) -->
+      <dependency>
+        <groupId>org.apache.kafka</groupId>
+        <artifactId>kafka-clients</artifactId>
+        <version>3.9.2</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
