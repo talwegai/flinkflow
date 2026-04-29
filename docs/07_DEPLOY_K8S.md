@@ -20,7 +20,7 @@ First, compile the project and create the shaded JAR:
 mvn clean package
 ```
 
-The resulting JAR will be at `target/flinkflow-0.9.0-BETA.jar`.
+The resulting JAR will be at `target/flinkflow-0.9.3.jar`.
 
 ## 2. Docker Image Selection
 
@@ -31,11 +31,11 @@ The application needs to be containerized to run in Kubernetes. You can either u
 You can pull the official Flinkflow image from the GitHub Container Registry. This is the fastest way to get started.
 
 ```bash
-docker pull ghcr.io/talwegai/flinkflow:v0.9.2
+docker pull ghcr.io/talwegai/flinkflow:0.9.3
 ```
 
 > [!NOTE]
-> When using the public image, ensure you update the `image` field in your deployment manifests (e.g., `deploy/k8s/flink-operator-deployment.yaml`) to `ghcr.io/talwegai/flinkflow:v0.9.2`.
+> When using the public image, ensure you update the `image` field in your deployment manifests (e.g., `deploy/k8s/flink-operator-deployment.yaml`) to `ghcr.io/talwegai/flinkflow:0.9.3`.
 
 ### Option B: Build Image Locally
 
