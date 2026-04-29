@@ -46,15 +46,15 @@ export MAVEN_OPTS="-XX:+IgnoreUnrecognizedVMOptions \
                    --add-exports java.base/sun.net.util=ALL-UNNAMED \
                    -Dsun.misc.Unsafe.allowTerminallyDeprecated=true"
 
-JARPrefix="target/flinkflow-"
-# Ensure the fat JAR exists (pick the shaded one if multiple exist, fallback to main if needed, but it should be fixed context)
-# We know version is 0.9.0-BETA based on context, but let's just use wildcard if safe, or exact name
-JARFile="target/flinkflow-*-shaded.jar"
-if ! ls $JARFile 1> /dev/null 2>&1; then
-   JARFile="target/flinkflow-0.9.0-BETA.jar"
+# Locate the project JAR (avoiding 'original-' prefixed ones from the shade plugin)
+JARFile=$(ls target/flinkflow-*.jar 2>/dev/null | grep -v "original-" | head -n 1)
+
+if [ -z "$JARFile" ]; then
+    echo "Error: Could not find Flinkflow JAR in target directory. Please run 'mvn clean package' first."
+    exit 1
 fi
 
-java -cp target/flinkflow-0.9.0-BETA.jar -XX:+IgnoreUnrecognizedVMOptions \
+java -cp "$JARFile" -XX:+IgnoreUnrecognizedVMOptions \
   --sun-misc-unsafe-memory-access=allow \
   --add-opens java.base/java.lang=ALL-UNNAMED \
   --add-opens java.base/java.lang.reflect=ALL-UNNAMED \
