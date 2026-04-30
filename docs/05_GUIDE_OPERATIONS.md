@@ -1,4 +1,4 @@
-# 🛠️ Flinkflow Operations & Monitoring
+# 🛠️ Flinkflow Operations & Monitoring (alpha)
 
 This guide covers the technical operations of Flinkflow, including visual monitoring, throughput tracking, and high-performance JVM optimization.
 
