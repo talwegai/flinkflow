@@ -38,7 +38,7 @@ The execution of the Flinkflow vision is tracked via our unified project backlog
 *   **Milestone 2 (v1.5) — Ecosystem Expansion**: Expanding the Flowlet Catalog (Iceberg, Snowflake, CDC).
 *   **Milestone 3 (v2.0) — The Platform**: Delivering the Visual IDE, **Declarative Agentic Bridge**, and enterprise governance features.
 
-👉 **View the detailed task-level roadmap here: [Project Backlog (TODO)](/documentation/10_TODO)**
+👉 **View the detailed task-level roadmap here: [Project Backlog (TODO)](/docs/10_TODO)**
 
 ---
 

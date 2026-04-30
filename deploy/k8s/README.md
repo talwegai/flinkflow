@@ -29,7 +29,7 @@ Flinkflow supports four main ways to run on Kubernetes:
 
 ### 1. Flink Kubernetes Operator (Recommended)
 Use `flink-operator-deployment.yaml` to manage Flink jobs as native Kubernetes objects. This approach handles job lifecycle, savepoints, and horizontal scaling automatically.
-> See **[README-flinkflow-k8s.md](../../documentation/README-flinkflow-k8s.md)** for a full guide.
+> See **[README-flinkflow-k8s.md](../../docs/README-flinkflow-k8s.md)** for a full guide.
 
 ### 2. Kubernetes-Native Pipeline (GitOps)
 Apply `crds/crd-pipeline.yaml`, then define your pipeline as a `kind: Pipeline` resource. Use `native-pipeline-deployment.yaml` to start a Flink worker that dynamically reads and executes it.

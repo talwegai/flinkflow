@@ -52,7 +52,7 @@ git checkout -b feature/my-cool-feature
 *   Write unit tests for new logic (we use JUnit 5 and AssertJ).
 
 #### **YAML DSL**
-*   Ensure that any changes to the pipeline schema are reflected in the `documentation/GUIDE_CONFIGURATION.md`.
+*   Ensure that any changes to the pipeline schema are reflected in the `docs/GUIDE_CONFIGURATION.md`.
 *   Validate your changes by adding an example to `examples/standalone/`.
 
 ### 5. Running Tests

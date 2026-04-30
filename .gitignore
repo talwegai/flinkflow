@@ -30,9 +30,9 @@ venv/
 .env
 
 # Docusaurus Docs Site
-docs/.docusaurus/
-docs/build/
-docs/node_modules/
+site/.docusaurus/
+site/build/
+site/node_modules/
 
 # Logs
 *.log

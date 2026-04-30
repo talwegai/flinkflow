@@ -45,9 +45,9 @@ Flinkflow bridges the gap between high-performance data engineering and the broa
 
 - **Declarative YAML DSL**: Define entire pipeline structures—Sources, Sinks, and Operations—in clean YAML.
 - **Polyglot Logic Snippets**: Inject custom logic directly into your YAML—support for **Java (Janino)**, **Python (GraalVM)**, and **Apache Camel (Simple/JsonPath/Groovy)** for transformations, filters, and flatmaps.
-- **Kubernetes-Native (GitOps)**: Manage pipelines as `Pipeline` and `Flowlet` Custom Resources. Fully compatible with Helm, ArgoCD, and the Flink Kubernetes Operator. See [documentation/07_DEPLOY_K8S.md](documentation/07_DEPLOY_K8S.md).
+- **Kubernetes-Native (GitOps)**: Manage pipelines as `Pipeline` and `Flowlet` Custom Resources. Fully compatible with Helm, ArgoCD, and the Flink Kubernetes Operator. See [docs/07_DEPLOY_K8S.md](docs/07_DEPLOY_K8S.md).
 - **Reusable Flowlet Catalog**: Drag-and-drop capability for complex connectors (Kafka, Confluent, S3, JDBC) using parameterized components.
-- **Advanced Data Mapping**: Support for XSLT 3.0 via Saxon-HE for structural JSON/XML transformations (Kaoto integration). See [documentation/06_GUIDE_DATAMAPPER.md](documentation/06_GUIDE_DATAMAPPER.md).
+- **Advanced Data Mapping**: Support for XSLT 3.0 via Saxon-HE for structural JSON/XML transformations (Kaoto integration). See [docs/06_GUIDE_DATAMAPPER.md](docs/06_GUIDE_DATAMAPPER.md).
 - **Observability Built-in**: Real-time monitoring of job health and throughput via a dedicated dashboard.
 - **Extensible Connectors**: Unified support for Kafka, S3, JDBC, HTTP Sinks, and more.
 - **Agentic Bridge (Flink 2.2+)**: Run autonomous AI agents directly in your stream. Support for **OpenAI** (GPT-4o), **Google Gemini**, and **Ollama**. Powered by **Flink State V2**, providing non-blocking, asynchronous memory for conversation history and reasoning.
@@ -63,15 +63,15 @@ Flinkflow bridges the gap between high-performance data engineering and the broa
 
 To explore Flinkflow in detail, refer to the specialized documentation for each component:
 
-*   **[Kubernetes Deployment Guide](documentation/07_DEPLOY_K8S.md)**: authoritive guide for running Flinkflow via the Flink Kubernetes Operator.
-*   **[Pipeline Configuration Reference](documentation/04_GUIDE_CONFIGURATION.md)**: Comprehensive guide for the YAML DSL, connectors, and secret management.
-*   **[Operations & Monitoring](documentation/05_GUIDE_OPERATIONS.md)**: Details on performance, dashboard setup, and troubleshooting.
+*   **[Kubernetes Deployment Guide](docs/07_DEPLOY_K8S.md)**: authoritive guide for running Flinkflow via the Flink Kubernetes Operator.
+*   **[Pipeline Configuration Reference](docs/04_GUIDE_CONFIGURATION.md)**: Comprehensive guide for the YAML DSL, connectors, and secret management.
+*   **[Operations & Monitoring](docs/05_GUIDE_OPERATIONS.md)**: Details on performance, dashboard setup, and troubleshooting.
 *   **[Infrastructure Catalog (deploy/k8s/)](deploy/k8s/README.md)**: Reference for manifests, RBAC, and system deployments.
 *   **[Flowlet Registry (deploy/k8s/flowlets/)](deploy/k8s/flowlets/README.md)**: Library of reusable, parameterized pipeline components.
-*   **[XSLT DataMapper Guide](documentation/06_GUIDE_DATAMAPPER.md)**: Deep dive into using Saxon-HE for structural mapping.
-*   **[System Architecture](documentation/01_ARCHITECTURE.md)**: Detailed diagrams and component descriptions.
+*   **[XSLT DataMapper Guide](docs/06_GUIDE_DATAMAPPER.md)**: Deep dive into using Saxon-HE for structural mapping.
+*   **[System Architecture](docs/01_ARCHITECTURE.md)**: Detailed diagrams and component descriptions.
 *   **[ADR-005: Agentic Bridge](adr/005_AGENTIC_BRIDGE.md)**: Conceptual design for autonomous AI agents on Flink.
-*   **[Project Roadmap](documentation/08_VISION.md)**: Future milestones and planned features.
+*   **[Project Roadmap](docs/08_VISION.md)**: Future milestones and planned features.
 
 
 ---
@@ -134,13 +134,13 @@ Flinkflow's YAML-first approach is specifically designed to be **LLM-optimized**
 
 ## ⚡ Performance: Polyglot-AOT Architecture
 Flinkflow achieves native-level performance through its **Janino-powered** (Java), **GraalVM-powered** (Python), and **Camel-powered** (Simple/JSONPath/YAML DSL) code injection system. All logic snippets in your YAML are compiled/optimized **exactly once** during job startup, resulting in zero overhead during high-throughput record processing.
-> See **[Operations & Performance (documentation/05_GUIDE_OPERATIONS.md)](documentation/05_GUIDE_OPERATIONS.md)** for details.
+> See **[Operations & Performance (docs/05_GUIDE_OPERATIONS.md)](docs/05_GUIDE_OPERATIONS.md)** for details.
 
 ---
 
 ## 📂 Project Structure
 
-To explore the Flinkflow codebase and directory layout, see the **[Developer Guide (documentation/03_DEVELOPER_GUIDE.md)](documentation/03_DEVELOPER_GUIDE.md)**.
+To explore the Flinkflow codebase and directory layout, see the **[Developer Guide (docs/03_DEVELOPER_GUIDE.md)](docs/03_DEVELOPER_GUIDE.md)**.
 
 
 ### Docker Deployment
@@ -228,7 +228,7 @@ For traditional deployments or manual infrastructure control:
 - **Manual Cluster Mode**: Direct JobManager/TaskManager Pod pool.
 - **Native Submission**: Direct `flink run-application` via the K8s API.
 
-> Detailed guides for these methods are available in the **[Kubernetes Deployment Guide (documentation/07_DEPLOY_K8S.md)](documentation/07_DEPLOY_K8S.md)**.
+> Detailed guides for these methods are available in the **[Kubernetes Deployment Guide (docs/07_DEPLOY_K8S.md)](docs/07_DEPLOY_K8S.md)**.
 
 
 ---
@@ -238,14 +238,14 @@ For traditional deployments or manual infrastructure control:
 Flinkflow is configured via a high-level YAML DSL. You can define sources, sinks, and complex processing logic without writing a single line of Flink Java boilerplate.
 
 > [!IMPORTANT]
-> For the full specification of all connectors (Kafka, S3, JDBC, HTTP), operations (Windowing, Joins, Aggregations), and Secret Management (`secret:name/key`), refer to the **[Pipeline Configuration Reference (documentation/04_GUIDE_CONFIGURATION.md)](documentation/04_GUIDE_CONFIGURATION.md)**.
+> For the full specification of all connectors (Kafka, S3, JDBC, HTTP), operations (Windowing, Joins, Aggregations), and Secret Management (`secret:name/key`), refer to the **[Pipeline Configuration Reference (docs/04_GUIDE_CONFIGURATION.md)](docs/04_GUIDE_CONFIGURATION.md)**.
 
 
 ## 🏗️ Reusable Components: Flowlets
 
 Flowlets are parameterized, shareable pipeline components. This allows you to define complex patterns (like "Confluent Kafka to S3") once and reuse them across dozens of pipelines by just changing parameters in the `with:` block.
 
-> See **[Flowlet Catalog Index (deploy/k8s/flowlets/README.md)](deploy/k8s/flowlets/README.md)** and the **[Configuration Guide](documentation/04_GUIDE_CONFIGURATION.md#flowlets)**.
+> See **[Flowlet Catalog Index (deploy/k8s/flowlets/README.md)](deploy/k8s/flowlets/README.md)** and the **[Configuration Guide](docs/04_GUIDE_CONFIGURATION.md#flowlets)**.
 
 ---
 
@@ -253,7 +253,7 @@ Flowlets are parameterized, shareable pipeline components. This allows you to de
 
 The **NiceGUI-based dashboard** provides real-time visibility into your Flink metrics and Kubernetes logs.
 
-> See **[Operations & Monitoring (documentation/05_GUIDE_OPERATIONS.md)](documentation/05_GUIDE_OPERATIONS.md)**.
+> See **[Operations & Monitoring (docs/05_GUIDE_OPERATIONS.md)](docs/05_GUIDE_OPERATIONS.md)**.
 
 ---
 
@@ -269,7 +269,7 @@ The **NiceGUI-based dashboard** provides real-time visibility into your Flink me
 Flinkflow implements a strict, **deny-by-default** security model for guest code execution. It uses a hardened **GraalVM Python sandbox** and restricted **Janino Java** runtime to protect the Flink cluster from potential exploits within user-supplied YAML logic.
 
 > [!TIP]
-> This security architecture makes Flinkflow uniquely suited for **LLM-generated pipelines** and **Multi-Tenant environments**. Detailed technical specs on the sandbox isolation can be found in our **[Security Policy (documentation/09_SECURITY.md)](documentation/09_SECURITY.md)**.
+> This security architecture makes Flinkflow uniquely suited for **LLM-generated pipelines** and **Multi-Tenant environments**. Detailed technical specs on the sandbox isolation can be found in our **[Security Policy (docs/09_SECURITY.md)](docs/09_SECURITY.md)**.
 
 > [!IMPORTANT]
 > This security architecture makes Flinkflow uniquely suited for **LLM-generated pipelines** and **Multi-Tenant environments**, where safety and isolation are paramount.
@@ -293,10 +293,10 @@ Flinkflow is licensed under the **Apache License, Version 2.0**. See the [LICENS
 
 Flinkflow is an open-source project and we welcome contributions of all kinds! Whether you are fixing a bug, improving the docs, or suggesting a new feature, your help is appreciated.
 
-*   **[Contributing Guide](documentation/community/CONTRIBUTING.md)**: For finding bugs and submitting features.
-*   **[Developer Guide](documentation/03_DEVELOPER_GUIDE.md)**: For deep-dive engine development and internals.
-*   **[Code of Conduct](documentation/community/CODE_OF_CONDUCT.md)**: Our standards for a welcoming community.
-*   **[Security Policy](documentation/09_SECURITY.md)**: How to report vulnerabilities and our support model.
+*   **[Contributing Guide](docs/community/CONTRIBUTING.md)**: For finding bugs and submitting features.
+*   **[Developer Guide](docs/03_DEVELOPER_GUIDE.md)**: For deep-dive engine development and internals.
+*   **[Code of Conduct](docs/community/CODE_OF_CONDUCT.md)**: Our standards for a welcoming community.
+*   **[Security Policy](docs/09_SECURITY.md)**: How to report vulnerabilities and our support model.
 *   **[Report an Issue](https://github.com/talwegai/flinkflow/issues)**: Help us make Flinkflow better by reporting bugs.
 
 ---

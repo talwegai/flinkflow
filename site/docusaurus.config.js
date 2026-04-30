@@ -43,11 +43,11 @@ const config = {
       /** @type {import('@docusaurus/preset-classic').Options} */
       ({
         docs: {
-          path: '../documentation',
+          path: '../docs',
           routeBasePath: '/', // Serve the docs at the site's root
           sidebarPath: './sidebars.js',
           editUrl:
-            'https://github.com/talwegai/flinkflow/tree/main/documentation/',
+            'https://github.com/talwegai/flinkflow/tree/main/docs/',
         },
         blog: false, // Disabling default blog for now or point to root/blog if needed
         theme: {
