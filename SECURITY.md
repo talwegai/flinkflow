@@ -1,1 +1,1 @@
-docs/SECURITY.md
+documentation/09_SECURITY.md
