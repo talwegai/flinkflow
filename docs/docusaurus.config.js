@@ -19,8 +19,8 @@ const config = {
     v4: true,
   },
 
-  url: 'https://docs.talweg.ai',
-  baseUrl: '/',
+  url: 'https://talwegai.github.io',
+  baseUrl: '/flinkflow/',
   organizationName: 'talwegai',
   projectName: 'flinkflow',
 

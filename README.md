@@ -4,7 +4,7 @@
 **Flinkflow** is a declarative, low-code data streaming platform built natively for **Apache Flink 2.2.0**. Inspired by Apache Camel K, it democratizes stateful stream processing by abstracting the complexities of the modern Flink DataStream V2 API into a simple, Kubernetes-native YAML DSL.
 
 ---
-**[🌐 Documentation](https://docs.talweg.ai)** | **[🚀 Get Started](https://docs.talweg.ai/)** | **[🏗️ Architecture](https://docs.talweg.ai/01_ARCHITECTURE)**
+**[🌐 Documentation](https://talwegai.github.io/flinkflow)** | **[🚀 Get Started](https://talwegai.github.io/flinkflow/)** | **[🏗️ Architecture](https://talwegai.github.io/flinkflow/01_ARCHITECTURE)**
 
 ---
 
