@@ -150,7 +150,7 @@ To explore the Flinkflow codebase and directory layout, see the **[Developer Gui
 You can pull the official pre-built Docker image from the GitHub Container Registry. Images are tagged using semantic versioning and the commit SHA.
 
 ```bash
-docker pull ghcr.io/talwegai/flinkflow:{version}
+docker pull ghcr.io/talwegai/flinkflow:0.9.3{version}
 ```
 
 
