@@ -20,7 +20,7 @@ First, compile the project and create the shaded JAR:
 mvn clean package
 ```
 
-The resulting JAR will be at `target/flinkflow-0.9.3.jar`.
+The resulting JAR will be at `target/flinkflow-{version}.jar`.
 
 ## 2. Docker Image Selection
 
@@ -31,11 +31,11 @@ The application needs to be containerized to run in Kubernetes. You can either u
 You can pull the official Flinkflow image from the GitHub Container Registry. This is the fastest way to get started.
 
 ```bash
-docker pull ghcr.io/talwegai/flinkflow:0.9.3
+docker pull ghcr.io/talwegai/flinkflow:{version}
 ```
 
 > [!NOTE]
-> When using the public image, ensure you update the `image` field in your deployment manifests (e.g., `deploy/k8s/flink-operator-deployment.yaml`) to `ghcr.io/talwegai/flinkflow:0.9.3`.
+> When using the public image, ensure you update the `image` field in your deployment manifests (e.g., `deploy/k8s/flink-operator-deployment.yaml`) to `ghcr.io/talwegai/flinkflow:{version}`.
 
 ### Option B: Build Image Locally
 
@@ -156,3 +156,20 @@ This mode allows Flink to manage cluster resources dynamically. It requires Flin
     ```bash
     ./deploy/k8s/submit-native.sh examples/standalone/simple-transform-example.yaml [image-name]
     ```
+
+### 3. Note on Flowlets
+Flowlets used within a `Pipeline` CR are automatically discovered from the same cluster namespace.
+   Alternatively, run the raw command:
+   ```bash
+   ./bin/flink run-application \
+       --target kubernetes-application \
+       -Dkubernetes.cluster-id=flinkflow-native-cluster \
+       -Dkubernetes.container.image=flinkflow:latest \
+       -Dkubernetes.service-account=flink-service-account \
+       -Dkubernetes.rest-service.exposed.type=NodePort \
+       -Djobmanager.memory.process.size=1600m \
+       -Dtaskmanager.memory.process.size=1728m \
+       -Dtaskmanager.numberOfTaskSlots=2 \
+       local:///opt/flink/usrlib/flinkflow.jar \
+       --job-args /opt/flink/conf/pipeline.yaml
+   ```

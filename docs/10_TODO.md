@@ -43,7 +43,7 @@ This file is the **Single Source of Truth** for the Flinkflow project roadmap an
 > **Secret Masking & Encryption**: To maintain the simplicity of the Apache 2.0 core, advanced field-level encryption and log masking are prioritized for the **Flinkflow Enterprise Edition** distribution. 
 
 > [!NOTE]
-> **Helm Chart** — deferred to v2.0. The current `kubectl`-apply workflow (CRDs + RBAC + ConfigMap) is sufficient for `v0.9-BETA` and `v1.0` early adopters. A Helm chart adds significant maintenance overhead (values schema, templating, upgrade hooks, chart tests) that is not justified until the installation surface stabilises. See Milestone 3 for the planned chart scope.
+> **Helm Chart** — deferred to v2.0. The current `kubectl`-apply workflow (CRDs + RBAC + ConfigMap) is sufficient for `v0.9-x` and `v1.0` early adopters. A Helm chart adds significant maintenance overhead (values schema, templating, upgrade hooks, chart tests) that is not justified until the installation surface stabilises. See Milestone 3 for the planned chart scope.
 
 ---
 
