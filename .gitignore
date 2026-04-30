@@ -29,12 +29,10 @@ __pycache__/
 venv/
 .env
 
-# Hugo Docs Site
-website/public/
-website/resources/
-website/.hugo_build.lock
-node_modules/
-website/node_modules/
+# Docusaurus Docs Site
+docs/.docusaurus/
+docs/build/
+docs/node_modules/
 
 # Logs
 *.log
