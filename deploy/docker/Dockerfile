@@ -2,8 +2,10 @@ FROM flink:1.18-java17
 
 WORKDIR /opt/flink
 
-# Copy application JAR (standardized name from CI build)
-COPY target/flinkflow.jar /opt/flink/usrlib/flinkflow.jar
+# Pass the project version as a build argument
+ARG JAR_VERSION
+# Copy application JAR using the passed version
+COPY target/flinkflow-${JAR_VERSION}.jar /opt/flink/usrlib/flinkflow.jar
 
 # Enable Prometheus metrics reporter
 RUN cp /opt/flink/plugins/metrics-prometheus/flink-metrics-prometheus-*.jar /opt/flink/lib/
