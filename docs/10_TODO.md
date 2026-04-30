@@ -117,4 +117,4 @@ This file is the **Single Source of Truth** for the Flinkflow project roadmap an
 - [ ] **Air-Gapped Gallery**: Hardened container images with pre-loaded LLM models for offline AI.
 
 ---
-*Last updated: April 28, 2026*
+*Last updated: April 30, 2026*

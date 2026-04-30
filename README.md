@@ -180,32 +180,39 @@ For the best developer experience, Flinkflow allows you to define your entire jo
     ```
 
 2.  **Define your Pipeline**:
-    ```yaml
-    apiVersion: flinkflow.io/v1alpha1
-    kind: Pipeline
-    metadata:
-      name: my-stream-job
-    spec:
-      parallelism: 2
-      steps:
-        - type: source
-          name: static-source
-          properties:
-            content: "cluster-data-1|cluster-data-2"
-        - type: flowlet
-          name: log-transform
-          with:
-            prefix: "[K8S-NATIVE]"
-        - type: sink
-          name: console-sink
-    ```
-    Apply it with `kubectl apply -f my-pipeline.yaml` (see **`examples/k8s/java/k8s-native-pipeline-resource.yaml`** for a full template).
+```yaml
+# my-pipeline.yaml
+apiVersion: flinkflow.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: enrichment-job
+spec:
+  parallelism: 2
+  steps:
+    - type: source
+      name: static-source
+      properties:
+        content: "user-123|user-456"
 
-3.  **Run the Native Deployment**:
-    Use the provided manifest to start a Flink cluster that fetches this CR:
-    ```bash
-    kubectl apply -f deploy/k8s/native-pipeline-deployment.yaml
-    ```
+    - type: process
+      name: enrich-with-python
+      language: python
+      code: |
+        # Native Python logic via GraalVM
+        return f"enriched-{input}"
+
+    - type: sink
+      name: console-sink
+```
+
+### Deploy in 2 steps:
+```bash
+# 1. Apply the Pipeline resource
+kubectl apply -f my-pipeline.yaml
+
+# 2. Start the Flinkflow cluster (it will auto-fetch the Pipeline CR)
+kubectl apply -f deploy/k8s/native-pipeline-deployment.yaml
+```
     (Note: Edit `deploy/k8s/native-pipeline-deployment.yaml` to point at your pipeline's name).
 
 
@@ -271,29 +278,6 @@ Flinkflow implements a strict, **deny-by-default** security model for guest code
 
 Flinkflow is maintained by **[Talweg](https://talweg.ai)**. While the core engine is free and open-source, we offer professional services and an enterprise-grade distribution for organization-wide streaming platforms.
 
-| Feature | Flinkflow Community Edition | Flinkflow Enterprise Edition |
-| :--- | :---: | :---: |
-| **Core DSL & Polyglot Runtimes** | ✅ | ✅ |
-| **Agentic Bridge (LLM Integration)** | ✅ | ✅ |
-| **Kafka, S3, JDBC Connectors** | ✅ | ✅ |
-| **Flinkflow Web IDE (Visual DAG Builder)** | ❌ | ✅ |
-| **In-stream ML & AI Validation Assist** | ❌ | ✅ |
-| **Live Hot-Reloading** | ❌ | ✅ |
-| **Enterprise RBAC & SSO** | ❌ | ✅ |
-| **Data Security (Format-Preserved Encryption)** | ❌ | ✅ |
-| **Air-Gapped Container Gallery** | ❌ | ✅ |
-| **Advanced Observability (SLA/Audit)** | ❌ | ✅ |
-| **Proprietary High-Perf Connectors** | ❌ | ✅ |
-| **Day 1 Setup Support (Kubernetes)** | ❌ | ✅ |
-| **Professional Services** | ❌ | ✅ |
-
-### 🛠️ Professional Services
-Talweg provides expert consulting and managed services to accelerate your streaming journey:
-- **Pipeline Architecture Reviews**: Expert validation of your DAGs, stateful logic, and secret management.
-- **End-to-End Pipeline Development**: Full-lifecycle implementation support, from data source ingestion to final sink delivery.
-- **Custom Flowlet Development**: Building proprietary, secure connectors for your internal systems (SAP, AS/400, etc.).
-- **Agentic AI & ML Strategy**: Real-time inference optimization and agentic workflow design.
-- **Managed Hosting**: Fully managed, auto-scaling container based Flinkflow clusters on AWS, Azure, GCP, or On-Premise.
 
 **Need help or looking for enterprise features?** [Contact our team](mailto:contact@talweg.ai) or visit **[talweg.ai](https://talweg.ai)**.
 
