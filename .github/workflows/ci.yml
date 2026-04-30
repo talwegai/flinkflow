@@ -139,7 +139,7 @@ jobs:
         run: npm ci
 
       - name: Build Docusaurus site
-        working-directory: website
+        working-directory: docs
         run: npm run build
         env:
           # Treat broken links as errors during CI (fail fast)
