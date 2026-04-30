@@ -19,7 +19,7 @@ const config = {
     v4: true,
   },
 
-  url: 'https://talweg.ai',
+  url: 'https://docs.talweg.ai',
   baseUrl: '/',
   organizationName: 'talwegai',
   projectName: 'flinkflow',
@@ -43,11 +43,11 @@ const config = {
       /** @type {import('@docusaurus/preset-classic').Options} */
       ({
         docs: {
-          path: '../docs',
+          path: '../documentation',
           routeBasePath: '/', // Serve the docs at the site's root
           sidebarPath: './sidebars.js',
           editUrl:
-            'https://github.com/talwegai/flinkflow/tree/main/docs/',
+            'https://github.com/talwegai/flinkflow/tree/main/documentation/',
         },
         blog: false, // Disabling default blog for now or point to root/blog if needed
         theme: {
