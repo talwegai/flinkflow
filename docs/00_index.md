@@ -49,7 +49,6 @@ Flinkflow is maintained by **[Talweg](https://talweg.ai)**. While the core engin
 | **Core DSL & Polyglot Runtimes** | ✅ | ✅ |
 | **Agentic Bridge (LLM Integration)** | ✅ | ✅ |
 | **Kafka, S3, JDBC Connectors** | ✅ | ✅ |
-| **Flinkflow Web IDE (Visual DAG Builder)** | ❌ | ✅ |
 | **In-stream ML & AI Validation Assist** | ❌ | ✅ |
 | **Live Hot-Reloading** | ❌ | ✅ |
 | **Enterprise RBAC & SSO** | ❌ | ✅ |
