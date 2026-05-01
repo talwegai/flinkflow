@@ -171,7 +171,7 @@ spec:
 ## 📚 6. Next Steps
 - **[Configuration Reference](/docs/04_GUIDE_CONFIGURATION)**: Explore the full list of connectors and properties.
 - **[System Architecture](/docs/01_ARCHITECTURE)**: Learn how the engine works under the hood.
-- **[Roadmap](/docs/08_ROADMAP)**: See what's coming next (AI features and the v2.0 platform).
+- **[Roadmap](/docs/08_VISION)**: See what's coming next (AI features and the v2.0 platform).
 
 ---
 
