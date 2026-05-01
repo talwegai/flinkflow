@@ -371,7 +371,7 @@ kubectl logs -f flinkflow-app-jm-0 | grep FLINKFLOW-ERROR
 | **[XSLT DataMapper Guide](/docs/06_GUIDE_DATAMAPPER)** | Complex JSON/XML transformations using Saxon-HE |
 | **[Kubernetes Deployment Guide](/docs/07_DEPLOY_K8S)** | Step-by-step K8s operator deployment |
 | **[System Architecture](/docs/01_ARCHITECTURE)** | How the engine works under the hood |
-| **[Project Roadmap](/docs/08_ROADMAP)** | Planned features for upcoming releases |
+| **[Project Roadmap](/docs/08_VISION)** | Planned features for upcoming releases |
 
 ---
 
