@@ -38,9 +38,15 @@ jobs:
           cache: maven
 
       - name: Build and Test with Maven
-        run: mvn -B package --file pom.xml
+        run: |
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            mvn -B package
+          else
+            mvn -B package -DskipTests
+          fi
 
       - name: Run Smoke Tests (YAML Validations)
+        if: github.event_name == 'pull_request'
         run: |
           chmod +x deploy/test/smoke-test.sh
           ./deploy/test/smoke-test.sh
@@ -54,6 +60,9 @@ jobs:
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Log in to the Container registry
         if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
@@ -90,6 +99,8 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             JAR_VERSION=${{ steps.project_version.outputs.version }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Update Documentation version
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
