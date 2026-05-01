@@ -175,7 +175,7 @@ spec:
 
 ---
 
-*Need help? Connect with the community on [Slack](https://slack.com).*
+*Need help? Connect with the community on [Zulip](https://talweg.zulipchat.com).*
 
 ---
 
@@ -375,4 +375,4 @@ kubectl logs -f flinkflow-app-jm-0 | grep FLINKFLOW-ERROR
 
 ---
 
-*Questions? Feature requests? Connect with the community on [Slack](https://slack.com) or [open an issue](https://github.com/talwegai/flinkflow/issues).*
+*Questions? Feature requests? Connect with the community on [Zulip](https://talweg.zulipchat.com) or [open an issue](https://github.com/talwegai/flinkflow/issues).*

@@ -53,8 +53,13 @@ Inline Java (Janino) and Python (GraalVM) code snippets in YAML are compiled/int
 ### ADR-003: Flowlets as Kubernetes CRDs
 Reusable components (Flowlets) are defined as `kind: Flowlet` Kubernetes Custom Resources. This makes the catalog natively versioned and GitOps-compatible.
 
-### ADR-004: Flink 1.18 + Java 17
-The target runtime is Apache Flink 1.18.1 on Java 17, leveraging modern LTS improvements and container official images.
+### ADR-004: Flink 2.2 + Java 17
+The target runtime is Apache Flink 2.2 on Java 17 (recommended production runtime; Java 21 is experimental in this release). Flink 2.2 (released December 2025) was chosen for the following reasons:
+
+- **AI/ML Native**: Introduces `ML_PREDICT` for LLM inference and `VECTOR_SEARCH` for real-time vector similarity search directly in SQL/Table API — directly aligned with Flinkflow's Agentic Bridge (ADR-005).
+- **Improved Serialization**: Dedicated serializers for Map, List, and Set; Kryo upgraded to 5.6; RocksDB upgraded to 8.10.0 for improved I/O on stateful pipelines.
+- **Cleaner API Surface**: Scala API fully removed; legacy DataSet API deprecated — aligns with Flinkflow's Java-first `DataStream` model (ADR-001).
+- **Java 11 Dropped**: Java 11 support removed upstream, reinforcing our Java 17 baseline commitment.
 
 ### ADR-005: The Agentic Bridge
 Autonomous AI agents are first-class YAML citizens. Flinkflow bridges `flink-agents` concepts to our DSL, allowing agents to use Flowlets as "Tools" and Flink State as "Memory".

@@ -100,12 +100,12 @@ const config = {
             title: 'Community',
             items: [
               {
-                label: 'Slack',
-                href: 'https://slack.com', // Placeholder or specific link if provided
+                label: 'Zulip Chat',
+                href: 'https://talweg.zulipchat.com',
               },
               {
-                label: 'Twitter',
-                href: 'https://twitter.com/talwegai',
+                label: 'GitHub',
+                href: 'https://github.com/talwegai/flinkflow',
               },
             ],
           },
