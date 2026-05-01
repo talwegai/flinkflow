@@ -4,7 +4,7 @@ This file lists the individuals who have maintainer permissions for the Flinkflo
 
 ## Core Maintainers
 
-*   **Talweg Core Team** ([@talweg](https://github.com/talweg)) - Project Stewardship & Architecture
+*   **Talweg Core Team** ([@talwegai](https://github.com/talwegai)) - Project Stewardship & Architecture
 
 ## Emeritus Maintainers
 
