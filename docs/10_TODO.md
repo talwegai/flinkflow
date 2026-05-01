@@ -83,7 +83,6 @@ This file is the **Single Source of Truth** for the Flinkflow project roadmap an
 - [x] **Multi-Provider Routing**: Auto-detect provider from model name — OpenAI (`gpt-*`), Google AI Studio (`gemini-*`), Vertex AI (`provider: vertex`), Anthropic (`claude-*`), and Ollama (`ollama:*` or `llama/mistral/phi`).
 - [x] **Stateful Agent Memory**: Multi-turn conversation history stored as Flink `ValueState` per key.
 - [x] **GeminiDirectChatModel**: Custom REST client targeting `v1beta` Gemini endpoint, bypassing LangChain4j `v1beta` limitations.
-- [x] **GeminiDirectChatModel**: Custom REST client targeting `v1beta` Gemini endpoint, bypassing LangChain4j `v1beta` limitations.
 
 ---
 
