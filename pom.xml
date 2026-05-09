@@ -48,7 +48,7 @@
     <app.args></app.args>
     <maven.compiler.release>${target.java.version}</maven.compiler.release>
     <log4j.version>2.25.4</log4j.version>
-    <netty.version>4.1.132.Final</netty.version>
+    <netty.version>4.1.133.Final</netty.version>
   </properties>
 
   <repositories>
@@ -440,6 +440,18 @@
         <groupId>org.apache.kafka</groupId>
         <artifactId>kafka-clients</artifactId>
         <version>3.9.2</version>
+      </dependency>
+      <!-- Apache OpenNLP -->
+      <dependency>
+        <groupId>org.apache.opennlp</groupId>
+        <artifactId>opennlp-tools</artifactId>
+        <version>2.5.9</version>
+      </dependency>
+      <!-- PostgreSQL -->
+      <dependency>
+        <groupId>org.postgresql</groupId>
+        <artifactId>postgresql</artifactId>
+        <version>42.7.11</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
