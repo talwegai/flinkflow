@@ -119,7 +119,7 @@ mvn test -Dtest=SmokeTestSuite
 
 ### Run Locally
 
-You can run a pipeline locally using the provided helper script:
+You can run a pipeline locally using the provided helper script. This is ideal for rapid development cycles and testing your logic before deploying to a cluster.
 
 1. Create a `pipeline.yaml` (see `examples/standalone/java/simple-transform-example.yaml`):
 
@@ -149,12 +149,26 @@ steps:
 ./scripts/run-local.sh examples/standalone/java/simple-transform-example.yaml
 ```
 
-Or manually using Maven to spin up a managed local cluster execution:
+3. **Running Complex Examples**:
+You can also run the full IoT analytics demos locally:
+
+**Java Version:**
+```bash
+./scripts/run-local.sh examples/standalone/java/iot-fleet-analytics.yaml
+```
+
+**Python Version (GraalVM required):**
+```bash
+./scripts/run-local.sh examples/standalone/python/iot-fleet-analytics-python.yaml
+```
+
+4. **Manual Execution via Maven**:
+Alternatively, you can use Maven to spin up a managed local cluster execution:
 
 ```bash
 mvn exec:exec -P local-run -Dapp.args="examples/standalone/java/simple-transform-example.yaml"
 ```
-*(This automatically safely handles Flink 2.2 classloading and Java 17+ memory flags via a natively forked JVM.)*
+*(This automatically handles Flink 2.2 classloading and Java 17+ memory flags via a natively forked JVM.)*
 
 ### 🛠️ Advanced CLI Arguments
 
@@ -165,7 +179,12 @@ Flinkflow supports several arguments to aid local development and validation:
 | `--dry-run` | Validates the YAML structure and expands all Flowlets into a final pipeline, printing the result without executing the Flink job. |
 | `--flowlet-dir <path>` | Specifies a local directory to search for Flowlet definitions. This allows you to test Flowlets locally without a Kubernetes cluster. |
 
-**Example (Dry-run with local flowlets):**
+**Example (Dry-run using helper script):**
+```bash
+./scripts/run-local.sh examples/standalone/java/simple-transform-example.yaml --dry-run
+```
+
+**Example (Advanced dry-run via Maven):**
 ```bash
 mvn exec:exec -P local-run -Dapp.args="examples/standalone/java/complex-enrichment-example.yaml --dry-run --flowlet-dir deploy/k8s/flowlets"
 ```

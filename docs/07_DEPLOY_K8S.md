@@ -1,32 +1,35 @@
 # Deploying Flinkflow to Kubernetes using Flink Operator
 
-This guide explains how to build the Flinkflow application and deploy it to a Kubernetes cluster that has the [Apache Flink Kubernetes Operator](https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-main/) installed.
+This guide explains how to deploy the Flinkflow application to a Kubernetes cluster that has the [Apache Flink Kubernetes Operator](https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-main/) installed.
 
 > [!NOTE]
 > Flinkflow supports **Polyglot Logic Snippets**. You can embed **Camel Expressions**, **Java (Janino)** and **Python (GraalVM)** code directly in your `Pipeline` Custom Resources.
 
 ## Prerequisites
 
-- Kubernetes cluster with Flink Operator installed.
-- `kubectl` configured to access your cluster.
-- Docker or a similar container tool.
-- Maven 3+ and Java 17+.
+- Kubernetes cluster configured with `kubectl`.
+- [Helm](https://helm.sh/docs/intro/install/) installed.
 
-## 1. Build the Application
+## 1. Install Flink Kubernetes Operator
 
-First, compile the project and create the shaded JAR:
+If you haven't already, install the Flink Operator using Helm. This operator will manage the lifecycle of your Flink deployments.
 
 ```bash
-mvn clean package
+# Add the Helm repository
+helm repo add flink-operator-repo https://downloads.apache.org/flink/flink-kubernetes-operator-1.7.0/
+
+# Install the operator and its CRDs
+helm install flink-kubernetes-operator flink-operator-repo/flink-kubernetes-operator \
+  --set webhook.create=false # Optional: skip webhook if not using cert-manager
 ```
 
-The resulting JAR will be at `target/flinkflow-0.9.3.jar`.
+For detailed installation options, refer to the **[Official Flink Operator Documentation](https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-main/docs/operations/installation/)**.
 
-## 2. Docker Image Selection
+---
 
-The application needs to be containerized to run in Kubernetes. You can either use the official public image or build your own.
+## 2. Container Image
 
-### Option A: Use Public Image (Recommended)
+Flinkflow provides a pre-built Docker image on the GitHub Container Registry. This is the recommended way to deploy the application.
 
 You can pull the official Flinkflow image from the GitHub Container Registry. This is the fastest way to get started.
 
@@ -37,22 +40,7 @@ docker pull ghcr.io/talwegai/flinkflow:0.9.3
 > [!NOTE]
 > When using the public image, ensure you update the `image` field in your deployment manifests (e.g., `deploy/k8s/flink-operator-deployment.yaml`) to `ghcr.io/talwegai/flinkflow:0.9.3`.
 
-### Option B: Build Image Locally
 
-If you have made custom changes to the Flinkflow core or need a specific base image:
-
-1. **Build the image**:
-   ```bash
-   docker build -t flinkflow:latest .
-   ```
-
-2. **Push the image** (if using a remote cluster):
-   If you are using a cloud provider (GKE, EKS, etc.), tag and push the image to your registry:
-   ```bash
-   docker tag flinkflow:latest your-registry/flinkflow:latest
-   docker push your-registry/flinkflow:latest
-   ```
-   *Note: If pushing to a registry, update the `image` field in `deploy/k8s/flink-operator-deployment.yaml`.*
 
 ## 3. Prepare Kubernetes Resources
 
@@ -74,11 +62,54 @@ And then update the `FlinkDeployment` to mount this ConfigMap.
 
 ## 4. Deploy the Application
 
-Apply the `FlinkDeployment` manifest to the cluster:
+### Using Flink Operator
+
+The recommended way to run Flinkflow is using the **Flink Kubernetes Operator**.
+
+1. **Configure your manifest** (`deploy/k8s/flink-operator-deployment.yaml`):
+
+```yaml
+apiVersion: flink.apache.org/v1beta1
+kind: FlinkDeployment
+metadata:
+  name: flinkflow-app
+spec:
+  image: ghcr.io/talwegai/flinkflow:0.9.3
+  flinkVersion: v2_2
+  serviceAccount: flink-service-account
+  job:
+    jarURI: local:///opt/flink/usrlib/flinkflow.jar
+    entryClass: ai.talweg.flinkflow.FlinkflowApp
+    args: ["/opt/flink/conf/pipeline.yaml"]
+    parallelism: 2
+```
+
+2. **Apply the manifest**:
 
 ```bash
 kubectl apply -f deploy/k8s/flink-operator-deployment.yaml
 ```
+
+### Advanced: GitOps Mode (Pipeline CRDs)
+
+For a pure GitOps experience, you can define your pipeline as a **Pipeline** Custom Resource. This allows you to update your streaming logic by simply applying a new YAML, without modifying the underlying `FlinkDeployment`.
+
+1. **Install the CRDs**:
+   ```bash
+   kubectl apply -f deploy/k8s/crds/crd-pipeline.yaml
+   kubectl apply -f deploy/k8s/crds/crd-flowlet.yaml
+   ```
+
+2. **Deploy your Pipeline resource**:
+   ```bash
+   kubectl apply -f examples/k8s/java/simple-transform-example.yaml
+   ```
+
+3. **Update FlinkDeployment** to fetch from the CRD:
+   Update the `args` in your `FlinkDeployment` manifest:
+   ```yaml
+   args: ["--pipeline-name", "simple-transform", "--enable-k8s-flowlets"]
+   ```
 
 The Flink Operator will detect this resource and automatically:
 1. Start the JobManager.
@@ -130,10 +161,8 @@ If you prefer not to use the Flink Kubernetes Operator, you can use these altern
 
 This model consists of a static JobManager and multiple TaskManagers defined in a single manifest.
 
-1.  **Build and Tag Image**:
-    ```bash
-    docker build -t flinkflow:latest .
-    ```
+1.  **Configure the Manifest**:
+    Ensure `deploy/k8s/deployment.yaml` is configured with the correct image (`ghcr.io/talwegai/flinkflow:0.9.3`).
 
 2.  **Apply the Cluster Resources**:
     This will deploy the JobManager (Application Mode) and a TaskManager pool.
@@ -164,7 +193,7 @@ Flowlets used within a `Pipeline` CR are automatically discovered from the same 
    ./bin/flink run-application \
        --target kubernetes-application \
        -Dkubernetes.cluster-id=flinkflow-native-cluster \
-       -Dkubernetes.container.image=flinkflow:latest \
+       -Dkubernetes.container.image=ghcr.io/talwegai/flinkflow:0.9.3 \
        -Dkubernetes.service-account=flink-service-account \
        -Dkubernetes.rest-service.exposed.type=NodePort \
        -Djobmanager.memory.process.size=1600m \

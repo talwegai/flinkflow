@@ -113,7 +113,7 @@ jobs:
           echo "Updating documentation to version $VERSION"
           
           # Files to update
-          DOC_FILES="README.md docs/07_DEPLOY_K8S.md docs/03_DEVELOPER_GUIDE.md"
+          DOC_FILES="README.md docs/07_DEPLOY_K8S.md docs/03_DEVELOPER_GUIDE.md docs/02_USER_GUIDE.md deploy/k8s/flink-operator-deployment.yaml"
           
           for file in $DOC_FILES; do
             if [ -f "$file" ]; then

@@ -17,10 +17,48 @@ Flinkflow is a **Declarative Stream Processing Engine** built on top of Apache F
 - **No Java Required**: You write pipeline logic in YAML, with optional Java (Janino) or Python (GraalVM) snippets for custom logic.
 - **GitOps Ready**: Treat your data jobs as version-controlled code.
 - **Portability**: Move pipelines between Local, Docker, and Kubernetes with zero code changes.
+- **AI-Native**: Built-in support for autonomous agents (Agentic Bridge) and stateful memory.
 
 ---
 
-## 🏗️ 2. Core Concepts
+## 🚀 2. Quick Start using Docker
+
+The fastest way to see Flinkflow in action is using Docker. You don't even need to clone the repository to run your first pipeline.
+
+1. **Create a local pipeline file** (`my-pipeline.yaml`):
+```yaml
+name: "Quick Start"
+steps:
+  - type: source
+    name: static-source
+    properties:
+      content: "Flinkflow,is,running,in,docker"
+
+  - type: process
+    name: simple-transform
+    code: |
+      return input.toUpperCase() + "!";
+
+  - type: sink
+    name: console-sink
+```
+
+2. **Run it with Docker**:
+Map your local file into the container and run the engine:
+
+```bash
+docker run --rm -v $(pwd)/my-pipeline.yaml:/app/pipeline.yaml \
+  ghcr.io/talwegai/flinkflow:0.9.3 \
+  java -cp "/opt/flink/usrlib/flinkflow.jar:/opt/flink/lib/*" \
+  ai.talweg.flinkflow.FlinkflowApp /app/pipeline.yaml
+```
+
+> [!TIP]
+> Ready to deploy to a cluster? See the **[Kubernetes Deployment Guide](/docs/07_DEPLOY_K8S)** for a quick start on Kubernetes.
+
+---
+
+## 🏗️ 3. Core Concepts
 
 To master Flinkflow, you need to understand its three primary building blocks:
 
@@ -62,11 +100,11 @@ steps:
       type: console
 ```
 
-### 🏃 Running it locally:
-If you have the Flinkflow JAR, you can run this instantly:
-```bash
-./scripts/run-local.sh examples/standalone/hello-world.yaml
-```
+### 🏃 Running it:
+To run your pipeline in production, you typically deploy it to a Kubernetes cluster. For development and testing, you can use the Docker method described in the **Quick Start** section above.
+
+> [!NOTE]
+> For instructions on running pipelines locally using the Maven-based helper scripts, see the **[Developer Guide](/docs/03_DEVELOPER_GUIDE#run-locally)**.
 
 ---
 
@@ -132,24 +170,16 @@ We provide both Kubernetes CRD and Standalone definitions, implemented in both J
 - **Kubernetes (Java)**: `examples/k8s/iot-fleet-analytics.yaml`
 - **Kubernetes (Python)**: `examples/k8s/iot-fleet-analytics-python.yaml`
 
-### 🏃 Running the Examples Locally:
-You can test the standalone versions (without the `apiVersion` Kubernetes wrappers) of these IoT pipelines using the local runner:
-
-**To run the Python version:**
-```bash
-./scripts/run-local.sh examples/standalone/iot-fleet-analytics-python.yaml
-```
-
-**To run the Java version:**
-```bash
-./scripts/run-local.sh examples/standalone/iot-fleet-analytics.yaml
-```
+### 🏃 Running the Examples:
+Detailed instructions for running these complex examples locally can be found in the **[Developer Guide](/docs/03_DEVELOPER_GUIDE#run-locally)**.
 
 ---
 
 ## ☸️ 5. Moving to Kubernetes
 
-Flinkflow is designed for the modern cloud stack. Once your local YAML is ready, you can deploy it as a **Pipeline CRD**:
+Flinkflow is designed for the modern cloud stack. Once your local YAML is ready, you can deploy it as a **Pipeline CRD**.
+
+For a complete walkthrough of deploying the Flink Operator and your first pipeline, refer to the **[Kubernetes Deployment Guide](/docs/07_DEPLOY_K8S)**.
 
 ```yaml
 apiVersion: flinkflow.io/v1alpha1
@@ -330,11 +360,9 @@ You can emit custom metrics directly from your code snippets using the built-in 
 
 ### Validate Before Running: Dry-Run Mode
 
-The fastest way to check your YAML is correct — without starting Flink — is the `--dry-run` flag:
+The fastest way to check your YAML is correct is using the `--dry-run` flag. This is primarily a developer tool.
 
-```bash
-./scripts/run-local.sh my-pipeline.yaml --dry-run
-```
+> See **[Developer Guide: Advanced CLI Arguments](/docs/03_DEVELOPER_GUIDE#-advanced-cli-arguments)** for usage details.
 
 This will:
 1. Parse and validate the YAML structure
