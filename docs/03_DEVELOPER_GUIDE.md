@@ -8,7 +8,7 @@ Welcome to the Flinkflow core! This guide is intended for developers who want to
 
 Flinkflow acts as a **Declarative Translation Layer** between YAML-based definitions and the Apache Flink DataStream API.
 
-For a detailed visual guide and component breakdown, see **[Architecture.md](01_ARCHITECTURE.md)**.
+For a detailed visual guide and component breakdown, see **[Architecture](/ARCHITECTURE)**.
 
 ### Core Stack
 *   **Language**: Java 17

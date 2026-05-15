@@ -76,7 +76,7 @@ Each step in a pipeline is a discrete unit of work. Steps are categorized into:
 
 ---
 
-## ⚡ 3. Writing Your First Pipeline
+## ⚡ 4. Writing Your First Pipeline
 
 A Flinkflow pipeline is just a YAML file. Here is the canonical "Hello World" example (`hello-world.yaml`):
 
@@ -108,7 +108,7 @@ To run your pipeline in production, you typically deploy it to a Kubernetes clus
 
 ---
 
-## 🐍 4. Using Polyglot Business Logic
+## 🐍 5. Using Polyglot Business Logic
 
 One of Flinkflow's most powerful features is the ability to inject custom logic directly into the YAML.
 
@@ -175,11 +175,11 @@ Detailed instructions for running these complex examples locally can be found in
 
 ---
 
-## ☸️ 5. Moving to Kubernetes
+## ☸️ 6. Moving to Kubernetes
 
 Flinkflow is designed for the modern cloud stack. Once your local YAML is ready, you can deploy it as a **Pipeline CRD**.
 
-For a complete walkthrough of deploying the Flink Operator and your first pipeline, refer to the **[Kubernetes Deployment Guide](/docs/07_DEPLOY_K8S)**.
+For a complete walkthrough of deploying the Flink Operator and your first pipeline, refer to the **[Kubernetes Deployment Guide](/DEPLOY_K8S)**.
 
 ```yaml
 apiVersion: flinkflow.io/v1alpha1
@@ -198,10 +198,10 @@ spec:
 
 ---
 
-## 📚 6. Next Steps
-- **[Configuration Reference](/docs/04_GUIDE_CONFIGURATION)**: Explore the full list of connectors and properties.
-- **[System Architecture](/docs/01_ARCHITECTURE)**: Learn how the engine works under the hood.
-- **[Roadmap](/docs/08_VISION)**: See what's coming next (AI features and the v2.0 platform).
+## 📚 7. Next Steps
+- **[Configuration Reference](/CONFIGURATION)**: Explore the full list of connectors and properties.
+- **[System Architecture](/ARCHITECTURE)**: Learn how the engine works under the hood.
+- **[Roadmap](/VISION)**: See what's coming next (AI features and the v2.0 platform).
 
 ---
 
@@ -209,7 +209,7 @@ spec:
 
 ---
 
-## 🔌 7. Sources & Sinks Reference
+## 🔌 8. Sources & Sinks Reference
 
 ### Sources
 
@@ -235,7 +235,7 @@ spec:
 
 ---
 
-## 🧩 8. Working with Flowlets
+## 🧩 9. Working with Flowlets
 
 **Flowlets** are the reusable "building blocks" of Flinkflow — similar to how Apache Camel uses Kamelets. Once installed into your cluster, they can be referenced by name in any pipeline, with parameters supplied via the `with:` block.
 
@@ -285,7 +285,7 @@ steps:
 
 ---
 
-## 🔐 9. Secret Management
+## 🔐 10. Secret Management
 
 Never hardcode credentials. Flinkflow integrates directly with Kubernetes Secrets and environment variables.
 
@@ -321,7 +321,7 @@ properties:
 
 ---
 
-## 📊 10. Monitoring Your Pipelines
+## 📊 11. Monitoring Your Pipelines
 
 The **NiceGUI-based monitoring dashboard** provides real-time visibility into your Flink jobs running in Kubernetes.
 
@@ -356,13 +356,13 @@ You can emit custom metrics directly from your code snippets using the built-in 
 
 ---
 
-## 🔍 11. Troubleshooting
+## 🔍 12. Troubleshooting
 
 ### Validate Before Running: Dry-Run Mode
 
 The fastest way to check your YAML is correct is using the `--dry-run` flag. This is primarily a developer tool.
 
-> See **[Developer Guide: Advanced CLI Arguments](/docs/03_DEVELOPER_GUIDE#-advanced-cli-arguments)** for usage details.
+> See **[Developer Guide: Advanced CLI Arguments](/DEVELOPER_GUIDE#-advanced-cli-arguments)** for usage details.
 
 This will:
 1. Parse and validate the YAML structure
@@ -390,16 +390,16 @@ kubectl logs -f flinkflow-app-jm-0 | grep FLINKFLOW-ERROR
 
 ---
 
-## 📚 12. Next Steps & Further Reading
+## 📚 13. Next Steps & Further Reading
 
 | Guide | Description |
 | :--- | :--- |
-| **[Configuration Reference](/docs/04_GUIDE_CONFIGURATION)** | Full DSL spec for all connectors and operations |
-| **[Operations & Monitoring](/docs/05_GUIDE_OPERATIONS)** | Performance tuning and advanced dashboard setup |
-| **[XSLT DataMapper Guide](/docs/06_GUIDE_DATAMAPPER)** | Complex JSON/XML transformations using Saxon-HE |
-| **[Kubernetes Deployment Guide](/docs/07_DEPLOY_K8S)** | Step-by-step K8s operator deployment |
-| **[System Architecture](/docs/01_ARCHITECTURE)** | How the engine works under the hood |
-| **[Project Roadmap](/docs/08_VISION)** | Planned features for upcoming releases |
+| **[Configuration Reference](/CONFIGURATION)** | Full DSL spec for all connectors and operations |
+| **[Operations & Monitoring](/GUIDE_OPERATIONS)** | Performance tuning and advanced dashboard setup |
+| **[XSLT DataMapper Guide](/GUIDE_DATAMAPPER)** | Complex JSON/XML transformations using Saxon-HE |
+| **[Kubernetes Deployment Guide](/DEPLOY_K8S)** | Step-by-step K8s operator deployment |
+| **[System Architecture](/ARCHITECTURE)** | How the engine works under the hood |
+| **[Roadmap](/VISION)** | Planned features for upcoming releases |
 
 ---
 

@@ -23,7 +23,7 @@ helm install flink-kubernetes-operator flink-operator-repo/flink-kubernetes-oper
   --set webhook.create=false # Optional: skip webhook if not using cert-manager
 ```
 
-For detailed installation options, refer to the **[Official Flink Operator Documentation](https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-main/docs/operations/installation/)**.
+For detailed installation options, refer to the **[Official Flink Operator Documentation](https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-main/docs/try-flink-kubernetes-operator/quick-start/)**.
 
 ---
 
