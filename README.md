@@ -37,6 +37,35 @@ docker run --rm -v $(pwd)/my-pipeline.yaml:/app/pipeline.yaml \
 
 ---
 
+## 🚀 Quick Start using Docker
+
+The fastest way to see Flinkflow in action is using Docker. You don't even need to clone the repository to run your first pipeline.
+
+1. **Create a local pipeline file** (`my-pipeline.yaml`):
+```yaml
+name: "Quick Start"
+steps:
+  - type: source
+    name: static-source
+    properties:
+      content: "Flinkflow,is,running,in,docker"
+  - type: process
+    name: upper-case
+    code: "return input.toUpperCase() + '!';"
+  - type: sink
+    name: console-sink
+```
+
+2. **Run it with Docker**:
+```bash
+docker run --rm -v $(pwd)/my-pipeline.yaml:/app/pipeline.yaml \
+  ghcr.io/talwegai/flinkflow:0.9.3 \
+  java -cp "/opt/flink/usrlib/flinkflow.jar:/opt/flink/lib/*" \
+  ai.talweg.flinkflow.FlinkflowApp /app/pipeline.yaml
+```
+
+---
+
 ## 🚀 The Philosophy: Democratizing Data Engineering
 
 Traditionally, building real-time data pipelines is a specialized engineering endeavor, requiring deep Java/Scala expertise and resulting in siloed data teams. Flinkflow breaks down this "Flink Complexity Gap" by shifting the focus from **infrastructure plumbing** to **data logic**.

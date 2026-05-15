@@ -179,7 +179,9 @@ Detailed instructions for running these complex examples locally can be found in
 
 Flinkflow is designed for the modern cloud stack. Once your local YAML is ready, you can deploy it as a **Pipeline CRD**.
 
-For a complete walkthrough of deploying the Flink Operator and your first pipeline, refer to the **[Kubernetes Deployment Guide](/DEPLOY_K8S)**.
+Flinkflow is designed for the modern cloud stack. Once your local YAML is ready, you can deploy it as a **Pipeline CRD**.
+
+For a complete walkthrough of deploying the Flink Operator and your first pipeline, refer to the **[Kubernetes Deployment Guide](/docs/07_DEPLOY_K8S)**.
 
 ```yaml
 apiVersion: flinkflow.io/v1alpha1
@@ -362,7 +364,7 @@ You can emit custom metrics directly from your code snippets using the built-in 
 
 The fastest way to check your YAML is correct is using the `--dry-run` flag. This is primarily a developer tool.
 
-> See **[Developer Guide: Advanced CLI Arguments](/DEVELOPER_GUIDE#-advanced-cli-arguments)** for usage details.
+> See **[Developer Guide: Advanced CLI Arguments](/docs/03_DEVELOPER_GUIDE#-advanced-cli-arguments)** for usage details.
 
 This will:
 1. Parse and validate the YAML structure
