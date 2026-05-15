@@ -4,7 +4,36 @@
 **Flinkflow** is a declarative, low-code data streaming platform built natively for **Apache Flink 2.2.0**. Inspired by Apache Camel K, it democratizes stateful stream processing by abstracting the complexities of the modern Flink DataStream V2 API into a simple, Kubernetes-native YAML DSL.
 
 ---
-**[🌐 Documentation](https://talwegai.github.io/flinkflow)** | **[🚀 Get Started](https://talwegai.github.io/flinkflow/)** | **[🏗️ Architecture](https://talwegai.github.io/flinkflow/01_ARCHITECTURE)**
+**[🌐 Documentation](https://talwegai.github.io/flinkflow)** | **[🚀 Get Started](https://talwegai.github.io/flinkflow/USER_GUIDE)** | **[🏗️ Architecture](https://talwegai.github.io/flinkflow/ARCHITECTURE)**
+
+---
+
+## 🚀 Quick Start using Docker
+
+The fastest way to see Flinkflow in action is using Docker. You don't even need to clone the repository to run your first pipeline.
+
+1. **Create a local pipeline file** (`my-pipeline.yaml`):
+```yaml
+name: "Quick Start"
+steps:
+  - type: source
+    name: static-source
+    properties:
+      content: "Flinkflow,is,running,in,docker"
+  - type: process
+    name: upper-case
+    code: "return input.toUpperCase() + '!';"
+  - type: sink
+    name: console-sink
+```
+
+2. **Run it with Docker**:
+```bash
+docker run --rm -v $(pwd)/my-pipeline.yaml:/app/pipeline.yaml \
+  ghcr.io/talwegai/flinkflow:0.9.3 \
+  java -cp "/opt/flink/usrlib/flinkflow.jar:/opt/flink/lib/*" \
+  ai.talweg.flinkflow.FlinkflowApp /app/pipeline.yaml
+```
 
 ---
 
