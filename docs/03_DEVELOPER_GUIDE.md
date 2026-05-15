@@ -12,7 +12,7 @@ For a detailed visual guide and component breakdown, see **[Architecture.md](01_
 
 ### Core Stack
 *   **Language**: Java 17
-*   **Engine**: Apache Flink 1.18+
+*   **Engine**: Apache Flink 2.2+
 *   **Polyglot Logic**: 
     *   **Janino**: For in-memory Java compilation of code snippets.
     *   **GraalVM (Polyglot API)**: For the secure zero-trust Python sandbox.
@@ -74,7 +74,7 @@ The project uses the `maven-shade-plugin` to create a "fat JAR" containing all d
 ```bash
 mvn clean package
 ```
-Output: `target/flinkflow-{version}.jar`
+Output: `target/flinkflow-0.9.3.jar`
 
 ### Docker Images
 The **[Dockerfile](https://github.com/talwegai/flinkflow/blob/main/Dockerfile)** is based on the official Flink image and includes all necessary environment variables for the Python evaluator.
@@ -101,7 +101,7 @@ The **[Dockerfile](https://github.com/talwegai/flinkflow/blob/main/Dockerfile)**
 mvn clean package
 ```
 
-This will produce a shaded JAR in `target/flinkflow-{version}.jar`.
+This will produce a shaded JAR in `target/flinkflow-0.9.3.jar`.
 
 ### 🧪 Smoke Testing
 

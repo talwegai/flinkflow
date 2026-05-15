@@ -1,4 +1,8 @@
-FROM flink:1.18-java17
+FROM flink:2.2-java17
+
+LABEL org.opencontainers.image.source="https://github.com/talwegai/flinkflow"
+LABEL org.opencontainers.image.description="Declarative, Kubernetes-native Stream Processing on Apache Flink"
+LABEL org.opencontainers.image.licenses="Apache-2.0"
 
 WORKDIR /opt/flink
 
