@@ -61,6 +61,9 @@ jobs:
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -94,6 +97,7 @@ jobs:
         with:
           context: .
           file: deploy/docker/Dockerfile
+          platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) }}
           tags: ${{ steps.meta.outputs.tags || 'flinkflow:test' }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -109,15 +113,15 @@ jobs:
           echo "Updating documentation to version $VERSION"
           
           # Files to update
-          DOC_FILES="README.md docs/07_DEPLOY_K8S.md"
+          DOC_FILES="README.md docs/07_DEPLOY_K8S.md docs/03_DEVELOPER_GUIDE.md"
           
           for file in $DOC_FILES; do
             if [ -f "$file" ]; then
               echo "Updating $file..."
-              # Update JAR filename reference
-              sed -i "s/flinkflow-[0-9.]*[-A-Z0-9]*\.jar/flinkflow-${VERSION}.jar/g" "$file"
-              # Update Docker pull command reference
-              sed -i "s|ghcr.io/talwegai/flinkflow:[a-zA-Z0-9.-]*|ghcr.io/talwegai/flinkflow:${VERSION}|g" "$file"
+              # Update JAR filename reference (matches flinkflow-X.Y.Z.jar or flinkflow-{version}.jar)
+              sed -i "s/flinkflow-\([0-9.]*[-A-Z0-9]*\|{version}\)\.jar/flinkflow-${VERSION}.jar/g" "$file"
+              # Update Docker pull command reference (matches flinkflow:X.Y.Z or flinkflow:X.Y.Z{version} or flinkflow:{version})
+              sed -i "s|ghcr.io/talwegai/flinkflow:[a-zA-Z0-9.-]*\({\?version}\?\)\?|ghcr.io/talwegai/flinkflow:${VERSION}|g" "$file"
             fi
           done
           
