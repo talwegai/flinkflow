@@ -37,34 +37,6 @@ docker run --rm -v $(pwd)/my-pipeline.yaml:/app/pipeline.yaml \
 
 ---
 
-## 🚀 Quick Start using Docker
-
-The fastest way to see Flinkflow in action is using Docker. You don't even need to clone the repository to run your first pipeline.
-
-1. **Create a local pipeline file** (`my-pipeline.yaml`):
-```yaml
-name: "Quick Start"
-steps:
-  - type: source
-    name: static-source
-    properties:
-      content: "Flinkflow,is,running,in,docker"
-  - type: process
-    name: upper-case
-    code: "return input.toUpperCase() + '!';"
-  - type: sink
-    name: console-sink
-```
-
-2. **Run it with Docker**:
-```bash
-docker run --rm -v $(pwd)/my-pipeline.yaml:/app/pipeline.yaml \
-  ghcr.io/talwegai/flinkflow:0.9.3 \
-  java -cp "/opt/flink/usrlib/flinkflow.jar:/opt/flink/lib/*" \
-  ai.talweg.flinkflow.FlinkflowApp /app/pipeline.yaml
-```
-
----
 
 ## 🚀 The Philosophy: Democratizing Data Engineering
 
@@ -196,20 +168,8 @@ Flinkflow achieves native-level performance through its **Janino-powered** (Java
 
 ---
 
-## 📂 Project Structure
 
 To explore the Flinkflow codebase and directory layout, see the **[Developer Guide (docs/03_DEVELOPER_GUIDE.md)](docs/03_DEVELOPER_GUIDE.md)**.
-
-
-### Docker Deployment
-
-#### Pre-built Images (GHCR)
-
-You can pull the official pre-built Docker image from the GitHub Container Registry. Images are tagged using semantic versioning and the commit SHA.
-
-```bash
-docker pull ghcr.io/talwegai/flinkflow:0.9.3
-```
 
 
 ## ☸️ Kubernetes Deployment
