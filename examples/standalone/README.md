@@ -16,7 +16,7 @@ Unlike the Kubernetes examples, these are plain YAML files that should be run us
 
 ### 🐫 Low-Code & Declarative (Apache Camel)
 *Best for: Rapid field extraction, JSON routing, and template-based formatting.*
-*(See: [Simple Language](https://camel.apache.org/components/latest/languages/simple-language.html) | [JsonPath](https://camel.apache.org/components/latest/languages/jsonpath-language.html) | [YAML DSL](https://camel.apache.org/manual/camel-yaml-dsl.html))*
+*(See: [Simple Language](https://camel.apache.org/components/latest/languages/simple-language.html) | [JsonPath](https://camel.apache.org/components/latest/languages/jsonpath-language.html) | [YAML DSL](https://camel.apache.org/components/next/others/yaml-dsl.html))*
 - **[`camel/iot-fleet-analytics-camel.yaml`](camel/iot-fleet-analytics-camel.yaml)**: High-scale sensor telemetry using 100% declarative Camel & Groovy.
 - **[`camel/camel-yaml-dsl-test.yaml`](camel/camel-yaml-dsl-test.yaml)**: Complex routing logic using the **Camel YAML DSL** (Choice/When/Otherwise).
 - **[`camel/fraud-detection-camel.yaml`](camel/fraud-detection-camel.yaml)**: Real-time fraud detection using Camel YAML DSL for risk scoring and alerting.
