@@ -21,7 +21,7 @@ This guide provides a detailed specification of the Flinkflow YAML DSL, includin
     - `camel-simple` (or `camel`): Declarative Camel Simple expression. [[Docs]](https://camel.apache.org/components/latest/languages/simple-language.html)
     - `camel-jsonpath` (or `jsonpath`): JSON extractions and filters. [[Docs]](https://camel.apache.org/components/latest/languages/jsonpath-language.html)
     - `camel-groovy` (or `groovy`): High-performance JVM-native scripting. [[Docs]](https://camel.apache.org/components/latest/languages/groovy-language.html)
-    - `camel-yaml`: Complex route fragments using Camel YAML DSL. [[Docs]](https://camel.apache.org/manual/camel-yaml-dsl.html)
+    - `camel-yaml`: Complex route fragments using Camel YAML DSL. [[Docs]](https://camel.apache.org/components/next/others/yaml-dsl.html)
 - `properties`: Key-value configuration map. Values can reference Kubernetes Secrets using `secret:name/key`.
 - `with`: (For `flowlet` steps) Mapping of parameters passed to a reusable Flowlet.
 

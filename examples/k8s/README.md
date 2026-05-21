@@ -28,7 +28,7 @@ Unlike the standalone YAML examples, these files are formatted as Kubernetes obj
 | **[`python/agent-support-triage.yaml`](python/agent-support-triage.yaml)** | **AI Triage (Python)**| **[NEW]** Gemini ticket categorization via Python CRD. |
 
 ### 🐫 Low-Code & Declarative (Apache Camel)
-*(Refs: [Simple Language](https://camel.apache.org/components/latest/languages/simple-language.html) | [JsonPath](https://camel.apache.org/components/latest/languages/jsonpath-language.html) | [YAML DSL](https://camel.apache.org/manual/camel-yaml-dsl.html))*
+*(Refs: [Simple Language](https://camel.apache.org/components/latest/languages/simple-language.html) | [JsonPath](https://camel.apache.org/components/latest/languages/jsonpath-language.html) | [YAML DSL](https://camel.apache.org/components/next/others/yaml-dsl.html))*
 | File | Description | Features |
 | :--- | :--- | :--- |
 | **[`camel/iot-fleet-analytics-camel.yaml`](camel/iot-fleet-analytics-camel.yaml)** | IoT (Camel) | High-scale sensor telemetry via Camel & Groovy CRD. |

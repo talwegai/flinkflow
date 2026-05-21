@@ -143,7 +143,7 @@ Best for field extraction and fast string logic. *(Ref: [Simple Language](https:
 ```
 
 **YAML DSL Fragments**:
-Best for complex routing (Enterprise Integration Patterns) like the Choice EIP. *(Ref: [YAML DSL](https://camel.apache.org/manual/camel-yaml-dsl.html))*
+Best for complex routing (Enterprise Integration Patterns) like the Choice EIP. *(Ref: [YAML DSL](https://camel.apache.org/components/next/others/yaml-dsl.html))*
 ```yaml
 - type: process
   language: camel-yaml

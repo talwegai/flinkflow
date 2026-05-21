@@ -15,7 +15,7 @@ Our mission is to be the **"Glue Layer"** for real-time event-driven architectur
 
 ### Why Flinkflow?
 
-| Feature | Native Java Flink | Flinkflow |
+| Feature | Native Flink | Flinkflow |
 | :--- | :--- | :--- |
 | **Authoring** | Heavy Java/Maven Boilerplate | Declarative YAML DSL |
 | **Development Cycle** | Compile → Package → Deploy JAR | Instant Hot-Reload (YAML/Java/Python Snippets) |

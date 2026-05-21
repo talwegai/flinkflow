@@ -46,12 +46,12 @@ Our mission is to be the **"Glue Layer"** for real-time event-driven architectur
 
 ### Why Flinkflow?
 
-| Feature | Native Java Flink | Flinkflow |
+| Feature | Native Flink | Flinkflow |
 | :--- | :--- | :--- |
 | **Authoring** | Heavy Java/Maven Boilerplate | Declarative YAML DSL |
 | **Development Cycle** | Compile → Package → Deploy JAR | Instant Hot-Reload (YAML/Java/Python/Camel Snippets) |
 | **Logic Changes** | ~10 minute CI/CD cycles | Seconds (Apply K8s CRD or YAML) |
-| **Polyglot Runtimes** | Java Only | **Java** (Janino), **Python** (GraalVM), **Apache Camel** (Simple/JsonPath/YAML DSL) |
+| **Polyglot Runtimes** | Java/Python only | **Java** (Janino), **Python** (GraalVM), **Apache Camel** (Simple/JsonPath/YAML DSL) |
 | **Target Persona** | Specialized Flink Engineers | Data Scientists, Analysts, DevOps, Integration Devs |
 | **Component Model** | Custom Code / Classes | Reusable, Parameterized **Flowlets** |
 
@@ -63,7 +63,7 @@ Flinkflow bridges the gap between high-performance data engineering and the broa
 
 - **🐍 Data Scientists & Analysts**: Port existing Python logic, complex JSON parsing, and feature-engineering snippets directly into production using the secure **GraalVM Python** runtime.
 - **🐫 Low-Code & Integration Developers**: Build entire pipelines using **Apache Camel DSL**, **JsonPath**, and **Simple** expressions. Ideal for declarative transformations, filters, and field extractions without writing procedural code.
-  - *Ref: [Apache Camel](https://camel.apache.org/), [Simple Language](https://camel.apache.org/components/latest/languages/simple-language.html), [YAML DSL](https://camel.apache.org/manual/camel-yaml-dsl.html)*
+  - *Ref: [Apache Camel](https://camel.apache.org/), [Simple Language](https://camel.apache.org/components/latest/languages/simple-language.html), [YAML DSL](https://camel.apache.org/components/next/others/yaml-dsl.html)*
 - **☸️ DevOps & Platform Engineers**: Manage high-throughput streaming as native Kubernetes **Pipeline CRDs**. No specialized JAR deployments or Maven assemblies—just pure GitOps via YAML.
 - **💻 Backend & Fullstack Developers**: Rapidly build stateful filters, enrichments, and multi-stream joins using a declarative DSL instead of mastering the Flink DataStream API.
 - **🏢 Enterprise Platforms**: Securely democratize streaming across teams. The **Zero-Trust Polyglot Sandbox** ensures that guest code (Java/Python) remains fully isolated and safe.
