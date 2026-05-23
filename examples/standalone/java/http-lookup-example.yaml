@@ -7,6 +7,7 @@ steps:
       content: "101|102|103"
 
   - type: http-lookup
+    name: http-lookup
     properties:
       urlCode: |
         return "https://jsonplaceholder.typicode.com/posts/" + input;
