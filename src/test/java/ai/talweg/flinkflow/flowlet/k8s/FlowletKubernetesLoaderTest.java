@@ -17,17 +17,12 @@
 
 package ai.talweg.flinkflow.flowlet.k8s;
 
-import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
-import ai.talweg.flinkflow.config.StepConfig;
-import ai.talweg.flinkflow.flowlet.FlowletParameter;
 import ai.talweg.flinkflow.flowlet.FlowletSpec;
 import org.junit.jupiter.api.Test;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

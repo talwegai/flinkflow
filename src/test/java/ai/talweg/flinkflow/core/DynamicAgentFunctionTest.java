@@ -1,7 +1,5 @@
 package ai.talweg.flinkflow.core;
 
-import ai.talweg.flinkflow.core.GeminiDirectChatModel;
-import ai.talweg.flinkflow.core.AgentToolBridge;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.apache.flink.util.Collector;

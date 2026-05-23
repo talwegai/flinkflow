@@ -22,7 +22,6 @@ import org.apache.camel.impl.DefaultCamelContext;
 import org.apache.camel.spi.Resource;
 import org.apache.camel.support.ResourceHelper;
 import java.io.Serializable;
-import java.nio.charset.StandardCharsets;
 
 /**
  * A helper class that manages a Camel Context for executing YAML DSL routes.

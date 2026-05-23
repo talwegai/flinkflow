@@ -25,7 +25,6 @@ import org.apache.flink.api.common.state.v2.ValueState;
 import org.apache.flink.api.common.state.v2.ValueStateDescriptor;
 import org.apache.flink.api.common.functions.OpenContext;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
-import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.functions.ProcessFunction;
 import org.apache.flink.util.Collector;
 import org.slf4j.Logger;

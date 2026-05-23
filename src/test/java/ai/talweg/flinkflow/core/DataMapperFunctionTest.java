@@ -75,7 +75,7 @@ public class DataMapperFunctionTest {
         String xsltPath = xsltDir + "test-uppercase.xslt";
         MapFunction<String, String> mapper = ProcessorFactory.createDataMapper(xsltPath);
 
-        DataStream<String> stream = env.fromElements("hello", "world")
+        DataStream<String> stream = env.fromData("hello", "world")
                 .map(mapper);
 
         List<String> results = collectStream(stream, "XSLT Uppercase Test");
@@ -97,7 +97,7 @@ public class DataMapperFunctionTest {
         String xsltPath = xsltDir + "test-filter-errors.xslt";
         MapFunction<String, String> mapper = ProcessorFactory.createDataMapper(xsltPath);
 
-        DataStream<String> stream = env.fromElements(
+        DataStream<String> stream = env.fromData(
                 "INFO: user logged in",
                 "ERROR: connection refused",
                 "INFO: all good"

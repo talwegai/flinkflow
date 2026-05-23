@@ -45,7 +45,7 @@ public class ProcessorFactoryTest {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
 
-        DataStream<String> stream = env.fromElements("hello", "world")
+        DataStream<String> stream = env.fromData("hello", "world")
                 .map(ProcessorFactory.createMapper(
                         "metrics.counter(\"testCounter\").inc();\n" +
                         "return input.toUpperCase();"
@@ -62,7 +62,7 @@ public class ProcessorFactoryTest {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
 
-        DataStream<String> stream = env.fromElements("apple", "banana", "cat")
+        DataStream<String> stream = env.fromData("apple", "banana", "cat")
                 .filter(ProcessorFactory.createFilter("return input.length() > 3;"));
 
         List<String> results = collectStream(stream, "Filter Test");
@@ -76,7 +76,7 @@ public class ProcessorFactoryTest {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
 
-        DataStream<String> stream = env.fromElements("a b", "c d")
+        DataStream<String> stream = env.fromData("a b", "c d")
                 .flatMap(ProcessorFactory.createFlatMap(
                         "for (String part : input.split(\" \")) { out.collect(part); }"
                 ));
@@ -94,7 +94,7 @@ public class ProcessorFactoryTest {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
 
-        DataStream<String> stream = env.fromElements("fruit,apple", "fruit,banana", "car,tesla")
+        DataStream<String> stream = env.fromData("fruit,apple", "fruit,banana", "car,tesla")
                 .keyBy(ProcessorFactory.createKeySelector("return input.split(\",\")[0];"))
                 .reduce(ProcessorFactory.createReducer(
                         "String key = value1.split(\",\")[0];\n" +
@@ -115,7 +115,7 @@ public class ProcessorFactoryTest {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
 
-        SingleOutputStreamOperator<String> stream = env.fromElements("INFO: login", "ERROR: failed")
+        SingleOutputStreamOperator<String> stream = env.fromData("INFO: login", "ERROR: failed")
                 .process(ProcessorFactory.createSideOutput(
                         "if (input.startsWith(\"ERROR\")) {\n" +
                         "    ctx.output(input);\n" +

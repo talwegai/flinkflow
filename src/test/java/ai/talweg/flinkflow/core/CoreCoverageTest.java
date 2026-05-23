@@ -17,7 +17,6 @@
 
 package ai.talweg.flinkflow.core;
 
-import ai.talweg.flinkflow.core.DynamicAsyncHttpFunction;
 import org.apache.flink.api.common.functions.OpenContext;
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.metrics.groups.OperatorMetricGroup;
@@ -230,7 +229,7 @@ public class CoreCoverageTest {
             String responseCode = "return response;";
             String authCode = "return \"Token\";";
 
-            ai.talweg.flinkflow.core.DynamicAsyncHttpFunction func = new ai.talweg.flinkflow.core.DynamicAsyncHttpFunction(urlCode, responseCode, authCode, "java");
+            DynamicAsyncHttpFunction func = new DynamicAsyncHttpFunction(urlCode, responseCode, authCode, "java");
             func.open((OpenContext) null);
 
             java.util.concurrent.atomic.AtomicReference<String> result = new java.util.concurrent.atomic.AtomicReference<>();

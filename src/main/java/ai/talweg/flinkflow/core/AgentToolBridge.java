@@ -20,8 +20,6 @@ import dev.langchain4j.agent.tool.Tool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Bridges Flinkflow logic into LangChain4j Tools.
