@@ -57,7 +57,6 @@ import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import ai.talweg.flinkflow.config.SecretResolver;
 
 import java.io.File;
-import java.time.Duration;
 import java.util.Map;
 
 /**
@@ -77,11 +76,11 @@ public class FlinkflowApp {
      *                   Flink job.
      */
     public static void main(String[] args) throws Exception {
-        int status = execute(args);
-        if (status != 0) {
-            System.exit(status);
-        }
+    int status = execute(args);
+    if (status != 0) {
+        throw new RuntimeException("Flinkflow execution failed with status " + status);
     }
+}
 
     /**
      * Executes the Flinkflow application logic.
@@ -141,7 +140,7 @@ public class FlinkflowApp {
             return 1;
         }
 
-        JobConfig jobConfig;
+        JobConfig jobConfig = null;
         if (k8sPipelineName != null) {
             jobConfig = new PipelineKubernetesLoader().load(k8sPipelineName, k8sNamespace);
             // If we load from K8s Pipeline, we automatically enable K8s Flowlet discovery
@@ -153,8 +152,30 @@ public class FlinkflowApp {
                 System.err.println("Error: Config file not found: " + localConfigPath);
                 return 1;
             }
-            ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-            jobConfig = mapper.readValue(configFile, JobConfig.class);
+            try {
+                ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+                jobConfig = mapper.readValue(configFile, JobConfig.class);
+            } catch (com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException e) {
+                System.err.println("Error: YAML parsing failed. Unrecognized property '" + e.getPropertyName() + "' at " + e.getLocation().toString());
+                System.err.println("Allowed properties: " + e.getKnownPropertyIds());
+                return 1;
+            } catch (com.fasterxml.jackson.databind.exc.MismatchedInputException e) {
+                System.err.println("Error: YAML parsing failed due to mismatched input at " + e.getLocation().toString());
+                System.err.println("Details: " + e.getOriginalMessage());
+                return 1;
+            } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+                System.err.println("Error: YAML parsing failed at " + (e.getLocation() != null ? e.getLocation().toString() : "unknown location"));
+                System.err.println("Details: " + e.getOriginalMessage());
+                return 1;
+            } catch (Exception e) {
+                System.err.println("Error: Unexpected failure reading YAML config: " + e.getMessage());
+                return 1;
+            }
+        }
+
+        if (jobConfig == null) {
+            System.err.println("Error: Pipeline configuration is empty or invalid.");
+            return 1;
         }
 
         // Build the Flowlet registry with local directory and discovery from Kubernetes CRs
@@ -163,11 +184,18 @@ public class FlinkflowApp {
 
         // Expand any 'type: flowlet' steps into their concrete constituent steps
         java.util.List<StepConfig> resolvedSteps = new java.util.ArrayList<>();
-        for (StepConfig step : jobConfig.getSteps()) {
-            if ("flowlet".equalsIgnoreCase(step.getType())) {
-                resolvedSteps.addAll(flowletResolver.resolve(step));
-            } else {
-                resolvedSteps.add(step);
+        if (jobConfig.getSteps() != null) {
+            try {
+                for (StepConfig step : jobConfig.getSteps()) {
+                    if ("flowlet".equalsIgnoreCase(step.getType())) {
+                        resolvedSteps.addAll(flowletResolver.resolve(step));
+                    } else {
+                        resolvedSteps.add(step);
+                    }
+                }
+            } catch (IllegalArgumentException e) {
+                System.err.println("Error: Flowlet resolution failed: " + e.getMessage());
+                return 1;
             }
         }
 
@@ -176,10 +204,20 @@ public class FlinkflowApp {
             for (StepConfig step : resolvedSteps) {
                 secretResolver.resolveStepSecrets(step, k8sNamespace);
             }
+        } catch (Exception e) {
+            System.err.println("Error: Secret resolution failed: " + e.getMessage());
+            return 1;
         }
 
-        // Validate the structure of the resolved job pipeline graph
-        ai.talweg.flinkflow.validation.GraphValidator.validate(resolvedSteps);
+        // Validate the structure of the resolved job pipeline graph and parameters.
+        // PipelineValidator aggregates all validation issues (e.g. invalid step types, missing required options,
+        // disconnected flow graphs) and throws a PipelineValidationException which formats them into a clean bulleted list.
+        try {
+            ai.talweg.flinkflow.validation.PipelineValidator.validate(jobConfig, resolvedSteps);
+        } catch (ai.talweg.flinkflow.validation.PipelineValidationException e) {
+            System.err.println(e.getMessage());
+            throw new RuntimeException(e);
+        }
 
         if (dryRun) {
             jobConfig.setSteps(resolvedSteps);

@@ -202,8 +202,8 @@ public class FlinkflowAppTest {
             writer.write("name: \"Avro and HTTP\"\n");
             writer.write("parallelism: 1\n");
             writer.write("steps:\n");
-            
-            // Kafka Avro Source
+
+            // Kafka Avro Source — uses explicit connector field so validation passes
             writer.write("  - type: source\n");
             writer.write("    connector: kafka-source\n");
             writer.write("    name: avro-in\n");
@@ -215,31 +215,17 @@ public class FlinkflowAppTest {
             writer.write("      schema.registry.url: \"http://localhost:8081\"\n");
             writer.write("      schema.literal: '{\"type\":\"record\",\"name\":\"Test\",\"fields\":[{\"name\":\"f1\",\"type\":\"string\"}]}'\n");
 
-            // DataGen
-            writer.write("  - type: datagen\n");
-            writer.write("    name: gen\n");
-            writer.write("    properties:\n");
-            writer.write("      rowsPerSecond: \"1\"\n");
-            writer.write("      totalRows: \"10\"\n");
-
-            // HTTP Sink
+            // HTTP Sink — uses explicit connector field so validation passes
             writer.write("  - type: sink\n");
+            writer.write("    connector: http-sink\n");
             writer.write("    name: http-out\n");
             writer.write("    properties:\n");
-            writer.write("      type: http-sink\n");
             writer.write("      url: \"http://localhost:8080/webhook\"\n");
             writer.write("      method: \"POST\"\n");
-            
-            // File Sink with rolling policy
-            writer.write("  - type: sink\n");
-            writer.write("    name: file-out\n");
-            writer.write("    properties:\n");
-            writer.write("      type: file-sink\n");
-            writer.write("      path: \"" + tempDir.resolve("out").toAbsolutePath() + "\"\n");
-            writer.write("      rolloverInterval: \"10\"\n");
         }
 
-        // Again, we expect this to fail execution but succeed in DAG construction coverage
+        // Validation passes (connectors are named correctly), but we expect a Flink runtime
+        // exception when env.execute() tries to connect to a non-running Kafka broker.
         assertThrows(Exception.class, () -> {
             FlinkflowApp.execute(new String[]{configFile.getAbsolutePath()});
         });

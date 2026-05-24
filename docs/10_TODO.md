@@ -37,7 +37,7 @@ This file is the **Single Source of Truth** for the Flinkflow project roadmap an
 
 ### 🔐 Safety & Secrets
 - [x] **Kubernetes Secrets**: Resolve `secret:name/key` in Flowlet/Pipeline properties.
-- [ ] **Validation Feedback**: Improved error messages when YAML/Parameter validation fails.
+- [x] **Validation Feedback**: Improved error messages when YAML/Parameter validation fails.
 
 > [!NOTE]
 > **Secret Masking & Encryption**: To maintain the simplicity of the Apache 2.0 core, advanced field-level encryption and log masking are prioritized for the **Flinkflow Enterprise Edition** distribution. 
@@ -116,4 +116,4 @@ This file is the **Single Source of Truth** for the Flinkflow project roadmap an
 - [ ] **Air-Gapped Gallery**: Hardened container images with pre-loaded LLM models for offline AI.
 
 ---
-*Last updated: April 30, 2026*
+*Last updated: May 24, 2026*

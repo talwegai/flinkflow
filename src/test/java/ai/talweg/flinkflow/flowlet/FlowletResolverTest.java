@@ -197,4 +197,61 @@ public class FlowletResolverTest {
         // Should not throw
         assertDoesNotThrow(() -> resolver.resolve(callerStep2));
     }
+    @Test
+    public void testUnresolvableFlowlet() {
+        FlowletRegistry registry = new FlowletRegistry(null, false);
+        FlowletResolver resolver = new FlowletResolver(registry);
+
+        StepConfig callerStep = new StepConfig();
+        callerStep.setType("flowlet");
+        callerStep.setName("unknown-flowlet");
+
+        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
+            resolver.resolve(callerStep);
+        });
+        assertTrue(thrown.getMessage().contains("Unknown Flowlet"));
+    }
+
+    @Test
+    public void testCyclicDependencyThrowsException() {
+        FlowletRegistry registry = new FlowletRegistry(null, false);
+        
+        // Spec A calls B
+        FlowletSpec specA = new FlowletSpec();
+        specA.setName("flowlet-a");
+        StepConfig callB = new StepConfig();
+        callB.setType("flowlet");
+        callB.setName("flowlet-b");
+        specA.setTemplate(List.of(callB));
+
+        // Spec B calls A
+        FlowletSpec specB = new FlowletSpec();
+        specB.setName("flowlet-b");
+        StepConfig callA = new StepConfig();
+        callA.setType("flowlet");
+        callA.setName("flowlet-a");
+        specB.setTemplate(List.of(callA));
+
+        try {
+            java.lang.reflect.Field catalogField = FlowletRegistry.class.getDeclaredField("catalog");
+            catalogField.setAccessible(true);
+            @SuppressWarnings("unchecked")
+            Map<String, FlowletSpec> catalog = (Map<String, FlowletSpec>) catalogField.get(registry);
+            catalog.put("flowlet-a", specA);
+            catalog.put("flowlet-b", specB);
+        } catch (Exception e) {
+            fail("Failed to inject mock spec into registry");
+        }
+
+        FlowletResolver resolver = new FlowletResolver(registry);
+        
+        StepConfig callerStep = new StepConfig();
+        callerStep.setType("flowlet");
+        callerStep.setName("flowlet-a");
+
+        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
+            resolver.resolve(callerStep);
+        });
+        assertTrue(thrown.getMessage().contains("Cyclic dependency"));
+    }
 }

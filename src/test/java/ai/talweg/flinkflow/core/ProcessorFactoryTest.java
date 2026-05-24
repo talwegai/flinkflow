@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -45,7 +46,7 @@ public class ProcessorFactoryTest {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
 
-        DataStream<String> stream = env.fromElements("hello", "world")
+        DataStream<String> stream = env.fromData("hello", "world")
                 .map(ProcessorFactory.createMapper(
                         "metrics.counter(\"testCounter\").inc();\n" +
                         "return input.toUpperCase();"
@@ -62,7 +63,7 @@ public class ProcessorFactoryTest {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
 
-        DataStream<String> stream = env.fromElements("apple", "banana", "cat")
+        DataStream<String> stream = env.fromData("apple", "banana", "cat")
                 .filter(ProcessorFactory.createFilter("return input.length() > 3;"));
 
         List<String> results = collectStream(stream, "Filter Test");
@@ -76,7 +77,7 @@ public class ProcessorFactoryTest {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
 
-        DataStream<String> stream = env.fromElements("a b", "c d")
+        DataStream<String> stream = env.fromData("a b", "c d")
                 .flatMap(ProcessorFactory.createFlatMap(
                         "for (String part : input.split(\" \")) { out.collect(part); }"
                 ));
@@ -94,7 +95,7 @@ public class ProcessorFactoryTest {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
 
-        DataStream<String> stream = env.fromElements("fruit,apple", "fruit,banana", "car,tesla")
+        DataStream<String> stream = env.fromData("fruit,apple", "fruit,banana", "car,tesla")
                 .keyBy(ProcessorFactory.createKeySelector("return input.split(\",\")[0];"))
                 .reduce(ProcessorFactory.createReducer(
                         "String key = value1.split(\",\")[0];\n" +
@@ -115,7 +116,7 @@ public class ProcessorFactoryTest {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
 
-        SingleOutputStreamOperator<String> stream = env.fromElements("INFO: login", "ERROR: failed")
+        SingleOutputStreamOperator<String> stream = env.fromData("INFO: login", "ERROR: failed")
                 .process(ProcessorFactory.createSideOutput(
                         "if (input.startsWith(\"ERROR\")) {\n" +
                         "    ctx.output(input);\n" +
@@ -174,5 +175,20 @@ public class ProcessorFactoryTest {
         
         // Agent
         assertTrue(ProcessorFactory.createAgent("test-agent", "gpt-4", "test system prompt", true, new java.util.HashMap<>(), new java.util.HashMap<>()) != null);
+    }
+
+    @Test
+    public void testUnknownLanguageDefaultsToJava() {
+        // ProcessorFactory falls through to the Java/Janino runtime for unrecognised
+        // language strings — it does NOT throw. This verifies that graceful fallback
+        // and ensures each factory method's default branch is covered.
+        assertDoesNotThrow(() -> ProcessorFactory.createMapper("return input;", "javascript"));
+        assertDoesNotThrow(() -> ProcessorFactory.createFilter("return true;", "ruby"));
+        assertDoesNotThrow(() -> ProcessorFactory.createFlatMap("out.collect(input);", "c#"));
+        assertDoesNotThrow(() -> ProcessorFactory.createKeySelector("return input;", "unknown"));
+        assertDoesNotThrow(() -> ProcessorFactory.createReducer("return value1;", "bash"));
+        assertDoesNotThrow(() -> ProcessorFactory.createWindowReducer("return value1;", "sql"));
+        assertDoesNotThrow(() -> ProcessorFactory.createSideOutput("out.collect(input);", "dlq", "go"));
+        assertDoesNotThrow(() -> ProcessorFactory.createJoiner("out.collect(left);", "rust"));
     }
 }

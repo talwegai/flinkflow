@@ -1,7 +1,5 @@
 package ai.talweg.flinkflow.core;
 
-import org.apache.flink.api.common.functions.ReduceFunction;
-import org.apache.flink.api.java.functions.KeySelector;
 import org.junit.jupiter.api.Test;
 import org.apache.flink.api.common.functions.OpenContext;
 

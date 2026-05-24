@@ -17,7 +17,6 @@
 
 package ai.talweg.flinkflow.core;
 
-import ai.talweg.flinkflow.core.DynamicAsyncHttpFunction;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
@@ -90,9 +89,9 @@ public class DynamicAsyncHttpFunctionTest {
         String responseCode = "return response;";
         String authCode    = "return null;";
 
-        ai.talweg.flinkflow.core.DynamicAsyncHttpFunction fn = ProcessorFactory.createAsyncHttpLookup(urlCode, responseCode, authCode);
+        DynamicAsyncHttpFunction fn = ProcessorFactory.createAsyncHttpLookup(urlCode, responseCode, authCode);
 
-        DataStream<String> source = env.fromElements("hello");
+        DataStream<String> source = env.fromData("hello");
         DataStream<String> result = AsyncDataStream.unorderedWait(source, fn, 10, TimeUnit.SECONDS, 10);
 
         List<String> results = collect(result, "Async HTTP Basic Test");
@@ -123,9 +122,9 @@ public class DynamicAsyncHttpFunctionTest {
         String responseCode = "return response;";
         String authCode     = "return \"Bearer test-token-123\";";
 
-        ai.talweg.flinkflow.core.DynamicAsyncHttpFunction fn = ProcessorFactory.createAsyncHttpLookup(urlCode, responseCode, authCode);
+        DynamicAsyncHttpFunction fn = ProcessorFactory.createAsyncHttpLookup(urlCode, responseCode, authCode);
 
-        DataStream<String> source = env.fromElements("payload");
+        DataStream<String> source = env.fromData("payload");
         DataStream<String> result = AsyncDataStream.unorderedWait(source, fn, 10, TimeUnit.SECONDS, 10);
 
         collect(result, "Async HTTP Auth Test");
@@ -154,9 +153,9 @@ public class DynamicAsyncHttpFunctionTest {
         String responseCode = "return input + \":score=\" + response;";
         String authCode     = "return null;";
 
-        ai.talweg.flinkflow.core.DynamicAsyncHttpFunction fn = ProcessorFactory.createAsyncHttpLookup(urlCode, responseCode, authCode);
+        DynamicAsyncHttpFunction fn = ProcessorFactory.createAsyncHttpLookup(urlCode, responseCode, authCode);
 
-        DataStream<String> source = env.fromElements("user-007");
+        DataStream<String> source = env.fromData("user-007");
         DataStream<String> result = AsyncDataStream.unorderedWait(source, fn, 10, TimeUnit.SECONDS, 10);
 
         List<String> results = collect(result, "Async HTTP Merge Test");
@@ -183,9 +182,9 @@ public class DynamicAsyncHttpFunctionTest {
         String responseCode = "return response;";
         String authCode     = "return null;";
 
-        ai.talweg.flinkflow.core.DynamicAsyncHttpFunction fn = ProcessorFactory.createAsyncHttpLookup(urlCode, responseCode, authCode);
+        DynamicAsyncHttpFunction fn = ProcessorFactory.createAsyncHttpLookup(urlCode, responseCode, authCode);
 
-        DataStream<String> source = env.fromElements("alpha", "beta");
+        DataStream<String> source = env.fromData("alpha", "beta");
         DataStream<String> result = AsyncDataStream.unorderedWait(source, fn, 10, TimeUnit.SECONDS, 10);
 
         List<String> results = collect(result, "Async HTTP Multi-Element Test");
@@ -212,9 +211,9 @@ public class DynamicAsyncHttpFunctionTest {
         String responseCode = "return f\"python-enriched:{input}\" if response else None";
         String authCode     = "return None";
 
-        ai.talweg.flinkflow.core.DynamicAsyncHttpFunction fn = ProcessorFactory.createAsyncHttpLookup(urlCode, responseCode, authCode, "python");
+        DynamicAsyncHttpFunction fn = ProcessorFactory.createAsyncHttpLookup(urlCode, responseCode, authCode, "python");
 
-        DataStream<String> source = env.fromElements("hello");
+        DataStream<String> source = env.fromData("hello");
         DataStream<String> result = AsyncDataStream.unorderedWait(source, fn, 10, TimeUnit.SECONDS, 10);
 
         List<String> results = collect(result, "Async HTTP Python Test");

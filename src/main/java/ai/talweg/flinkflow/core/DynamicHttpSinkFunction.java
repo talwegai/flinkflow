@@ -18,7 +18,6 @@
 package ai.talweg.flinkflow.core;
 
 import org.apache.flink.api.common.functions.OpenContext;
-import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.functions.ProcessFunction;
 import org.apache.flink.util.Collector;
 import org.codehaus.janino.SimpleCompiler;

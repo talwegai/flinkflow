@@ -73,7 +73,7 @@ public class WindowOperationsTest {
         env.setParallelism(1);
 
         // Elements: key,value pairs — we group by key and concatenate values
-        DataStream<String> source = env.fromElements(
+        DataStream<String> source = env.fromData(
                 "fruit,apple",
                 "fruit,banana",   // <- window of 2 fires here for "fruit"
                 "car,tesla"
@@ -110,7 +110,7 @@ public class WindowOperationsTest {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
 
-        DataStream<String> source = env.fromElements(
+        DataStream<String> source = env.fromData(
                 "grp,1", "grp,2", "grp,3"
         );
 
