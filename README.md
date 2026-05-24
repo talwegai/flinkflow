@@ -30,7 +30,7 @@ steps:
 2. **Run it with Docker**:
 ```bash
 docker run --rm -v $(pwd)/my-pipeline.yaml:/app/pipeline.yaml \
-  ghcr.io/talwegai/flinkflow:0.9.3 \
+  ghcr.io/talwegai/flinkflow:0.9.4 \
   java -cp "/opt/flink/usrlib/flinkflow.jar:/opt/flink/lib/*" \
   ai.talweg.flinkflow.FlinkflowApp /app/pipeline.yaml
 ```
