@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -174,5 +175,20 @@ public class ProcessorFactoryTest {
         
         // Agent
         assertTrue(ProcessorFactory.createAgent("test-agent", "gpt-4", "test system prompt", true, new java.util.HashMap<>(), new java.util.HashMap<>()) != null);
+    }
+
+    @Test
+    public void testUnknownLanguageDefaultsToJava() {
+        // ProcessorFactory falls through to the Java/Janino runtime for unrecognised
+        // language strings — it does NOT throw. This verifies that graceful fallback
+        // and ensures each factory method's default branch is covered.
+        assertDoesNotThrow(() -> ProcessorFactory.createMapper("return input;", "javascript"));
+        assertDoesNotThrow(() -> ProcessorFactory.createFilter("return true;", "ruby"));
+        assertDoesNotThrow(() -> ProcessorFactory.createFlatMap("out.collect(input);", "c#"));
+        assertDoesNotThrow(() -> ProcessorFactory.createKeySelector("return input;", "unknown"));
+        assertDoesNotThrow(() -> ProcessorFactory.createReducer("return value1;", "bash"));
+        assertDoesNotThrow(() -> ProcessorFactory.createWindowReducer("return value1;", "sql"));
+        assertDoesNotThrow(() -> ProcessorFactory.createSideOutput("out.collect(input);", "dlq", "go"));
+        assertDoesNotThrow(() -> ProcessorFactory.createJoiner("out.collect(left);", "rust"));
     }
 }

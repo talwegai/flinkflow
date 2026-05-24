@@ -274,4 +274,110 @@ public class PipelineValidatorTest {
         assertTrue(ex.getMessage().contains("sink"),
             "Expected error about missing sink, but got: " + ex.getMessage());
     }
+    @Test
+    public void testKafkaSinkValidation() {
+        JobConfig job = new JobConfig();
+        job.setName("Kafka Sink Validation");
+
+        StepConfig step = new StepConfig();
+        step.setName("kafka-sink");
+        step.setType("sink");
+
+        List<StepConfig> steps = Collections.singletonList(step);
+        job.setSteps(steps);
+
+        PipelineValidationException ex = assertThrows(PipelineValidationException.class, () -> 
+            PipelineValidator.validate(job, steps)
+        );
+        assertTrue(ex.getMessage().contains("missing required property 'bootstrap.servers'"));
+        assertTrue(ex.getMessage().contains("missing required property 'topic'"));
+    }
+
+    @Test
+    public void testKafkaAvroSinkValidation() {
+        JobConfig job = new JobConfig();
+        job.setName("Kafka Avro Sink Validation");
+
+        StepConfig step = new StepConfig();
+        step.setName("kafka-avro-sink");
+        step.setType("sink");
+        
+        Map<String, String> props = new HashMap<>();
+        props.put("bootstrap.servers", "localhost:9092");
+        props.put("topic", "test");
+        step.setProperties(props);
+
+        List<StepConfig> steps = Collections.singletonList(step);
+        job.setSteps(steps);
+
+        PipelineValidationException ex = assertThrows(PipelineValidationException.class, () -> 
+            PipelineValidator.validate(job, steps)
+        );
+        assertTrue(ex.getMessage().contains("missing required property 'schema.registry.url'"));
+    }
+
+    @Test
+    public void testDataMapperValidation() {
+        JobConfig job = new JobConfig();
+        job.setName("DataMapper Validation");
+
+        StepConfig step = new StepConfig();
+        step.setName("mapper");
+        step.setType("datamapper");
+
+        List<StepConfig> steps = Collections.singletonList(step);
+        job.setSteps(steps);
+
+        PipelineValidationException ex = assertThrows(PipelineValidationException.class, () -> 
+            PipelineValidator.validate(job, steps)
+        );
+        assertTrue(ex.getMessage().contains("missing required property 'xsltPath'"));
+    }
+
+    @Test
+    public void testWindowSlidingValidation() {
+        JobConfig job = new JobConfig();
+        job.setName("Window Sliding");
+
+        StepConfig step = new StepConfig();
+        step.setName("my-window");
+        step.setType("window");
+        step.setCode("return value1;");
+        Map<String, String> props = new HashMap<>();
+        props.put("windowType", "sliding");
+        props.put("size", "10");
+        props.put("slide", "invalid");
+        step.setProperties(props);
+
+        List<StepConfig> steps = Collections.singletonList(step);
+        job.setSteps(steps);
+
+        PipelineValidationException ex = assertThrows(PipelineValidationException.class, () -> 
+            PipelineValidator.validate(job, steps)
+        );
+        assertTrue(ex.getMessage().contains("property 'slide' must be a valid number"));
+    }
+
+    @Test
+    public void testWindowSessionValidation() {
+        JobConfig job = new JobConfig();
+        job.setName("Window Session");
+
+        StepConfig step = new StepConfig();
+        step.setName("my-window");
+        step.setType("window");
+        step.setCode("return value1;");
+        Map<String, String> props = new HashMap<>();
+        props.put("windowType", "session");
+        props.put("gap", "invalid");
+        step.setProperties(props);
+
+        List<StepConfig> steps = Collections.singletonList(step);
+        job.setSteps(steps);
+
+        PipelineValidationException ex = assertThrows(PipelineValidationException.class, () -> 
+            PipelineValidator.validate(job, steps)
+        );
+        assertTrue(ex.getMessage().contains("property 'gap' must be a valid number"));
+    }
 }

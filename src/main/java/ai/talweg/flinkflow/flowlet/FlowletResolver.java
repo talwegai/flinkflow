@@ -72,7 +72,22 @@ public class FlowletResolver {
      *                                  parameter is missing
      */
     public List<StepConfig> resolve(StepConfig step) {
+        return resolveInternal(step, new LinkedHashSet<>());
+    }
+
+    /**
+     * Internal recursive resolver that tracks the current call stack to detect
+     * cyclic Flowlet dependencies.
+     */
+    private List<StepConfig> resolveInternal(StepConfig step, Set<String> callStack) {
         String flowletName = step.getName();
+
+        if (callStack.contains(flowletName)) {
+            throw new IllegalArgumentException(
+                    "Cyclic dependency detected for Flowlet '" + flowletName
+                            + "'. Resolution path: " + callStack);
+        }
+
         FlowletSpec spec = registry.get(flowletName);
 
         // ---------- Build effective parameter map ----------
@@ -85,7 +100,10 @@ public class FlowletResolver {
         validateParameterTypes(spec, effective, flowletName);
 
         // ---------- Expand template ----------
-        return expandTemplate(spec.getTemplate(), effective);
+        callStack.add(flowletName);
+        List<StepConfig> expanded = expandTemplate(spec.getTemplate(), effective, callStack);
+        callStack.remove(flowletName);
+        return expanded;
     }
 
     // ------------------------------------------------------------------ //
@@ -198,11 +216,22 @@ public class FlowletResolver {
      * {@code {{paramName}}} placeholders with their resolved values.
      */
     private List<StepConfig> expandTemplate(List<StepConfig> template,
-            Map<String, String> params) {
+            Map<String, String> params, Set<String> callStack) {
         if (template == null)
             return Collections.emptyList();
         List<StepConfig> expanded = new ArrayList<>();
         for (StepConfig tmplStep : template) {
+            // Recursively resolve nested flowlet references
+            if ("flowlet".equalsIgnoreCase(tmplStep.getType())) {
+                StepConfig substitutedCaller = new StepConfig();
+                substitutedCaller.setType(tmplStep.getType());
+                substitutedCaller.setName(tmplStep.getName() == null ? null
+                        : substitute(tmplStep.getName(), params));
+                substitutedCaller.setWith(tmplStep.getWith());
+                expanded.addAll(resolveInternal(substitutedCaller, callStack));
+                continue;
+            }
+
             StepConfig concrete = new StepConfig();
             concrete.setType(tmplStep.getType());
             concrete.setName(tmplStep.getName() == null ? null
