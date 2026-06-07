@@ -50,6 +50,8 @@ Unlike the standalone YAML examples, these files are formatted as Kubernetes obj
 ### ☕ Procedural (Java)
 | File | Description | Features |
 | :--- | :--- | :--- |
+| **[`java/ml-fraud-detection-example.yaml`](java/ml-fraud-detection-example.yaml)** | **ML Fraud Detection** | **[NEW]** VectorAssembler + MinMaxScaler + weighted risk scorer for financial fraud. |
+| **[`java/ml-vector-assembler-example.yaml`](java/ml-vector-assembler-example.yaml)** | **ML Sensor Features** | **[NEW]** VectorAssembler feature engineering with threshold-based anomaly detection. |
 | **[`java/iot-fleet-analytics.yaml`](java/iot-fleet-analytics.yaml)** | IoT (Java) | Original high-scale sensor telemetry demo. |
 | **[`java/fraud-detection-flowlets.yaml`](java/fraud-detection-flowlets.yaml)** | Fraud (Java) | Transaction monitoring via Java Flowlets. |
 | **[`java/complex-enrichment-example.yaml`](java/complex-enrichment-example.yaml)** | Advanced | Multi-step pipeline with joins and lookups. |

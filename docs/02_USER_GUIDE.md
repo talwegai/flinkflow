@@ -69,6 +69,7 @@ A **Pipeline** is a directed acyclic graph (DAG) of processing steps. It defines
 Each step in a pipeline is a discrete unit of work. Steps are categorized into:
 - **Source**: Ingests data (e.g., Kafka, S3, Static content).
 - **Process**: Transforms data (e.g., Filtering, Mapping, Aggregating).
+- **ML**: Feature engineering and model inference using Flink ML (e.g., VectorAssembler, MinMaxScaler, KMeans).
 - **Sink**: Exports data (e.g., Kafka, JDBC, Console, Webhooks).
 
 ### 📦 Flowlets
@@ -161,6 +162,19 @@ Best for complex routing (Enterprise Integration Patterns) like the Choice EIP. 
                 steps:
                   - setBody:
                       constant: "SAFE"
+```
+
+### **Apache Flink ML**
+Embed native Flink ML stages (Estimators and Transformers) directly in your pipeline YAML. Flinkflow maps configuration properties dynamically to ML stages using reflection and runs them using the StreamTableEnvironment bridge.
+
+```yaml
+- type: ml
+  name: normalize-features
+  properties:
+    algorithm: "MinMaxScaler"
+    inputCol: "features"
+    outputCol: "scaledFeatures"
+    schema.features: "vector"
 ```
 
 ### 🌍 **Comprehensive Example: IoT Fleet Analytics**

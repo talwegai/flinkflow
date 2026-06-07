@@ -16,6 +16,7 @@ This file is the **Single Source of Truth** for the Flinkflow project roadmap an
 - [x] **Deployment Options**: Local script, Docker, and K8s (Manual, Operator, Native, and Pipeline CR).
 - [x] **Flink 2.2 Migration**: Full support for Flink 2.2.0 and the new `OpenContext` lifecycle.
 - [x] **Flink State V2**: Asynchronous, non-blocking managed state for AI Agents.
+- [x] **Flink ML Integration**: Native `type: ml` step that embeds Flink ML Estimators and Transformers (KMeans, LogisticRegression, VectorAssembler, MinMaxScaler, etc.) declaratively into YAML pipelines using the StreamTableEnvironment bridge. Supports algorithm short-names, reflective hyper-parameter configuration, model persistence via `modelPath`, and round-trips data as JSON strings.
 
 ### 🐫 Low-Code & Polyglot
 - [x] **Python Snippets**: Support for inline Python syntax across core steps (GraalVM).
@@ -110,10 +111,11 @@ This file is the **Single Source of Truth** for the Flinkflow project roadmap an
 
 ### 🤖 Agentic AI & Machine Learning
 - [ ] **Validation Assist**: AI-powered explanations and auto-fixes for pipeline configuration errors.
-- [ ] **In-stream ML**: Dedicated `model-inference` step for high-performance real-time AI (CPU/GPU-accelerated).
+- [x] **In-stream ML (Core)**: Declarative `type: ml` step in the Apache 2.0 core supports Flink ML Estimators & Transformers (see Foundation above).
+- [ ] **In-stream ML (Enterprise)**: High-performance `model-inference` step with CPU/GPU acceleration and ONNX/TensorFlow/PyTorch runtime support.
 - [ ] **Hot-Reloading**: Live update of transformation logic and agent prompts without stopping the Flink job.
 - [ ] **Agentic Audit**: Full prompt/response debugging and token cost attribution for AI Agents.
 - [ ] **Air-Gapped Gallery**: Hardened container images with pre-loaded LLM models for offline AI.
 
 ---
-*Last updated: May 24, 2026*
+*Last updated: May 28, 2026*

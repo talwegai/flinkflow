@@ -76,11 +76,50 @@ public class FlinkflowApp {
      *                   Flink job.
      */
     public static void main(String[] args) throws Exception {
-    int status = execute(args);
-    if (status != 0) {
-        throw new RuntimeException("Flinkflow execution failed with status " + status);
+        try {
+            int status = execute(args);
+            if (status != 0) {
+                throw new RuntimeException("Flinkflow execution failed with status " + status);
+            }
+        } catch (Throwable t) {
+            System.err.println("=== RECURSIVE STACK TRACE ===");
+            printThrowableRecursively(t, "");
+            System.err.println("=== END RECURSIVE STACK TRACE ===");
+            throw t;
+        }
     }
-}
+
+    private static void printThrowableRecursively(Throwable curr, String indent) {
+        if (curr == null) return;
+        System.err.println(indent + "Exception: " + curr.getClass().getName() + ": " + curr.getMessage());
+        for (StackTraceElement ste : curr.getStackTrace()) {
+            System.err.println(indent + "  at " + ste);
+        }
+        
+        // Inspect ExceptionInChainedOperatorException or try to get cause
+        Throwable cause = curr.getCause();
+        if (cause == null) {
+            // Sometimes the cause is hidden inside a field of custom exceptions
+            try {
+                java.lang.reflect.Field causeField = curr.getClass().getDeclaredField("cause");
+                causeField.setAccessible(true);
+                cause = (Throwable) causeField.get(curr);
+            } catch (Throwable ignored) {}
+        }
+        
+        if (cause != null) {
+            System.err.println(indent + "Caused by:");
+            printThrowableRecursively(cause, indent + "  ");
+        }
+        
+        Throwable[] suppressed = curr.getSuppressed();
+        if (suppressed != null && suppressed.length > 0) {
+            for (Throwable s : suppressed) {
+                System.err.println(indent + "Suppressed:");
+                printThrowableRecursively(s, indent + "  ");
+            }
+        }
+    }
 
     /**
      * Executes the Flinkflow application logic.
@@ -351,6 +390,108 @@ public class FlinkflowApp {
                     
                     stream = stream.process(ProcessorFactory.createAgent(step.getName(), agentModel, systemPrompt, useMemory, step.getProperties(), flowletRegistry.getCatalog()));
                     break;
+                case "ml": {
+                    if (stream == null)
+                        throw new RuntimeException("Stream not initialized. Source step missing.");
+                    
+                    // Extract schema from properties (keys starting with "schema.")
+                    java.util.Map<String, String> schemaMap = new java.util.LinkedHashMap<>();
+                    if (step.getProperties() != null) {
+                        for (java.util.Map.Entry<String, String> entry : step.getProperties().entrySet()) {
+                            if (entry.getKey().startsWith("schema.")) {
+                                schemaMap.put(entry.getKey().substring(7), entry.getValue());
+                            }
+                        }
+                    }
+                    if (schemaMap.isEmpty()) {
+                        throw new RuntimeException("ML step '" + step.getName() + "' requires at least one schema definition property (e.g., 'schema.fieldName: type').");
+                    }
+                    
+                    // Build the Row TypeInformation for the input schema
+                    String[] mlFieldNames = schemaMap.keySet().toArray(new String[0]);
+                    org.apache.flink.api.common.typeinfo.TypeInformation<?>[] mlFieldTypes =
+                        new org.apache.flink.api.common.typeinfo.TypeInformation<?>[mlFieldNames.length];
+                    for (int idx = 0; idx < mlFieldNames.length; idx++) {
+                        String typeStr = schemaMap.get(mlFieldNames[idx]).toLowerCase();
+                        switch (typeStr) {
+                            case "string":
+                                mlFieldTypes[idx] = org.apache.flink.api.common.typeinfo.Types.STRING;
+                                break;
+                            case "int":
+                            case "integer":
+                                mlFieldTypes[idx] = org.apache.flink.api.common.typeinfo.Types.INT;
+                                break;
+                            case "long":
+                                mlFieldTypes[idx] = org.apache.flink.api.common.typeinfo.Types.LONG;
+                                break;
+                            case "double":
+                            case "float":
+                                mlFieldTypes[idx] = org.apache.flink.api.common.typeinfo.Types.DOUBLE;
+                                break;
+                            case "boolean":
+                                mlFieldTypes[idx] = org.apache.flink.api.common.typeinfo.Types.BOOLEAN;
+                                break;
+                            case "vector":
+                                mlFieldTypes[idx] = org.apache.flink.ml.linalg.typeinfo.VectorTypeInfo.INSTANCE;
+                                break;
+                            default:
+                                throw new IllegalArgumentException("Unsupported schema type in ML step: " + typeStr);
+                        }
+                    }
+                    org.apache.flink.api.common.typeinfo.TypeInformation<org.apache.flink.types.Row> mlTypeInfo =
+                        org.apache.flink.api.common.typeinfo.Types.ROW_NAMED(mlFieldNames, mlFieldTypes);
+                    
+                    // Initialize StreamTableEnvironment
+                    org.apache.flink.table.api.bridge.java.StreamTableEnvironment tEnv =
+                        org.apache.flink.table.api.bridge.java.StreamTableEnvironment.create(env);
+                    
+                    // Map DataStream<String> → DataStream<Row> with explicit TypeInformation.
+                    // returns() must be chained on the SingleOutputStreamOperator from map() —
+                    // it is not available on the base DataStream type in Flink 2.x.
+                    org.apache.flink.streaming.api.datastream.DataStream<org.apache.flink.types.Row> rowStream =
+                        stream.map(new ai.talweg.flinkflow.core.JsonToRowMapper(schemaMap)).returns(mlTypeInfo);
+                    
+                    // Convert DataStream<Row> → Table using RowTypeInfo field names only.
+                    //
+                    // IMPORTANT: Do NOT pass an explicit Schema here. When an explicit Schema is
+                    // passed, the Flink table bridge produces NAME_BASED Row objects (fieldByName ≠ null,
+                    // fieldByPosition == null). Flink ML's VectorAssembler.AssemblerFunction.flatMap()
+                    // then calls Row.join(inputRow, …) which calls Preconditions.checkArgument(
+                    // row.fieldByPosition != null, "All rows must operate in position-based field mode.")
+                    // and throws IllegalArgumentException.
+                    //
+                    // Without an explicit Schema the table planner infers column names from the
+                    // ROW_NAMED RowTypeInfo already attached via .returns(mlTypeInfo). It then converts
+                    // DataStream<Row> to Table using POSITION_BASED rows (fieldByPosition != null) with
+                    // a positionByName index, which satisfies BOTH Row.getField(String) (used by
+                    // VectorAssembler to read inputs) AND Row.join() (used to build the output row).
+                    org.apache.flink.table.api.Table inputTable = tEnv.fromDataStream(rowStream);
+                    
+                    // Create Flink ML Stage using MLStageFactory
+                    org.apache.flink.ml.api.Stage<?> mlStage = ai.talweg.flinkflow.core.MLStageFactory.create(step.getProperties());
+                    
+                    // Apply fit/transform logic
+                    org.apache.flink.table.api.Table outputTable;
+                    if (mlStage instanceof org.apache.flink.ml.api.Transformer) {
+                        outputTable = ((org.apache.flink.ml.api.Transformer<?>) mlStage).transform(inputTable)[0];
+                    } else if (mlStage instanceof org.apache.flink.ml.api.Estimator) {
+                        org.apache.flink.ml.api.Model<?> model = ((org.apache.flink.ml.api.Estimator<?, ?>) mlStage).fit(inputTable);
+                        outputTable = model.transform(inputTable)[0];
+                    } else {
+                        throw new RuntimeException("Stage resolved by factory is neither a Transformer nor an Estimator: " + mlStage.getClass().getName());
+                    }
+                    
+                    // Convert output Table back to DataStream<Row>
+                    org.apache.flink.streaming.api.datastream.DataStream<org.apache.flink.types.Row> outputRowStream = 
+                        tEnv.toDataStream(outputTable);
+                    
+                    // Extract output field names from the resolved Table schema
+                    String[] outputFieldNames = outputTable.getResolvedSchema().getColumnNames().toArray(new String[0]);
+                    
+                    // Map output Row stream to DataStream<String> (JSON)
+                    stream = outputRowStream.map(new ai.talweg.flinkflow.core.RowToJsonMapper(outputFieldNames));
+                    break;
+                }
                 case "sink":
                     if (stream == null)
                         throw new RuntimeException("Stream not initialized. Source step missing.");

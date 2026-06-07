@@ -1,0 +1,90 @@
+apiVersion: flinkflow.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: ml-fraud-detection-example
+spec:
+  name: "ML Fraud Detection - Financial Transactions Classification"
+  parallelism: 1
+
+  steps:
+    # ── SOURCE: Static Transaction Data ──────────────────────────────────────────
+    # Synthetic financial transaction records with three fraud-relevant features:
+    #   amount:          Transaction amount in USD
+    #   distance:        Distance from cardholder's registered home address (miles)
+    #   isMerchantSafe:  Binary risk indicator (1.0 = low-risk merchant, 0.0 = high-risk)
+    - type: source
+      name: static-source
+      properties:
+        content: >
+          {"amount": 5.50, "distance": 1.2, "isMerchantSafe": 1.0}|
+          {"amount": 12.00, "distance": 4.5, "isMerchantSafe": 1.0}|
+          {"amount": 950.00, "distance": 850.0, "isMerchantSafe": 0.0}|
+          {"amount": 80.00, "distance": 120.0, "isMerchantSafe": 1.0}|
+          {"amount": 1500.00, "distance": 2200.0, "isMerchantSafe": 0.0}|
+          {"amount": 15.20, "distance": 0.5, "isMerchantSafe": 1.0}
+
+    # ── ML STEP 1: Feature Vector Assembly ───────────────────────────────────────
+    # Combines the three transaction features (amount, distance, isMerchantSafe)
+    # into a single dense vector "rawFeatures" ready for normalisation.
+    #
+    # Properties:
+    #   algorithm:   VectorAssembler (Flink ML built-in)
+    #   inputCols:   Columns to assemble (comma-separated, must match schema.* keys)
+    #   inputSizes:  Size of each input column (1 = scalar double)
+    #   outputCol:   Output column name for the assembled dense vector
+    #   schema.*:    Data type declarations for each column
+    - type: ml
+      name: assemble-transaction-features
+      properties:
+        algorithm: "VectorAssembler"
+        inputCols: "amount,distance,isMerchantSafe"
+        inputSizes: "1,1,1"
+        outputCol: "rawFeatures"
+        schema.amount: "double"
+        schema.distance: "double"
+        schema.isMerchantSafe: "double"
+
+    # ── ML STEP 2: Feature Normalisation ─────────────────────────────────────────
+    # MinMaxScaler learns the global min/max boundaries across all transactions
+    # and normalises the rawFeatures vector into the [0.0, 1.0] range under
+    # "scaledFeatures". This ensures no single feature dominates the risk score
+    # due to scale differences (e.g. amount vs. distance).
+    - type: ml
+      name: normalise-features
+      properties:
+        algorithm: "MinMaxScaler"
+        inputCol: "rawFeatures"
+        outputCol: "scaledFeatures"
+        schema.rawFeatures: "vector"
+
+    # ── PROCESS STEP: Weighted Risk Scoring and Classification ──────────────────
+    # Computes a weighted fraud risk score from the normalised feature vector:
+    #   riskScore = (scaledAmount × 0.4) + (scaledDistance × 0.4) + ((1 - scaledMerchantSafe) × 0.2)
+    # Transactions with a riskScore > 0.35 are flagged as fraudulent (prediction: 1.0).
+    - type: process
+      name: score-fraud-risk
+      code: |
+        com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        com.fasterxml.jackson.databind.node.ObjectNode obj =
+            (com.fasterxml.jackson.databind.node.ObjectNode) mapper.readTree(input);
+
+        // Convert scaledFeatures JSON array to double[] with explicit cast (required by Janino)
+        double[] scaled = (double[]) mapper.convertValue(obj.get("scaledFeatures"), double[].class);
+        double scaledAmount       = scaled[0];
+        double scaledDistance     = scaled[1];
+        double scaledMerchantSafe = scaled[2];
+
+        // Weighted risk score: high amount and distance increase risk; safe merchant reduces it
+        double riskScore = (scaledAmount * 0.4) + (scaledDistance * 0.4) + ((1.0 - scaledMerchantSafe) * 0.2);
+        boolean isFraud  = riskScore > 0.35;
+
+        obj.put("riskScore",  riskScore);
+        obj.put("prediction", isFraud ? 1.0 : 0.0);
+        obj.put("status",     isFraud ? "FRAUD_ALERT" : "APPROVED");
+        return obj.toString();
+
+    # ── SINK: Console Output ────────────────────────────────────────────────────
+    - type: sink
+      name: console-sink
+      properties:
+        type: console

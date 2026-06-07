@@ -1,0 +1,64 @@
+# Run: ./scripts/run-local.sh examples/standalone/java/ml-minmax-scaler-example.yaml
+#
+# Demonstrates: Apache Flink ML - MinMaxScaler (Estimator → Model → Transform)
+#
+# Pipeline:
+#   1. Static source generates synthetic house price features (area, rooms, age)
+#   2. A VectorAssembler ml step assembles scalar fields into a raw feature vector
+#   3. A MinMaxScaler ml step fits and scales the feature vector to [0, 1]
+#   4. Console sink prints the normalised results
+#
+# Key differences from a Transformer-only pipeline:
+#   - MinMaxScaler is an Estimator: it calls .fit(inputTable) on the full dataset
+#     first, then .transform(inputTable) to produce normalised outputs.
+#   - FlinkflowApp handles both Transformer and Estimator stages automatically.
+#
+# Output example:
+#   {"area":120.0,"rooms":3.0,"age":10.0,"rawFeatures":[120.0,3.0,10.0],"scaledFeatures":[0.25,0.5,0.2]}
+
+name: "ML MinMaxScaler - House Price Feature Normalisation"
+parallelism: 1
+
+steps:
+  # ── SOURCE: Static House Data ───────────────────────────────────────────────
+  # Pipe-delimited JSON records representing house features:
+  #   area (m²), rooms (count), age (years)
+  - type: source
+    name: static-source
+    properties:
+      content: >
+        {"area": 60.0, "rooms": 2.0, "age": 30.0}|
+        {"area": 90.0, "rooms": 3.0, "age": 15.0}|
+        {"area": 120.0, "rooms": 3.0, "age": 10.0}|
+        {"area": 180.0, "rooms": 4.0, "age": 5.0}|
+        {"area": 240.0, "rooms": 5.0, "age": 2.0}|
+        {"area": 55.0, "rooms": 1.0, "age": 50.0}
+
+  # ── ML STEP 1: Assemble raw feature vector ──────────────────────────────────
+  # Combines area, rooms, age into a single dense vector column "rawFeatures".
+  - type: ml
+    name: assemble-house-features
+    properties:
+      algorithm: "VectorAssembler"
+      inputCols: "area,rooms,age"
+      inputSizes: "1,1,1"
+      outputCol: "rawFeatures"
+      schema.area: "double"
+      schema.rooms: "double"
+      schema.age: "double"
+
+  # ── ML STEP 2: MinMaxScaler normalisation ───────────────────────────────────
+  # Fits a MinMaxScaler on the rawFeatures vector to learn global min/max values,
+  # then scales all values to the [0.0, 1.0] range.
+  # This is an Estimator — FlinkflowApp calls fit() + transform() automatically.
+  - type: ml
+    name: normalise-features
+    properties:
+      algorithm: "MinMaxScaler"
+      inputCol: "rawFeatures"
+      outputCol: "scaledFeatures"
+      schema.rawFeatures: "vector"
+
+  # ── SINK: Console Output ────────────────────────────────────────────────────
+  - type: sink
+    name: console-sink

@@ -49,6 +49,11 @@ Unlike the Kubernetes examples, these are plain YAML files that should be run us
 - **[`java/jdbc-sink-example.yaml`](java/jdbc-sink-example.yaml)**: High-throughput batch inserts to PostgreSQL/MySQL.
 - **[`java/window-example.yaml`](java/window-example.yaml)**: Time-based windowing (Tumbling, Sliding, Session).
 
+### 🤖 Machine Learning (Flink ML)
+*Best for: Feature engineering, normalisation, and real-time ML inference on streaming data.*
+- **[`java/ml-vector-assembler-example.yaml`](java/ml-vector-assembler-example.yaml)**: Assembles multiple scalar sensor fields (temperature, humidity, pressure) into a dense feature vector using **VectorAssembler**, then applies a simple anomaly flag.
+- **[`java/ml-minmax-scaler-example.yaml`](java/ml-minmax-scaler-example.yaml)**: Two-stage ML pipeline: **VectorAssembler** builds a raw feature vector from house data, then **MinMaxScaler** (an Estimator) fits and normalises values to `[0, 1]`.
+
 ---
 
 ## 🛠️ Design Philosophy
