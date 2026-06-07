@@ -39,6 +39,7 @@ jobs:
 
       - name: Build and Test with Maven
         run: |
+          mvn -B -f flink-ml-compat/pom.xml install
           if [ "${{ github.event_name }}" == "pull_request" ]; then
             mvn -B package
           else
