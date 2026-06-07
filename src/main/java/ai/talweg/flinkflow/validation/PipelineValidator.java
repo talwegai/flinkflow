@@ -113,6 +113,9 @@ public class PipelineValidator {
                 break;
             case "agent":
                 break;
+            case "ml":
+                validateMLStep(step, errors);
+                break;
             case "sink":
                 validateSinkStep(step, errors);
                 break;
@@ -282,6 +285,26 @@ public class PipelineValidator {
         } catch (NumberFormatException e) {
             errors.add(String.format("Step '%s' property '%s' must be a valid number, but was: '%s'.", 
                     step.getName(), propName, props.get(propName)));
+        }
+    }
+
+    private static void validateMLStep(StepConfig step, List<String> errors) {
+        Map<String, String> props = step.getProperties();
+        if (props == null || !props.containsKey("algorithm") || props.get("algorithm") == null || props.get("algorithm").trim().isEmpty()) {
+            errors.add(String.format("ML step '%s' is missing required property 'algorithm'.", step.getName()));
+        }
+
+        boolean hasSchema = false;
+        if (props != null) {
+            for (String key : props.keySet()) {
+                if (key.startsWith("schema.")) {
+                    hasSchema = true;
+                    break;
+                }
+            }
+        }
+        if (!hasSchema) {
+            errors.add(String.format("ML step '%s' requires at least one schema property starting with 'schema.' to define the input schema.", step.getName()));
         }
     }
 }

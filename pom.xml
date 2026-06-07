@@ -4,7 +4,7 @@
 
   <groupId>ai.talweg</groupId>
   <artifactId>flinkflow</artifactId>
-  <version>0.9.4</version>
+  <version>0.9.5</version>
   <packaging>jar</packaging>
 
   <name>flinkflow</name>
@@ -52,6 +52,13 @@
   </properties>
 
   <repositories>
+    <repository>
+      <id>central</id>
+      <url>https://repo.maven.apache.org/maven2</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
     <repository>
       <id>confluent</id>
       <url>https://packages.confluent.io/maven/</url>
@@ -101,6 +108,52 @@
         <groupId>org.postgresql</groupId>
         <artifactId>postgresql</artifactId>
         <version>42.7.11</version>
+    </dependency>
+
+    <!-- Flink ML compatibility shims (bridges Flink ML 2.2.0 → Flink 2.2.0 runtime) -->
+    <dependency>
+      <groupId>ai.talweg</groupId>
+      <artifactId>flink-ml-compat</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <!-- Flink Table API & Flink ML Dependencies -->
+    <dependency>
+      <groupId>org.apache.flink</groupId>
+      <artifactId>flink-table-api-java-bridge</artifactId>
+      <version>${flink.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.flink</groupId>
+      <artifactId>flink-table-planner_${scala.binary.version}</artifactId>
+      <version>${flink.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.flink</groupId>
+      <artifactId>flink-ml-core</artifactId>
+      <version>2.2.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.flink</groupId>
+      <artifactId>flink-ml-lib</artifactId>
+      <version>2.2.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.flink</groupId>
+      <artifactId>flink-ml-servable-core</artifactId>
+      <version>2.2.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.flink</groupId>
+      <artifactId>flink-ml-servable-lib</artifactId>
+      <version>2.2.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.flink</groupId>
+      <artifactId>flink-ml-iteration</artifactId>
+      <version>2.2.0</version>
     </dependency>
 
     <!-- YAML Parsing -->
@@ -526,6 +579,43 @@
               </artifactSet>
               <filters>
                 <filter>
+                  <artifact>org.apache.flink:flink-ml-servable-core</artifact>
+                  <excludes>
+                    <exclude>org/apache/flink/ml/linalg/typeinfo/DenseVectorTypeInfo.class</exclude>
+                    <exclude>org/apache/flink/ml/linalg/typeinfo/SparseVectorTypeInfo.class</exclude>
+                    <exclude>org/apache/flink/ml/linalg/typeinfo/VectorTypeInfo.class</exclude>
+                    <exclude>org/apache/flink/ml/linalg/typeinfo/VectorWithNormTypeInfo.class</exclude>
+                  </excludes>
+                </filter>
+                <filter>
+                  <artifact>org.apache.flink:flink-core</artifact>
+                  <excludes>
+                    <exclude>org/apache/flink/api/common/typeinfo/TypeInformation.class</exclude>
+                  </excludes>
+                </filter>
+                <filter>
+                  <artifact>org.apache.flink:flink-streaming-java</artifact>
+                  <excludes>
+                    <exclude>org/apache/flink/streaming/api/graph/StreamConfig.class</exclude>
+                    <exclude>org/apache/flink/streaming/api/operators/StreamingRuntimeContext.class</exclude>
+                    <exclude>org/apache/flink/streaming/api/operators/StreamOperatorStateContext.class</exclude>
+                    <exclude>org/apache/flink/streaming/api/operators/StreamTaskStateInitializer.class</exclude>
+                    <exclude>org/apache/flink/streaming/api/functions/source/**</exclude>
+                  </excludes>
+                </filter>
+                <filter>
+                  <artifact>org.apache.flink:flink-runtime</artifact>
+                  <excludes>
+                    <exclude>org/apache/flink/runtime/metrics/groups/TaskMetricGroup.class</exclude>
+                  </excludes>
+                </filter>
+                <filter>
+                  <artifact>org.apache.flink:flink-ml-iteration</artifact>
+                  <excludes>
+                    <exclude>org/apache/flink/iteration/compile/DraftExecutionEnvironment.class</exclude>
+                  </excludes>
+                </filter>
+                <filter>
                   <artifact>*:*</artifact>
                   <excludes>
                     <exclude>module-info.class</exclude>
@@ -607,6 +697,16 @@
           <groupId>org.apache.logging.log4j</groupId>
           <artifactId>log4j-slf4j-impl</artifactId>
           <version>${log4j.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.flink</groupId>
+          <artifactId>flink-table-api-java-bridge</artifactId>
+          <version>${flink.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.flink</groupId>
+          <artifactId>flink-table-planner_${scala.binary.version}</artifactId>
+          <version>${flink.version}</version>
         </dependency>
       </dependencies>
     </profile>

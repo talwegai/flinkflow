@@ -12,7 +12,7 @@ This guide provides a detailed specification of the Flinkflow YAML DSL, includin
 - `steps`: A sequential list of pipeline steps.
 
 ### Step Config
-- `type`: The type of operation (`source`, `process`, `datamapper`, `join`, `http-lookup`, `agent`, `sink`, or `flowlet`).
+- `type`: The type of operation (`source`, `process`, `datamapper`, `join`, `http-lookup`, `agent`, `ml`, `sink`, or `flowlet`).
 - `name`: Unique identifier for the component (e.g., `kafka-source`).
 - `code`: The logic snippet for transformation (used in `process`, `filter`, `flatmap`, etc.).
 - `language`: (Optional) The runtime for the `code` snippet:
@@ -57,6 +57,7 @@ This guide provides a detailed specification of the Flinkflow YAML DSL, includin
 | `join` | Interval join between two streams. | `left`, `right`| Java-only |
 | `agent` | Autonomous LLM agent over each record. | `input` | OpenAI / Gemini / Vertex |
 | `http-lookup`| Async enrichment via REST API. | `input`, `resp` | Java-only |
+| `ml` | Declarative Flink ML stage (Estimator/Transformer). | `algorithm`, `schema.*`, parameters | Flink ML |
 
 > [!TIP]
 > **Python Snippets (GraalVM)**: Use `language: python` to write your logic. The `code:` block is treated as the body of a `process(input)` function.
@@ -154,6 +155,37 @@ This guide provides a detailed specification of the Flinkflow YAML DSL, includin
 >     model: "ollama:llama3"
 >     baseUrl: "http://localhost:11434"
 >     systemPrompt: "Classify this record."
+> ```
+>
+> [!TIP]
+> **Flink ML Integration**: Use `type: ml` to run declarative Apache Flink ML stages (Estimators or Transformers) over your streams. All logic runs with native performance using Flink's StreamTableEnvironment bridge, and parameters are mapped dynamically via reflection.
+>
+> **Configuration Properties**:
+> - `algorithm`: The Flink ML algorithm name. Supports short-name aliases (case-insensitive):
+>   - `VectorAssembler` (Transformer)
+>   - `MinMaxScaler` (Estimator)
+>   - `MinMaxScalerModel` (Model)
+>   - `KMeans` (Estimator)
+>   - `KMeansModel` (Model)
+>   - `LogisticRegression` (Estimator)
+>   - `LogisticRegressionModel` (Model)
+>   - *Or provide any fully qualified Flink ML class name.*
+> - `modelPath`: (Optional) Absolute path to load a pre-trained model (for estimators/models supporting `.load(path)`).
+> - `schema.*`: Defines the input schema fields and their types to map JSON inputs to Flink Rows. At least one schema property is required. Supported types: `double`, `float`, `int`/`integer`, `long`, `boolean`, `string`, `vector`.
+> - *Algorithm-Specific Properties*: Any setter on the Flink ML stage class can be configured directly (e.g. `inputCols`, `outputCol`, `inputSizes`, `min`, `max`, etc.).
+>
+> **Example: VectorAssembler Feature Engineering**
+> ```yaml
+> - type: ml
+>   name: assemble-features
+>   properties:
+>     algorithm: "VectorAssembler"
+>     inputCols: "temperature,humidity,pressure"
+>     inputSizes: "1,1,1"
+>     outputCol: "features"
+>     schema.temperature: "double"
+>     schema.humidity: "double"
+>     schema.pressure: "double"
 > ```
 
 ---

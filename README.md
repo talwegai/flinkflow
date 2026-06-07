@@ -85,6 +85,7 @@ Flinkflow bridges the gap between high-performance data engineering and the broa
 - **Apache Camel Integration**: Use Camel **Simple**, **JSONPath**, and **YAML DSL** for expressive, low-code transformations — no Java required.
 - **Enterprise Security**: Native support for Kubernetes Secrets (`secret:name/key`) to secure credentials without hardcoding.
 - **Schema Management**: First-class integration with Confluent/Apicurio Schema Registry for Avro-encoded streams with automatic schema fetching.
+- **Declarative Machine Learning (Flink ML)**: Integrate Flink ML Estimators and Transformers (like VectorAssembler, MinMaxScaler, KMeans, etc.) directly in pipeline YAMLs via the `type: ml` step, combining low-code streaming with native ML execution.
 
 
 ---
