@@ -42,7 +42,7 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <flink.version>2.2.0</flink.version>
+    <flink.version>2.2.1</flink.version>
     <target.java.version>17</target.java.version>
     <scala.binary.version>2.12</scala.binary.version>
     <app.args></app.args>
@@ -377,9 +377,62 @@
     <dependencies>
       <!-- LZ4 Compression -->
       <dependency>
-        <groupId>at.yawk.lz4</groupId>
+        <groupId>org.lz4</groupId>
         <artifactId>lz4-java</artifactId>
         <version>1.10.1</version>
+      </dependency>
+      <!-- Snappy Java -->
+      <dependency>
+        <groupId>org.xerial.snappy</groupId>
+        <artifactId>snappy-java</artifactId>
+        <version>1.1.10.7</version>
+      </dependency>
+      <!-- Flink Transitives overrides for CVE resolution -->
+      <dependency>
+        <groupId>org.apache.flink</groupId>
+        <artifactId>flink-table-runtime</artifactId>
+        <version>${flink.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.flink</groupId>
+        <artifactId>flink-table-common</artifactId>
+        <version>${flink.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.flink</groupId>
+        <artifactId>flink-table-api-java</artifactId>
+        <version>${flink.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.flink</groupId>
+        <artifactId>flink-table-api-java-bridge</artifactId>
+        <version>${flink.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.flink</groupId>
+        <artifactId>flink-java</artifactId>
+        <version>${flink.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.flink</groupId>
+        <artifactId>flink-cep</artifactId>
+        <version>${flink.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.flink</groupId>
+        <artifactId>flink-connector-files</artifactId>
+        <version>${flink.version}</version>
+      </dependency>
+      <!-- Jackson Databind and Annotations -->
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+        <version>2.18.6</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-annotations</artifactId>
+        <version>2.18.6</version>
       </dependency>
       <!-- gRPC Netty Shaded -->
       <dependency>
