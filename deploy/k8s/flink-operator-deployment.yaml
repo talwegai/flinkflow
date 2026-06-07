@@ -3,7 +3,7 @@ kind: FlinkDeployment
 metadata:
   name: flinkflow-app
 spec:
-  image: ghcr.io/talwegai/flinkflow:0.9.4
+  image: ghcr.io/talwegai/flinkflow:0.9.5
   flinkVersion: v2_2
   flinkConfiguration:
     taskmanager.numberOfTaskSlots: "2"

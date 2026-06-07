@@ -34,11 +34,11 @@ Flinkflow provides a pre-built Docker image on the GitHub Container Registry. Th
 You can pull the official Flinkflow image from the GitHub Container Registry. This is the fastest way to get started.
 
 ```bash
-docker pull ghcr.io/talwegai/flinkflow:0.9.4
+docker pull ghcr.io/talwegai/flinkflow:0.9.5
 ```
 
 > [!NOTE]
-> When using the public image, ensure you update the `image` field in your deployment manifests (e.g., `deploy/k8s/flink-operator-deployment.yaml`) to `ghcr.io/talwegai/flinkflow:0.9.4`.
+> When using the public image, ensure you update the `image` field in your deployment manifests (e.g., `deploy/k8s/flink-operator-deployment.yaml`) to `ghcr.io/talwegai/flinkflow:0.9.5`.
 
 
 
@@ -74,7 +74,7 @@ kind: FlinkDeployment
 metadata:
   name: flinkflow-app
 spec:
-  image: ghcr.io/talwegai/flinkflow:0.9.4
+  image: ghcr.io/talwegai/flinkflow:0.9.5
   flinkVersion: v2_2
   serviceAccount: flink-service-account
   job:
@@ -162,7 +162,7 @@ If you prefer not to use the Flink Kubernetes Operator, you can use these altern
 This model consists of a static JobManager and multiple TaskManagers defined in a single manifest.
 
 1.  **Configure the Manifest**:
-    Ensure `deploy/k8s/deployment.yaml` is configured with the correct image (`ghcr.io/talwegai/flinkflow:0.9.4`).
+    Ensure `deploy/k8s/deployment.yaml` is configured with the correct image (`ghcr.io/talwegai/flinkflow:0.9.5`).
 
 2.  **Apply the Cluster Resources**:
     This will deploy the JobManager (Application Mode) and a TaskManager pool.
@@ -193,7 +193,7 @@ Flowlets used within a `Pipeline` CR are automatically discovered from the same 
    ./bin/flink run-application \
        --target kubernetes-application \
        -Dkubernetes.cluster-id=flinkflow-native-cluster \
-       -Dkubernetes.container.image=ghcr.io/talwegai/flinkflow:0.9.4 \
+       -Dkubernetes.container.image=ghcr.io/talwegai/flinkflow:0.9.5 \
        -Dkubernetes.service-account=flink-service-account \
        -Dkubernetes.rest-service.exposed.type=NodePort \
        -Djobmanager.memory.process.size=1600m \

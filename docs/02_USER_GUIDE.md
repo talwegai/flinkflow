@@ -48,7 +48,7 @@ Map your local file into the container and run the engine:
 
 ```bash
 docker run --rm -v $(pwd)/my-pipeline.yaml:/app/pipeline.yaml \
-  ghcr.io/talwegai/flinkflow:0.9.4 \
+  ghcr.io/talwegai/flinkflow:0.9.5 \
   java -cp "/opt/flink/usrlib/flinkflow.jar:/opt/flink/lib/*" \
   ai.talweg.flinkflow.FlinkflowApp /app/pipeline.yaml
 ```
