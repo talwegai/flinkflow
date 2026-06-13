@@ -49,9 +49,9 @@ Our mission is to be the **"Glue Layer"** for real-time event-driven architectur
 | Feature | Native Flink | Flinkflow |
 | :--- | :--- | :--- |
 | **Authoring** | Heavy Java/Maven Boilerplate | Declarative YAML DSL |
-| **Development Cycle** | Compile → Package → Deploy JAR | Instant Hot-Reload (YAML/Java/Python/Camel Snippets) |
+| **Development Cycle** | Compile → Package → Deploy JAR | Instant Hot-Reload (YAML/Java/Python/Camel/SQL Snippets) |
 | **Logic Changes** | ~10 minute CI/CD cycles | Seconds (Apply K8s CRD or YAML) |
-| **Polyglot Runtimes** | Java/Python only | **Java** (Janino), **Python** (GraalVM), **Apache Camel** (Simple/JsonPath/YAML DSL) |
+| **Polyglot Runtimes** | Java/Python only | **Java** (Janino), **Python** (GraalVM), **Apache Camel** (Simple/JsonPath/YAML DSL), **Apache Flink SQL** |
 | **Target Persona** | Specialized Flink Engineers | Data Scientists, Analysts, DevOps, Integration Devs |
 | **Component Model** | Custom Code / Classes | Reusable, Parameterized **Flowlets** |
 
@@ -61,6 +61,7 @@ Our mission is to be the **"Glue Layer"** for real-time event-driven architectur
 
 Flinkflow bridges the gap between high-performance data engineering and the broader developer ecosystem, empowering a diverse set of stakeholders:
 
+- **📊 Data Engineers & Analysts**: Write ANSI SQL queries directly inside your YAML pipelines (`type: sql`) to perform time-windowed aggregations, multi-source joins, and stateful event stream analysis without writing Java boilerplate.
 - **🐍 Data Scientists & Analysts**: Port existing Python logic, complex JSON parsing, and feature-engineering snippets directly into production using the secure **GraalVM Python** runtime.
 - **🐫 Low-Code & Integration Developers**: Build entire pipelines using **Apache Camel DSL**, **JsonPath**, and **Simple** expressions. Ideal for declarative transformations, filters, and field extractions without writing procedural code.
   - *Ref: [Apache Camel](https://camel.apache.org/), [Simple Language](https://camel.apache.org/components/latest/languages/simple-language.html), [YAML DSL](https://camel.apache.org/components/next/others/yaml-dsl.html)*

@@ -177,6 +177,22 @@ Embed native Flink ML stages (Estimators and Transformers) directly in your pipe
     schema.features: "vector"
 ```
 
+### **Apache Flink SQL**
+Write ANSI SQL queries directly as pipeline steps to perform transformations, windowed aggregations, event-time watermarking, and multi-table joins.
+
+```yaml
+- type: sql
+  name: running-counts
+  properties:
+    schema.userId: "string"
+    schema.price: "double"
+    query: |
+      SELECT userId, COUNT(*) AS event_count, SUM(price) AS total_revenue
+      FROM input
+      GROUP BY userId
+```
+*(For a comprehensive guide, see the [SQL & ML Bridge Guide](/docs/11_SQL_AND_ML))*
+
 ### 🌍 **Comprehensive Example: IoT Fleet Analytics**
 For a full end-to-end pipeline that streams mock datagen payloads, processes them, reduces them with a 5-second tumbling window, and evaluates them with a condition engine to trigger alerts, see the `iot-fleet-analytics` examples!
 

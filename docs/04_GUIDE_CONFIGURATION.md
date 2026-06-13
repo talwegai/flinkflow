@@ -12,7 +12,7 @@ This guide provides a detailed specification of the Flinkflow YAML DSL, includin
 - `steps`: A sequential list of pipeline steps.
 
 ### Step Config
-- `type`: The type of operation (`source`, `process`, `datamapper`, `join`, `http-lookup`, `agent`, `ml`, `sink`, or `flowlet`).
+- `type`: The type of operation (`source`, `process`, `datamapper`, `join`, `http-lookup`, `agent`, `ml`, `sql`, `sink`, or `flowlet`).
 - `name`: Unique identifier for the component (e.g., `kafka-source`).
 - `code`: The logic snippet for transformation (used in `process`, `filter`, `flatmap`, etc.).
 - `language`: (Optional) The runtime for the `code` snippet:
@@ -22,6 +22,7 @@ This guide provides a detailed specification of the Flinkflow YAML DSL, includin
     - `camel-jsonpath` (or `jsonpath`): JSON extractions and filters. [[Docs]](https://camel.apache.org/components/latest/languages/jsonpath-language.html)
     - `camel-groovy` (or `groovy`): High-performance JVM-native scripting. [[Docs]](https://camel.apache.org/components/latest/languages/groovy-language.html)
     - `camel-yaml`: Complex route fragments using Camel YAML DSL. [[Docs]](https://camel.apache.org/components/next/others/yaml-dsl.html)
+- `inputs`: (Optional) List of named input streams for multi-input steps (e.g., SQL JOINs).
 - `properties`: Key-value configuration map. Values can reference Kubernetes Secrets using `secret:name/key`.
 - `with`: (For `flowlet` steps) Mapping of parameters passed to a reusable Flowlet.
 
@@ -58,6 +59,7 @@ This guide provides a detailed specification of the Flinkflow YAML DSL, includin
 | `agent` | Autonomous LLM agent over each record. | `input` | OpenAI / Gemini / Vertex |
 | `http-lookup`| Async enrichment via REST API. | `input`, `resp` | Java-only |
 | `ml` | Declarative Flink ML stage (Estimator/Transformer). | `algorithm`, `schema.*`, parameters | Flink ML |
+| `sql` | Write ANSI SQL queries directly as pipeline steps. | `query`, `schema.*`, `inputs`, `outputMode`, `watermark.*` | Flink SQL |
 
 > [!TIP]
 > **Python Snippets (GraalVM)**: Use `language: python` to write your logic. The `code:` block is treated as the body of a `process(input)` function.

@@ -3,7 +3,7 @@
 This guide explains how to deploy the Flinkflow application to a Kubernetes cluster that has the [Apache Flink Kubernetes Operator](https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-main/) installed.
 
 > [!NOTE]
-> Flinkflow supports **Polyglot Logic Snippets**. You can embed **Camel Expressions**, **Java (Janino)** and **Python (GraalVM)** code directly in your `Pipeline` Custom Resources.
+> Flinkflow supports **Polyglot Logic Snippets** and **Hybrid SQL**. You can embed **Camel Expressions**, **Java (Janino)**, **Python (GraalVM)** code, and **Apache Flink SQL** queries directly in your `Pipeline` Custom Resources.
 
 ## Prerequisites
 

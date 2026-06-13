@@ -13,10 +13,11 @@ For a detailed visual guide and component breakdown, see **[Architecture](/ARCHI
 ### Core Stack
 *   **Language**: Java 17
 *   **Engine**: Apache Flink 2.2+
-*   **Polyglot Logic**: 
+*   **Polyglot & Hybrid Query Engine**: 
     *   **Janino**: For in-memory Java compilation of code snippets.
     *   **GraalVM (Polyglot API)**: For the secure zero-trust Python sandbox.
-    *   **Apache Camel**: Declarative expression engine for Simple and JsonPath.
+    *   **Apache Camel**: Declarative expression engine for Simple, JsonPath, and Route YAMLs.
+    *   **Flink Table/SQL API**: Direct SQL querying over streams, featuring watermarks, windowed aggregations, and retract (changelog) semantics.
 *   **Data Mapping**: Saxon-HE (XSLT 3.0) for transform logic.
 *   **Configuration**: Jackson YAML for pipeline deserialization.
 
