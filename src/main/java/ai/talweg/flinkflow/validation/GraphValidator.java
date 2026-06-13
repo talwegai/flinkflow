@@ -31,43 +31,120 @@ public class GraphValidator {
             throw new IllegalArgumentException("Pipeline graph validation failed: Pipeline contains no steps.");
         }
 
+        java.util.Set<String> stepNames = new java.util.HashSet<>();
         boolean hasSource = false;
         boolean hasSink = false;
-        int streamCount = 0;
-        int sinkCountForCurrentStream = 0;
+
+        // Pass 1: populate step names and basic validation
+        for (int i = 0; i < steps.size(); i++) {
+            StepConfig step = steps.get(i);
+            String name = step.getName();
+            if (name == null || name.trim().isEmpty()) {
+                throw new IllegalArgumentException("Pipeline graph validation failed: Step at index " + i + " is missing a name.");
+            }
+            if (!stepNames.add(name)) {
+                throw new IllegalArgumentException("Pipeline graph validation failed: Duplicate step name '" + name + "' at index " + i + ".");
+            }
+            String type = step.getType() != null ? step.getType().toLowerCase() : "";
+            if (isSource(type)) {
+                hasSource = true;
+            } else if (isSink(type)) {
+                hasSink = true;
+            }
+        }
+
+        if (!hasSource) {
+            throw new IllegalArgumentException("Pipeline graph validation failed: Missing source step.");
+        }
+        if (!hasSink) {
+            throw new IllegalArgumentException("Pipeline graph validation failed: Missing sink step. The final stream was never sent to a sink.");
+        }
+
+        // Pass 2: track connections and check that every non-source has input(s)
+        java.util.Set<String> consumedOutputs = new java.util.HashSet<>();
+        String currentOutput = null;
+        boolean seenSource = false;
 
         for (int i = 0; i < steps.size(); i++) {
             StepConfig step = steps.get(i);
             String type = step.getType() != null ? step.getType().toLowerCase() : "";
 
             if (isSource(type)) {
-                if (streamCount > 0 && sinkCountForCurrentStream == 0) {
-                    throw new IllegalArgumentException(
-                        "Disconnected DAG detected: Step " + i + " ('" + step.getName() + "') starts a new source stream, but the previous stream was never sent to a sink."
-                    );
-                }
-                hasSource = true;
-                streamCount++;
-                sinkCountForCurrentStream = 0;
+                currentOutput = step.getName();
+                seenSource = true;
             } else if (isSink(type)) {
-                if (!hasSource) {
+                if (!seenSource) {
                     throw new IllegalArgumentException("Pipeline graph validation failed: Sink defined before any source step at index " + i + ".");
                 }
-                hasSink = true;
-                sinkCountForCurrentStream++;
+                // Sinks consume their input
+                java.util.List<String> inputs = step.getInputs();
+                if (inputs != null && !inputs.isEmpty()) {
+                    for (String inputName : inputs) {
+                        if (!stepNames.contains(inputName)) {
+                            throw new IllegalArgumentException("Pipeline graph validation failed: Sink '" + step.getName() + "' references unknown input '" + inputName + "'.");
+                        }
+                        // Make sure the referenced input is declared before this step
+                        boolean found = false;
+                        for (int j = 0; j < i; j++) {
+                            if (steps.get(j).getName().equals(inputName)) {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found) {
+                            throw new IllegalArgumentException("Pipeline graph validation failed: Sink '" + step.getName() + "' references input '" + inputName + "' which is declared after it.");
+                        }
+                        consumedOutputs.add(inputName);
+                    }
+                } else {
+                    if (currentOutput == null) {
+                        throw new IllegalArgumentException("Pipeline graph validation failed: Sink '" + step.getName() + "' has no preceding stream to consume.");
+                    }
+                    consumedOutputs.add(currentOutput);
+                    currentOutput = null;
+                }
             } else {
-                if (!hasSource) {
+                if (!seenSource) {
                     throw new IllegalArgumentException("Pipeline graph validation failed: Processor step defined before any source step at index " + i + ".");
                 }
+                // Processor/SQL step
+                java.util.List<String> inputs = step.getInputs();
+                if (inputs != null && !inputs.isEmpty()) {
+                    for (String inputName : inputs) {
+                        if (!stepNames.contains(inputName)) {
+                            throw new IllegalArgumentException("Pipeline graph validation failed: Step '" + step.getName() + "' references unknown input '" + inputName + "'.");
+                        }
+                        // Make sure the referenced input is declared before this step
+                        boolean found = false;
+                        for (int j = 0; j < i; j++) {
+                            if (steps.get(j).getName().equals(inputName)) {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found) {
+                            throw new IllegalArgumentException("Pipeline graph validation failed: Step '" + step.getName() + "' references input '" + inputName + "' which is declared after it.");
+                        }
+                        consumedOutputs.add(inputName);
+                    }
+                } else {
+                    if (currentOutput == null) {
+                        throw new IllegalArgumentException("Pipeline graph validation failed: Step '" + step.getName() + "' has no preceding stream to consume.");
+                    }
+                    consumedOutputs.add(currentOutput);
+                }
+                currentOutput = step.getName();
             }
         }
-        
-        if (streamCount > 0 && sinkCountForCurrentStream == 0) {
-            throw new IllegalArgumentException("Disconnected DAG detected: The final stream was never sent to a sink.");
-        }
 
-        if (!hasSink) {
-            throw new IllegalArgumentException("Pipeline graph validation failed: Missing sink step.");
+        // Validate that all outputs from non-sinks are consumed
+        for (StepConfig step : steps) {
+            String type = step.getType() != null ? step.getType().toLowerCase() : "";
+            if (!isSink(type)) {
+                if (!consumedOutputs.contains(step.getName())) {
+                    throw new IllegalArgumentException("Disconnected DAG detected: Step '" + step.getName() + "' produces an output that is never consumed.");
+                }
+            }
         }
     }
 

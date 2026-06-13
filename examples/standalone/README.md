@@ -49,6 +49,10 @@ Unlike the Kubernetes examples, these are plain YAML files that should be run us
 - **[`java/jdbc-sink-example.yaml`](java/jdbc-sink-example.yaml)**: High-throughput batch inserts to PostgreSQL/MySQL.
 - **[`java/window-example.yaml`](java/window-example.yaml)**: Time-based windowing (Tumbling, Sliding, Session).
 
+### 📊 SQL & Table API (Flink SQL)
+*Best for: Declarative relational streaming query logic (projections, filtering, joining).*
+- **[`java/sql-query-example.yaml`](java/sql-query-example.yaml)**: **[NEW]** Demonstrates how to register in-stream JSON data as a temporary table view and run custom SQL projections, CASE/WHEN statements, and filtering natively.
+
 ### 🤖 Machine Learning (Flink ML)
 *Best for: Feature engineering, normalisation, and real-time ML inference on streaming data.*
 - **[`java/ml-vector-assembler-example.yaml`](java/ml-vector-assembler-example.yaml)**: Assembles multiple scalar sensor fields (temperature, humidity, pressure) into a dense feature vector using **VectorAssembler**, then applies a simple anomaly flag.

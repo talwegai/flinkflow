@@ -4,7 +4,7 @@
 
   <groupId>ai.talweg</groupId>
   <artifactId>flinkflow</artifactId>
-  <version>0.9.5</version>
+  <version>0.9.6</version>
   <packaging>jar</packaging>
 
   <name>flinkflow</name>
@@ -48,7 +48,7 @@
     <app.args></app.args>
     <maven.compiler.release>${target.java.version}</maven.compiler.release>
     <log4j.version>2.25.4</log4j.version>
-    <netty.version>4.1.133.Final</netty.version>
+    <netty.version>4.1.135.Final</netty.version>
   </properties>
 
   <repositories>
@@ -544,6 +544,21 @@
       <dependency>
         <groupId>io.netty</groupId>
         <artifactId>netty-codec-dns</artifactId>
+        <version>${netty.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.netty</groupId>
+        <artifactId>netty-resolver-dns</artifactId>
+        <version>${netty.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.netty</groupId>
+        <artifactId>netty-handler-proxy</artifactId>
+        <version>${netty.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.netty</groupId>
+        <artifactId>netty-codec-socks</artifactId>
         <version>${netty.version}</version>
       </dependency>
       <!-- Apache Kafka Clients (Patched for CVE-2026-35554) -->

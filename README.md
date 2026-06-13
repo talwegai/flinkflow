@@ -1,7 +1,7 @@
 # Flinkflow
 
 
-**Flinkflow** is a declarative, low-code data streaming platform built natively for **Apache Flink 2.2.0**. Inspired by Apache Camel K, it democratizes stateful stream processing by abstracting the complexities of the modern Flink DataStream V2 API into a simple, Kubernetes-native YAML DSL.
+**Flinkflow** is a declarative, low-code data streaming platform built natively for **Apache Flink 2.2.1**. Inspired by Apache Camel K, it democratizes stateful stream processing by abstracting the complexities of the modern Flink DataStream V2 API into a simple, Kubernetes-native YAML DSL.
 
 ---
 **[🌐 Documentation](https://talwegai.github.io/flinkflow)** | **[🚀 Get Started](https://talwegai.github.io/flinkflow/USER_GUIDE)** | **[🏗️ Architecture](https://talwegai.github.io/flinkflow/ARCHITECTURE)**
@@ -86,6 +86,7 @@ Flinkflow bridges the gap between high-performance data engineering and the broa
 - **Enterprise Security**: Native support for Kubernetes Secrets (`secret:name/key`) to secure credentials without hardcoding.
 - **Schema Management**: First-class integration with Confluent/Apicurio Schema Registry for Avro-encoded streams with automatic schema fetching.
 - **Declarative Machine Learning (Flink ML)**: Integrate Flink ML Estimators and Transformers (like VectorAssembler, MinMaxScaler, KMeans, etc.) directly in pipeline YAMLs via the `type: ml` step, combining low-code streaming with native ML execution.
+- **SQL/Table API Bridge**: Write ANSI SQL queries as pipeline steps with `type: sql`. Supports multi-source JOINs, windowed aggregations, event-time watermarks, and changelog output — all declared in YAML with automatic schema mapping. See [docs/11_SQL_AND_ML.md](docs/11_SQL_AND_ML.md).
 
 
 ---
@@ -96,6 +97,7 @@ To explore Flinkflow in detail, refer to the specialized documentation for each 
 
 *   **[Kubernetes Deployment Guide](docs/07_DEPLOY_K8S.md)**: authoritive guide for running Flinkflow via the Flink Kubernetes Operator.
 *   **[Pipeline Configuration Reference](docs/04_GUIDE_CONFIGURATION.md)**: Comprehensive guide for the YAML DSL, connectors, and secret management.
+*   **[SQL & ML Bridge](docs/11_SQL_AND_ML.md)**: How Flinkflow bridges Flink Table/SQL and Flink ML into declarative YAML steps.
 *   **[Operations & Monitoring](docs/05_GUIDE_OPERATIONS.md)**: Details on performance, dashboard setup, and troubleshooting.
 *   **[Infrastructure Catalog (deploy/k8s/)](deploy/k8s/README.md)**: Reference for manifests, RBAC, and system deployments.
 *   **[Flowlet Registry (deploy/k8s/flowlets/)](deploy/k8s/flowlets/README.md)**: Library of reusable, parameterized pipeline components.
@@ -122,6 +124,7 @@ graph LR
         PARSER["YAML Parser & Flowlet Resolver"]
         JANINO["Polyglot Engine (Java/Python)"]
         CAMEL["Camel Engine (Simple/JSONPath/YAML DSL)"]
+        TABLEAPI["SQL & ML Bridge (StreamTableEnvironment)"]
         AGENT["Agentic Bridge (OpenAI/Gemini/Ollama)"]
         DAG["Flink Stream Graph"]
     end
@@ -140,9 +143,11 @@ graph LR
     FLOW --> PARSER
     PARSER --> JANINO
     PARSER --> CAMEL
+    PARSER --> TABLEAPI
     PARSER --> AGENT
     JANINO --> DAG
     CAMEL --> DAG
+    TABLEAPI --> DAG
     AGENT --> DAG
     K8S --> FLINK
     DAG -.-> FLINK
@@ -279,6 +284,7 @@ The **NiceGUI-based dashboard** provides real-time visibility into your Flink me
 ## 💡 Examples Catalog
 
 *   **[Standalone Pipelines](examples/standalone/README.md)**: Explore joins, windowing, JDBC, and more.
+*   **[SQL Query Example](examples/standalone/java/sql-query-example.yaml)**: Multi-source SQL JOIN with schema mapping.
 *   **[Kubernetes CRDs](examples/k8s/README.md)**: Ready-to-apply `Pipeline` resources.
 
 ---

@@ -3,7 +3,7 @@
 ## Why does this module exist?
 
 `flink-ml-core` / `flink-ml-lib` / `flink-ml-iteration` **2.2.0** were compiled against a
-pre-Flink-2.x version of the Flink runtime. When loaded on the current Flink 2.2.0 runtime,
+pre-Flink-2.x version of the Flink runtime. When loaded on the current Flink 2.2.1 runtime,
 the JVM fails at class-loading time with `NoClassDefFoundError` or `NoSuchFieldError` because
 Flink 2.x removed or changed several internal classes that Flink ML's compiled bytecode still
 references.
@@ -29,7 +29,7 @@ runtime JARs, satisfying Flink ML's binary expectations without modifying either
 | `o.a.f.streaming.api.operators.StreamingRuntimeContext` | Flink ML calls removed 1.x methods (`getIndexOfThisSubtask()`, etc.) on this class. |
 | `o.a.f.streaming.api.operators.StreamOperatorStateContext` | State initialisation interface changed. |
 | `o.a.f.streaming.api.operators.StreamTaskStateInitializer` | State init hook removed. |
-| `o.a.f.runtime.metrics.groups.TaskMetricGroup` | Flink ML calls the 2-arg `getOrAddOperator(OperatorID, String)` overload removed in Flink 2.2.0. |
+| `o.a.f.runtime.metrics.groups.TaskMetricGroup` | Flink ML calls the 2-arg `getOrAddOperator(OperatorID, String)` overload removed in Flink 2.2.1. |
 | `o.a.f.ml.linalg.typeinfo.DenseVectorTypeInfo` | Flink ML's type system references this; class signature changed. |
 | `o.a.f.ml.linalg.typeinfo.SparseVectorTypeInfo` | Same. |
 | `o.a.f.ml.linalg.typeinfo.VectorTypeInfo` | Same. |

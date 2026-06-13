@@ -116,6 +116,9 @@ public class PipelineValidator {
             case "ml":
                 validateMLStep(step, errors);
                 break;
+            case "sql":
+                validateSQLStep(step, errors);
+                break;
             case "sink":
                 validateSinkStep(step, errors);
                 break;
@@ -296,15 +299,151 @@ public class PipelineValidator {
 
         boolean hasSchema = false;
         if (props != null) {
-            for (String key : props.keySet()) {
-                if (key.startsWith("schema.")) {
+            for (Map.Entry<String, String> entry : props.entrySet()) {
+                if (entry.getKey().startsWith("schema.")) {
                     hasSchema = true;
-                    break;
+                    try {
+                        ai.talweg.flinkflow.core.SchemaHelper.resolveType(entry.getValue());
+                    } catch (IllegalArgumentException e) {
+                        errors.add(String.format("ML step '%s' has invalid schema type for key '%s': %s",
+                                step.getName(), entry.getKey(), e.getMessage()));
+                    }
                 }
             }
         }
         if (!hasSchema) {
             errors.add(String.format("ML step '%s' requires at least one schema property starting with 'schema.' to define the input schema.", step.getName()));
+        }
+    }
+
+    private static void validateSQLStep(StepConfig step, List<String> errors) {
+        Map<String, String> props = step.getProperties();
+        String query = props != null ? props.get("query") : null;
+        if (query == null || query.trim().isEmpty()) {
+            if (step.getCode() == null || step.getCode().trim().isEmpty()) {
+                errors.add(String.format("SQL step '%s' must define a SQL query either in 'properties.query' or as a step 'code' body.", step.getName()));
+            }
+        }
+
+        if (props != null && props.containsKey("outputMode")) {
+            String outputMode = props.get("outputMode").toLowerCase().trim();
+            if (!"append".equals(outputMode) && !"changelog".equals(outputMode) && !"auto".equals(outputMode)) {
+                errors.add(String.format("SQL step '%s' has invalid outputMode '%s'. Supported: append, changelog, auto.",
+                        step.getName(), props.get("outputMode")));
+            }
+        }
+
+        List<String> inputs = step.getInputs();
+        boolean hasSchema = false;
+        if (inputs != null && !inputs.isEmpty()) {
+            // Multi-table mode: check for schema.<inputName>.*
+            for (String inputName : inputs) {
+                boolean inputHasSchema = false;
+                if (props != null) {
+                    String prefix = "schema." + inputName + ".";
+                    for (Map.Entry<String, String> entry : props.entrySet()) {
+                        if (entry.getKey().startsWith(prefix)) {
+                            inputHasSchema = true;
+                            try {
+                                ai.talweg.flinkflow.core.SchemaHelper.resolveType(entry.getValue());
+                            } catch (IllegalArgumentException e) {
+                                errors.add(String.format("SQL step '%s' has invalid schema type for key '%s': %s",
+                                        step.getName(), entry.getKey(), e.getMessage()));
+                            }
+                        }
+                    }
+                }
+                if (!inputHasSchema) {
+                    errors.add(String.format("SQL step '%s' is missing schema definitions starting with 'schema.%s.' for input '%s'.",
+                            step.getName(), inputName, inputName));
+                } else {
+                    hasSchema = true;
+                }
+            }
+        } else {
+            // Single-table mode (existing behavior)
+            if (props != null) {
+                for (Map.Entry<String, String> entry : props.entrySet()) {
+                    if (entry.getKey().startsWith("schema.")) {
+                        hasSchema = true;
+                        try {
+                            ai.talweg.flinkflow.core.SchemaHelper.resolveType(entry.getValue());
+                        } catch (IllegalArgumentException e) {
+                            errors.add(String.format("SQL step '%s' has invalid schema type for key '%s': %s",
+                                    step.getName(), entry.getKey(), e.getMessage()));
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!hasSchema) {
+            errors.add(String.format("SQL step '%s' requires at least one schema property starting with 'schema.' to define the input schema.", step.getName()));
+        }
+
+        // Validate watermarks
+        if (props != null) {
+            if (inputs != null && !inputs.isEmpty()) {
+                for (String inputName : inputs) {
+                    String wmColumnKey = "watermark." + inputName + ".column";
+                    String wmDelayKey = "watermark." + inputName + ".delay";
+                    if (props.containsKey(wmColumnKey)) {
+                        String wmColumn = props.get(wmColumnKey);
+                        String schemaKey = "schema." + inputName + "." + wmColumn;
+                        if (!props.containsKey(schemaKey)) {
+                            errors.add(String.format("SQL step '%s' specifies watermark column '%s' for input '%s' which is not defined in the schema.",
+                                    step.getName(), wmColumn, inputName));
+                        } else {
+                            String type = props.get(schemaKey);
+                            if (!"timestamp".equalsIgnoreCase(type) && !"long".equalsIgnoreCase(type)) {
+                                errors.add(String.format("SQL step '%s' watermark column '%s' for input '%s' must be of type 'timestamp' or 'long', but was '%s'.",
+                                        step.getName(), wmColumn, inputName, type));
+                            }
+                        }
+                        if (props.containsKey(wmDelayKey)) {
+                            try {
+                                long delay = Long.parseLong(props.get(wmDelayKey).trim());
+                                if (delay < 0) {
+                                    errors.add(String.format("SQL step '%s' watermark delay for input '%s' must be non-negative: %d",
+                                            step.getName(), inputName, delay));
+                                }
+                            } catch (NumberFormatException e) {
+                                errors.add(String.format("SQL step '%s' watermark delay for input '%s' must be a valid number, but was '%s'.",
+                                        step.getName(), inputName, props.get(wmDelayKey)));
+                            }
+                        }
+                    }
+                }
+            } else {
+                String wmColumnKey = "watermark.column";
+                String wmDelayKey = "watermark.delay";
+                if (props.containsKey(wmColumnKey)) {
+                    String wmColumn = props.get(wmColumnKey);
+                    String schemaKey = "schema." + wmColumn;
+                    if (!props.containsKey(schemaKey)) {
+                        errors.add(String.format("SQL step '%s' specifies watermark column '%s' which is not defined in the schema.",
+                                step.getName(), wmColumn));
+                    } else {
+                        String type = props.get(schemaKey);
+                        if (!"timestamp".equalsIgnoreCase(type) && !"long".equalsIgnoreCase(type)) {
+                            errors.add(String.format("SQL step '%s' watermark column '%s' must be of type 'timestamp' or 'long', but was '%s'.",
+                                    step.getName(), wmColumn, type));
+                        }
+                    }
+                    if (props.containsKey(wmDelayKey)) {
+                        try {
+                            long delay = Long.parseLong(props.get(wmDelayKey).trim());
+                            if (delay < 0) {
+                                errors.add(String.format("SQL step '%s' watermark delay must be non-negative: %d",
+                                        step.getName(), delay));
+                            }
+                        } catch (NumberFormatException e) {
+                            errors.add(String.format("SQL step '%s' watermark delay must be a valid number, but was '%s'.",
+                                    step.getName(), props.get(wmDelayKey)));
+                        }
+                    }
+                }
+            }
         }
     }
 }

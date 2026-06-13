@@ -86,7 +86,7 @@ The **[Dockerfile](https://github.com/talwegai/flinkflow/blob/main/Dockerfile)**
 
 - Java 17+ (Java 21 recommended for Flink 2.2)
 - Maven 3.8+
-- Apache Flink 2.2.0 (for deployment)
+- Apache Flink 2.2.1 (for deployment)
 - Docker (optional, for containerization)
 - Kubernetes (optional, for deployment)
 

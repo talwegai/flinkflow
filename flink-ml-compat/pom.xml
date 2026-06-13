@@ -6,12 +6,12 @@
 
   <groupId>ai.talweg</groupId>
   <artifactId>flink-ml-compat</artifactId>
-  <version>0.9.5</version>
+  <version>0.9.6</version>
   <packaging>jar</packaging>
 
   <name>flink-ml-compat</name>
   <description>
-    Binary-compatibility shims that bridge Apache Flink ML 2.2.0 with the Flink 2.2.0 runtime.
+    Binary-compatibility shims that bridge Apache Flink ML 2.2.0 with the Flink 2.2.1 runtime.
     Flink ML was compiled against pre-2.x Flink APIs; this module re-introduces removed/changed
     classes at their original package paths so the JVM classloader does not fail at startup.
     Remove this module once upstream Flink ML publishes a release built against Flink 2.x.

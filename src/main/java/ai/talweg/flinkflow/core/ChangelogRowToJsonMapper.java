@@ -23,50 +23,38 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * Maps a Flink Row object to a JSON String.
- * Uses the output schema field names to convert index-based Row positions to JSON properties.
- * double[] fields (ML feature vectors) are serialized naturally as JSON arrays by Jackson.
+ * Maps retract/changelog Row streams to JSON strings, appending the RowKind as '_op'.
  */
-public class RowToJsonMapper implements MapFunction<Row, String> {
+public class ChangelogRowToJsonMapper implements MapFunction<Row, String> {
     private static final long serialVersionUID = 1L;
     private final String[] fieldNames;
     private transient ObjectMapper mapper;
 
-    public RowToJsonMapper(String[] fieldNames) {
+    public ChangelogRowToJsonMapper(String[] fieldNames) {
         this.fieldNames = fieldNames;
     }
 
     @Override
     public String map(Row row) throws Exception {
-        try {
-            if (mapper == null) {
-                mapper = new ObjectMapper();
-            }
-
-            Map<String, Object> map = new LinkedHashMap<>();
-            int arity = Math.min(row.getArity(), fieldNames.length);
-
-            for (int i = 0; i < arity; i++) {
-                String name = fieldNames[i];
-                // tEnv.toDataStream() returns NAME_BASED rows (fieldByName != null, fieldByPosition == null).
-                // Calling getField(int) on a NAME_BASED row throws IllegalArgumentException.
-                // Try getField(String) first; fall back to getField(int) for POSITION_BASED rows.
-                Object val;
-                try {
-                    val = row.getField(name);
-                } catch (IllegalArgumentException e) {
-                    // row is POSITION_BASED or name not found — fall back to positional access
-                    val = row.getField(i);
-                }
-                map.put(name, formatValue(val));
-            }
-
-            return mapper.writeValueAsString(map);
-        } catch (Throwable t) {
-            t.printStackTrace();
-            throw t;
+        if (mapper == null) {
+            mapper = new ObjectMapper();
         }
-     }
+        Map<String, Object> map = new LinkedHashMap<>();
+        map.put("_op", row.getKind().shortString()); // "+I", "-D", "+U", "-U"
+        
+        int arity = Math.min(row.getArity(), fieldNames.length);
+        for (int i = 0; i < arity; i++) {
+            String name = fieldNames[i];
+            Object val;
+            try {
+                val = row.getField(name);
+            } catch (IllegalArgumentException e) {
+                val = row.getField(i);
+            }
+            map.put(name, formatValue(val));
+        }
+        return mapper.writeValueAsString(map);
+    }
 
     private Object formatValue(Object val) {
         if (val == null) {

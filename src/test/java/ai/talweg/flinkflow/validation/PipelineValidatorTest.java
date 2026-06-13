@@ -380,4 +380,155 @@ public class PipelineValidatorTest {
         );
         assertTrue(ex.getMessage().contains("property 'gap' must be a valid number"));
     }
+    @Test
+    public void testSQLWatermarkValidation() {
+        JobConfig job = new JobConfig();
+        job.setName("SQL Watermark Validation");
+
+        StepConfig step = new StepConfig();
+        step.setName("sql-step");
+        step.setType("sql");
+        step.setCode("SELECT * FROM input");
+        
+        Map<String, String> props = new HashMap<>();
+        props.put("schema.userId", "string");
+        props.put("schema.eventTime", "timestamp");
+        props.put("watermark.column", "nonexistentTime"); // nonexistent column
+        step.setProperties(props);
+
+        List<StepConfig> steps = Collections.singletonList(step);
+        job.setSteps(steps);
+
+        PipelineValidationException ex = assertThrows(PipelineValidationException.class, () -> 
+            PipelineValidator.validate(job, steps)
+        );
+        assertTrue(ex.getMessage().contains("specifies watermark column 'nonexistentTime' which is not defined in the schema"));
+
+        // Test invalid column type
+        props.put("watermark.column", "userId"); // userId is string, not timestamp/long
+        ex = assertThrows(PipelineValidationException.class, () -> 
+            PipelineValidator.validate(job, steps)
+        );
+        assertTrue(ex.getMessage().contains("must be of type 'timestamp' or 'long'"));
+
+        // Test invalid delay
+        props.put("watermark.column", "eventTime");
+        props.put("watermark.delay", "-5"); // negative
+        ex = assertThrows(PipelineValidationException.class, () -> 
+            PipelineValidator.validate(job, steps)
+        );
+        assertTrue(ex.getMessage().contains("must be non-negative"));
+
+        props.put("watermark.delay", "invalid"); // non-numeric
+        ex = assertThrows(PipelineValidationException.class, () -> 
+            PipelineValidator.validate(job, steps)
+        );
+        assertTrue(ex.getMessage().contains("must be a valid number"));
+    }
+
+    @Test
+    public void testSQLOutputModeValidation() {
+        JobConfig job = new JobConfig();
+        job.setName("SQL OutputMode Validation");
+
+        StepConfig step = new StepConfig();
+        step.setName("sql-step");
+        step.setType("sql");
+        step.setCode("SELECT * FROM input");
+        
+        Map<String, String> props = new HashMap<>();
+        props.put("schema.userId", "string");
+        props.put("outputMode", "invalidMode"); // invalid output mode
+        step.setProperties(props);
+
+        List<StepConfig> steps = Collections.singletonList(step);
+        job.setSteps(steps);
+
+        PipelineValidationException ex = assertThrows(PipelineValidationException.class, () -> 
+            PipelineValidator.validate(job, steps)
+        );
+        assertTrue(ex.getMessage().contains("has invalid outputMode 'invalidMode'"));
+    }
+
+    @Test
+    public void testMLValidation() {
+        JobConfig job = new JobConfig();
+        job.setName("ML Validation");
+
+        StepConfig step = new StepConfig();
+        step.setName("ml-step");
+        step.setType("ml");
+        
+        List<StepConfig> steps = Collections.singletonList(step);
+        job.setSteps(steps);
+
+        PipelineValidationException ex = assertThrows(PipelineValidationException.class, () -> 
+            PipelineValidator.validate(job, steps)
+        );
+        assertTrue(ex.getMessage().contains("missing required property 'algorithm'"));
+
+        Map<String, String> props = new HashMap<>();
+        props.put("algorithm", "KMeans");
+        step.setProperties(props);
+        ex = assertThrows(PipelineValidationException.class, () -> 
+            PipelineValidator.validate(job, steps)
+        );
+        assertTrue(ex.getMessage().contains("requires at least one schema property starting with 'schema.' to define the input schema"), ex.getMessage());
+
+        props.put("schema.features", "invalid_type");
+        ex = assertThrows(PipelineValidationException.class, () -> 
+            PipelineValidator.validate(job, steps)
+        );
+        assertTrue(ex.getMessage().contains("has invalid schema type for key 'schema.features'"), ex.getMessage());
+    }
+
+    @Test
+    public void testSQLValidationMultiTable() {
+        JobConfig job = new JobConfig();
+        job.setName("SQL MultiTable Validation");
+
+        StepConfig step = new StepConfig();
+        step.setName("sql-step");
+        step.setType("sql");
+        step.setInputs(Arrays.asList("table1", "table2"));
+        Map<String, String> props = new HashMap<>();
+        props.put("query", "SELECT * FROM table1 JOIN table2");
+        step.setProperties(props);
+        
+        List<StepConfig> steps = Collections.singletonList(step);
+        job.setSteps(steps);
+
+        PipelineValidationException ex = assertThrows(PipelineValidationException.class, () -> 
+            PipelineValidator.validate(job, steps)
+        );
+        assertTrue(ex.getMessage().contains("missing schema definitions starting with 'schema.table1.' for input 'table1'"), ex.getMessage());
+
+        props.put("schema.table1.id", "int");
+        ex = assertThrows(PipelineValidationException.class, () -> 
+            PipelineValidator.validate(job, steps)
+        );
+        assertTrue(ex.getMessage().contains("missing schema definitions starting with 'schema.table2.' for input 'table2'"), ex.getMessage());
+    }
+
+    @Test
+    public void testSQLValidationMissingQuery() {
+        JobConfig job = new JobConfig();
+        job.setName("SQL Missing Query Validation");
+
+        StepConfig step = new StepConfig();
+        step.setName("sql-step");
+        step.setType("sql");
+        Map<String, String> props = new HashMap<>();
+        props.put("schema.id", "int");
+        step.setProperties(props);
+        
+        List<StepConfig> steps = Collections.singletonList(step);
+        job.setSteps(steps);
+
+        PipelineValidationException ex = assertThrows(PipelineValidationException.class, () -> 
+            PipelineValidator.validate(job, steps)
+        );
+        assertTrue(ex.getMessage().contains("must define a SQL query either in 'properties.query' or as a step 'code' body"));
+    }
 }
+

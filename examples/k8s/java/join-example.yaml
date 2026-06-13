@@ -12,7 +12,8 @@ spec:
         content: "order1:cust1,order2:cust2,order3:cust1"
   
     - type: join
-      name: static-source
+      name: static-join
+      connector: static-source
       properties:
         content: "cust1:Alice,cust2:Bob"
         leftKey: "return input.split(\":\")[1];"

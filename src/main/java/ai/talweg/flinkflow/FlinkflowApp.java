@@ -270,8 +270,11 @@ public class FlinkflowApp {
 
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(jobConfig.getParallelism());
+        org.apache.flink.table.api.bridge.java.StreamTableEnvironment tEnv =
+            org.apache.flink.table.api.bridge.java.StreamTableEnvironment.create(env);
 
         DataStream<String> stream = null;
+        java.util.Map<String, DataStream<String>> streams = new java.util.LinkedHashMap<>();
 
         for (StepConfig step : resolvedSteps) {
             switch (step.getType().toLowerCase()) {
@@ -395,55 +398,14 @@ public class FlinkflowApp {
                         throw new RuntimeException("Stream not initialized. Source step missing.");
                     
                     // Extract schema from properties (keys starting with "schema.")
-                    java.util.Map<String, String> schemaMap = new java.util.LinkedHashMap<>();
-                    if (step.getProperties() != null) {
-                        for (java.util.Map.Entry<String, String> entry : step.getProperties().entrySet()) {
-                            if (entry.getKey().startsWith("schema.")) {
-                                schemaMap.put(entry.getKey().substring(7), entry.getValue());
-                            }
-                        }
-                    }
+                    java.util.Map<String, String> schemaMap = ai.talweg.flinkflow.core.SchemaHelper.extractSchema(step.getProperties());
                     if (schemaMap.isEmpty()) {
                         throw new RuntimeException("ML step '" + step.getName() + "' requires at least one schema definition property (e.g., 'schema.fieldName: type').");
                     }
                     
                     // Build the Row TypeInformation for the input schema
-                    String[] mlFieldNames = schemaMap.keySet().toArray(new String[0]);
-                    org.apache.flink.api.common.typeinfo.TypeInformation<?>[] mlFieldTypes =
-                        new org.apache.flink.api.common.typeinfo.TypeInformation<?>[mlFieldNames.length];
-                    for (int idx = 0; idx < mlFieldNames.length; idx++) {
-                        String typeStr = schemaMap.get(mlFieldNames[idx]).toLowerCase();
-                        switch (typeStr) {
-                            case "string":
-                                mlFieldTypes[idx] = org.apache.flink.api.common.typeinfo.Types.STRING;
-                                break;
-                            case "int":
-                            case "integer":
-                                mlFieldTypes[idx] = org.apache.flink.api.common.typeinfo.Types.INT;
-                                break;
-                            case "long":
-                                mlFieldTypes[idx] = org.apache.flink.api.common.typeinfo.Types.LONG;
-                                break;
-                            case "double":
-                            case "float":
-                                mlFieldTypes[idx] = org.apache.flink.api.common.typeinfo.Types.DOUBLE;
-                                break;
-                            case "boolean":
-                                mlFieldTypes[idx] = org.apache.flink.api.common.typeinfo.Types.BOOLEAN;
-                                break;
-                            case "vector":
-                                mlFieldTypes[idx] = org.apache.flink.ml.linalg.typeinfo.VectorTypeInfo.INSTANCE;
-                                break;
-                            default:
-                                throw new IllegalArgumentException("Unsupported schema type in ML step: " + typeStr);
-                        }
-                    }
                     org.apache.flink.api.common.typeinfo.TypeInformation<org.apache.flink.types.Row> mlTypeInfo =
-                        org.apache.flink.api.common.typeinfo.Types.ROW_NAMED(mlFieldNames, mlFieldTypes);
-                    
-                    // Initialize StreamTableEnvironment
-                    org.apache.flink.table.api.bridge.java.StreamTableEnvironment tEnv =
-                        org.apache.flink.table.api.bridge.java.StreamTableEnvironment.create(env);
+                        ai.talweg.flinkflow.core.SchemaHelper.buildRowTypeInfo(schemaMap);
                     
                     // Map DataStream<String> → DataStream<Row> with explicit TypeInformation.
                     // returns() must be chained on the SingleOutputStreamOperator from map() —
@@ -492,6 +454,102 @@ public class FlinkflowApp {
                     stream = outputRowStream.map(new ai.talweg.flinkflow.core.RowToJsonMapper(outputFieldNames));
                     break;
                 }
+                case "sql": {
+                    java.util.List<String> inputs = step.getInputs();
+                    if (inputs != null && !inputs.isEmpty()) {
+                        // Multi-table mode
+                        for (String inputName : inputs) {
+                            DataStream<String> inputStream = streams.get(inputName);
+                            if (inputStream == null) {
+                                throw new RuntimeException("SQL step '" + step.getName() + "' references unknown input stream: '" + inputName + "'");
+                            }
+                            java.util.Map<String, String> inputSchema = ai.talweg.flinkflow.core.SchemaHelper.extractSchema(step.getProperties(), inputName);
+                            if (inputSchema.isEmpty()) {
+                                throw new RuntimeException("SQL step '" + step.getName() + "' requires schema definitions starting with 'schema." + inputName + ".' for input '" + inputName + "'.");
+                            }
+                            org.apache.flink.api.common.typeinfo.TypeInformation<org.apache.flink.types.Row> inputTypeInfo =
+                                ai.talweg.flinkflow.core.SchemaHelper.buildRowTypeInfo(inputSchema);
+                            org.apache.flink.streaming.api.datastream.DataStream<org.apache.flink.types.Row> rowStream =
+                                inputStream.map(new ai.talweg.flinkflow.core.JsonToRowMapper(inputSchema)).returns(inputTypeInfo);
+
+                            // Event-Time & Watermarks for this input
+                            String wmColumn = step.getProperties() != null ? step.getProperties().get("watermark." + inputName + ".column") : null;
+                            org.apache.flink.table.api.Table inputTable;
+                            if (wmColumn != null) {
+                                long wmDelay = Long.parseLong(step.getProperties().getOrDefault("watermark." + inputName + ".delay", "0"));
+                                rowStream = assignWatermarks(rowStream, inputSchema, wmColumn, wmDelay);
+                                org.apache.flink.table.api.Schema tableSchema = buildSchemaWithWatermark(inputSchema, inputTypeInfo, wmColumn, wmDelay);
+                                inputTable = tEnv.fromDataStream(rowStream, tableSchema);
+                            } else {
+                                inputTable = tEnv.fromDataStream(rowStream);
+                            }
+                            tEnv.createTemporaryView(inputName, inputTable);
+                        }
+                    } else {
+                        // Single-table mode (backward compatible)
+                        if (stream == null)
+                            throw new RuntimeException("Stream not initialized. Source step missing.");
+                        java.util.Map<String, String> schemaMap = ai.talweg.flinkflow.core.SchemaHelper.extractSchema(step.getProperties());
+                        if (schemaMap.isEmpty()) {
+                            throw new RuntimeException("SQL step '" + step.getName() + "' requires at least one schema definition property (e.g., 'schema.fieldName: type').");
+                        }
+                        org.apache.flink.api.common.typeinfo.TypeInformation<org.apache.flink.types.Row> sqlTypeInfo =
+                            ai.talweg.flinkflow.core.SchemaHelper.buildRowTypeInfo(schemaMap);
+                        org.apache.flink.streaming.api.datastream.DataStream<org.apache.flink.types.Row> rowStream =
+                            stream.map(new ai.talweg.flinkflow.core.JsonToRowMapper(schemaMap)).returns(sqlTypeInfo);
+
+                        // Event-Time & Watermarks
+                        String wmColumn = step.getProperties() != null ? step.getProperties().get("watermark.column") : null;
+                        org.apache.flink.table.api.Table inputTable;
+                        if (wmColumn != null) {
+                            long wmDelay = Long.parseLong(step.getProperties().getOrDefault("watermark.delay", "0"));
+                            rowStream = assignWatermarks(rowStream, schemaMap, wmColumn, wmDelay);
+                            org.apache.flink.table.api.Schema tableSchema = buildSchemaWithWatermark(schemaMap, sqlTypeInfo, wmColumn, wmDelay);
+                            inputTable = tEnv.fromDataStream(rowStream, tableSchema);
+                        } else {
+                            inputTable = tEnv.fromDataStream(rowStream);
+                        }
+                        String tableName = step.getProperties() != null ? step.getProperties().getOrDefault("tableName", "input") : "input";
+                        tEnv.createTemporaryView(tableName, inputTable);
+                    }
+
+                    // Resolve the SQL query
+                    String query = null;
+                    if (step.getProperties() != null) {
+                        query = step.getProperties().get("query");
+                    }
+                    if (query == null || query.trim().isEmpty()) {
+                        query = step.getCode();
+                    }
+                    if (query == null || query.trim().isEmpty()) {
+                        throw new RuntimeException("SQL step '" + step.getName() + "' requires a SQL query either in 'properties.query' or as a step 'code' body.");
+                    }
+
+                    // Execute SQL query
+                    org.apache.flink.table.api.Table outputTable = tEnv.sqlQuery(query);
+
+                    // Output mode: changelog vs append
+                    String outputMode = step.getProperties() != null ? step.getProperties().getOrDefault("outputMode", "auto").toLowerCase() : "auto";
+                    String[] outputFieldNames = outputTable.getResolvedSchema().getColumnNames().toArray(new String[0]);
+
+                    if ("changelog".equals(outputMode)) {
+                        org.apache.flink.streaming.api.datastream.DataStream<org.apache.flink.types.Row> changelogStream = tEnv.toChangelogStream(outputTable);
+                        stream = changelogStream.map(new ai.talweg.flinkflow.core.ChangelogRowToJsonMapper(outputFieldNames));
+                    } else if ("append".equals(outputMode)) {
+                        org.apache.flink.streaming.api.datastream.DataStream<org.apache.flink.types.Row> appendStream = tEnv.toDataStream(outputTable);
+                        stream = appendStream.map(new ai.talweg.flinkflow.core.RowToJsonMapper(outputFieldNames));
+                    } else {
+                        // Auto-detect
+                        try {
+                            org.apache.flink.streaming.api.datastream.DataStream<org.apache.flink.types.Row> appendStream = tEnv.toDataStream(outputTable);
+                            stream = appendStream.map(new ai.talweg.flinkflow.core.RowToJsonMapper(outputFieldNames));
+                        } catch (org.apache.flink.table.api.TableException te) {
+                            org.apache.flink.streaming.api.datastream.DataStream<org.apache.flink.types.Row> changelogStream = tEnv.toChangelogStream(outputTable);
+                            stream = changelogStream.map(new ai.talweg.flinkflow.core.ChangelogRowToJsonMapper(outputFieldNames));
+                        }
+                    }
+                    break;
+                }
                 case "sink":
                     if (stream == null)
                         throw new RuntimeException("Stream not initialized. Source step missing.");
@@ -499,6 +557,9 @@ public class FlinkflowApp {
                     break;
                 default:
                     throw new RuntimeException("Unknown step type: " + step.getType());
+            }
+            if (stream != null) {
+                streams.put(step.getName(), stream);
             }
         }
 
@@ -836,5 +897,58 @@ public class FlinkflowApp {
         } catch (Exception e) {
             throw new RuntimeException("Failed to fetch latest schema for subject '" + subject + "' from registry: " + e.getMessage(), e);
         }
+    }
+
+    private static org.apache.flink.streaming.api.datastream.DataStream<org.apache.flink.types.Row> assignWatermarks(
+        org.apache.flink.streaming.api.datastream.DataStream<org.apache.flink.types.Row> rowStream,
+        java.util.Map<String, String> schemaMap,
+        String wmColumn,
+        long wmDelay
+    ) {
+        java.util.List<String> fieldList = new java.util.ArrayList<>(schemaMap.keySet());
+        int wmColumnIndex = fieldList.indexOf(wmColumn);
+        if (wmColumnIndex == -1) {
+            throw new RuntimeException("Watermark column '" + wmColumn + "' not found in schema.");
+        }
+        return rowStream.assignTimestampsAndWatermarks(
+            org.apache.flink.api.common.eventtime.WatermarkStrategy.<org.apache.flink.types.Row>forBoundedOutOfOrderness(java.time.Duration.ofSeconds(wmDelay))
+                .withTimestampAssigner((row, ts) -> {
+                    Object val = row.getField(wmColumnIndex);
+                    if (val == null) {
+                        return 0L;
+                    }
+                    if (val instanceof java.time.LocalDateTime) {
+                        return ((java.time.LocalDateTime) val)
+                            .atZone(java.time.ZoneId.systemDefault())
+                            .toInstant().toEpochMilli();
+                    } else if (val instanceof java.time.LocalDate) {
+                        return ((java.time.LocalDate) val)
+                            .atStartOfDay(java.time.ZoneId.systemDefault())
+                            .toInstant().toEpochMilli();
+                    } else if (val instanceof Number) {
+                        return ((Number) val).longValue();
+                    } else {
+                        return Long.parseLong(val.toString());
+                    }
+                })
+        );
+    }
+
+    private static org.apache.flink.table.api.Schema buildSchemaWithWatermark(
+        java.util.Map<String, String> schemaMap,
+        org.apache.flink.api.common.typeinfo.TypeInformation<org.apache.flink.types.Row> sqlTypeInfo,
+        String wmColumn,
+        long wmDelay
+    ) {
+        org.apache.flink.table.api.Schema.Builder schemaBuilder = org.apache.flink.table.api.Schema.newBuilder();
+        for (java.util.Map.Entry<String, String> entry : schemaMap.entrySet()) {
+            String name = entry.getKey();
+            String typeStr = entry.getValue();
+            org.apache.flink.api.common.typeinfo.TypeInformation<?> flinkType = ai.talweg.flinkflow.core.SchemaHelper.resolveType(typeStr);
+            org.apache.flink.table.types.DataType dataType = org.apache.flink.table.types.utils.TypeConversions.fromLegacyInfoToDataType(flinkType);
+            schemaBuilder.column(name, dataType);
+        }
+        schemaBuilder.watermark(wmColumn, wmColumn + " - INTERVAL '" + wmDelay + "' SECOND");
+        return schemaBuilder.build();
     }
 }

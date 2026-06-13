@@ -67,6 +67,11 @@ public class StepConfig implements java.io.Serializable {
     private Map<String, String> with;
 
     /**
+     * Optional list of named input streams for multi-input steps (e.g., SQL JOINs).
+     */
+    private java.util.List<String> inputs;
+
+    /**
      * Gets the type of this step.
      * 
      * @return the step type
@@ -190,6 +195,20 @@ public class StepConfig implements java.io.Serializable {
      */
     public void setConnector(String connector) {
         this.connector = connector;
+    }
+
+    /**
+     * Gets the optional list of named input streams.
+     */
+    public java.util.List<String> getInputs() {
+        return inputs;
+    }
+
+    /**
+     * Sets the optional list of named input streams.
+     */
+    public void setInputs(java.util.List<String> inputs) {
+        this.inputs = inputs;
     }
 }
 

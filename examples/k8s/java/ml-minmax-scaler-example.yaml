@@ -1,0 +1,40 @@
+apiVersion: flinkflow.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: ml-minmax-scaler-example
+spec:
+  name: "ML MinMaxScaler - House Price Feature Normalisation"
+  parallelism: 1
+  steps:
+    - type: source
+      name: static-source
+      properties:
+        content: >
+          {"area": 60.0, "rooms": 2.0, "age": 30.0}|
+          {"area": 90.0, "rooms": 3.0, "age": 15.0}|
+          {"area": 120.0, "rooms": 3.0, "age": 10.0}|
+          {"area": 180.0, "rooms": 4.0, "age": 5.0}|
+          {"area": 240.0, "rooms": 5.0, "age": 2.0}|
+          {"area": 55.0, "rooms": 1.0, "age": 50.0}
+
+    - type: ml
+      name: assemble-house-features
+      properties:
+        algorithm: "VectorAssembler"
+        inputCols: "area,rooms,age"
+        inputSizes: "1,1,1"
+        outputCol: "rawFeatures"
+        schema.area: "double"
+        schema.rooms: "double"
+        schema.age: "double"
+
+    - type: ml
+      name: normalise-features
+      properties:
+        algorithm: "MinMaxScaler"
+        inputCol: "rawFeatures"
+        outputCol: "scaledFeatures"
+        schema.rawFeatures: "vector"
+
+    - type: sink
+      name: console-sink
