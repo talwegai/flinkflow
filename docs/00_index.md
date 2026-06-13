@@ -18,9 +18,10 @@ Our mission is to be the **"Glue Layer"** for real-time event-driven architectur
 | Feature | Native Flink | Flinkflow |
 | :--- | :--- | :--- |
 | **Authoring** | Heavy Java/Maven Boilerplate | Declarative YAML DSL |
-| **Development Cycle** | Compile → Package → Deploy JAR | Instant Hot-Reload (YAML/Java/Python Snippets) |
+| **Development Cycle** | Compile → Package → Deploy JAR | Instant Hot-Reload (YAML/Java/Python/Camel/SQL Snippets) |
 | **Logic Changes** | ~10 minute CI/CD cycles | Seconds (Apply K8s CRD or YAML) |
-| **Target Persona** | Specialized Flink Engineers | Data Scientists, Analysts, DevOps, Backend Devs |
+| **Polyglot Runtimes** | Java/Python only | **Java** (Janino), **Python** (GraalVM), **Apache Camel** (Simple/JsonPath/YAML DSL), **Apache Flink SQL** |
+| **Target Persona** | Specialized Flink Engineers | Data Scientists, Analysts, DevOps, Backend Devs, Integration Devs |
 | **Component Model** | Custom Code / Classes | Reusable, Parameterized **Flowlets** |
 
 ---
