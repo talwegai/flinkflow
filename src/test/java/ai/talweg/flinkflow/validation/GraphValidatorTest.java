@@ -28,9 +28,9 @@ public class GraphValidatorTest {
 
     @Test
     public void testValidGraph() {
-        StepConfig source = new StepConfig(); source.setType("source");
-        StepConfig process = new StepConfig(); process.setType("process");
-        StepConfig sink = new StepConfig(); sink.setType("sink");
+        StepConfig source = new StepConfig(); source.setType("source"); source.setName("source");
+        StepConfig process = new StepConfig(); process.setType("process"); process.setName("process");
+        StepConfig sink = new StepConfig(); sink.setType("sink"); sink.setName("sink");
         
         assertDoesNotThrow(() -> GraphValidator.validate(Arrays.asList(source, process, sink)));
     }
@@ -42,10 +42,10 @@ public class GraphValidatorTest {
 
     @Test
     public void testDisconnectedOldStreamThrows() {
-        StepConfig source1 = new StepConfig(); source1.setType("source");
-        StepConfig process = new StepConfig(); process.setType("process");
-        StepConfig source2 = new StepConfig(); source2.setType("source");
-        StepConfig sink = new StepConfig(); sink.setType("sink");
+        StepConfig source1 = new StepConfig(); source1.setType("source"); source1.setName("source1");
+        StepConfig process = new StepConfig(); process.setType("process"); process.setName("process");
+        StepConfig source2 = new StepConfig(); source2.setType("source"); source2.setName("source2");
+        StepConfig sink = new StepConfig(); sink.setType("sink"); sink.setName("sink");
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> GraphValidator.validate(Arrays.asList(source1, process, source2, sink)));
         assertTrue(ex.getMessage().contains("Disconnected DAG detected"));
@@ -53,26 +53,26 @@ public class GraphValidatorTest {
 
     @Test
     public void testMissingSinkThrows() {
-        StepConfig source = new StepConfig(); source.setType("source");
-        StepConfig process = new StepConfig(); process.setType("process");
+        StepConfig source = new StepConfig(); source.setType("source"); source.setName("source");
+        StepConfig process = new StepConfig(); process.setType("process"); process.setName("process");
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> GraphValidator.validate(Arrays.asList(source, process)));
         assertTrue(ex.getMessage().contains("never sent to a sink"));
     }
 
     @Test
     public void testSinkBeforeSourceThrows() {
-        StepConfig sink = new StepConfig(); sink.setType("sink");
-        StepConfig source = new StepConfig(); source.setType("source");
-        StepConfig process = new StepConfig(); process.setType("process");
+        StepConfig sink = new StepConfig(); sink.setType("sink"); sink.setName("sink");
+        StepConfig source = new StepConfig(); source.setType("source"); source.setName("source");
+        StepConfig process = new StepConfig(); process.setType("process"); process.setName("process");
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> GraphValidator.validate(Arrays.asList(sink, source, process)));
         assertTrue(ex.getMessage().contains("Sink defined before any source step"));
     }
 
     @Test
     public void testProcessorBeforeSourceThrows() {
-        StepConfig process = new StepConfig(); process.setType("process");
-        StepConfig source = new StepConfig(); source.setType("source");
-        StepConfig sink = new StepConfig(); sink.setType("sink");
+        StepConfig process = new StepConfig(); process.setType("process"); process.setName("process");
+        StepConfig source = new StepConfig(); source.setType("source"); source.setName("source");
+        StepConfig sink = new StepConfig(); sink.setType("sink"); sink.setName("sink");
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> GraphValidator.validate(Arrays.asList(process, source, sink)));
         assertTrue(ex.getMessage().contains("Processor step defined before any source step"));
     }

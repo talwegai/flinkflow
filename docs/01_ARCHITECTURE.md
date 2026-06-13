@@ -44,6 +44,7 @@ graph TB
         end
         
         XSLT["Saxon<br/>XSLT 3.0 DataMapper"]
+        TABLE_API["Table API & SQL Engine<br/>(StreamTableEnvironment)"]
     end
 
     subgraph SOURCES["📥 Sources"]
@@ -65,6 +66,8 @@ graph TB
         OP_JOIN["join<br/>(Interval Join — 2 Streams)"]
         OP_DM["datamapper<br/>(XSLT 3.0 Structural Transform)"]
         OP_HTTP["http-lookup<br/>(Async REST Enrichment)"]
+        OP_ML["ml<br/>(Flink ML Transformer / Estimator)"]
+        OP_SQL["sql<br/>(StreamTableEnvironment Hybrid SQL)"]
     end
 
     subgraph SINKS["📤 Sinks"]
@@ -189,6 +192,7 @@ flowchart LR
         B -->|"agent"| D4["Agentic Bridge<br/>(OpenAI/Gemini/Vertex)"]
         B -->|"datamapper"| E["XSLT 3.0<br/>(Saxon)"]
         B -->|"http-lookup"| F["Async HTTP<br/>Client"]
+        B -->|"ml / sql"| E2["Table API & SQL<br/>(StreamTableEnvironment)"]
         B -->|"flowlet"| G["Flowlet Resolver"]
         B -->|"sink"| H["Sink Connector"]
         G -->|"expand into steps"| B
@@ -199,6 +203,7 @@ flowchart LR
         C --> D2 --> H
         C --> E --> H
         C --> F --> H
+        C --> E2 --> H
     end
 
     A --> B
@@ -307,6 +312,9 @@ Flinkflow separates pipeline structure (YAML) from custom business logic (Java/P
     - **OpenAI**: `gpt-4o`, `gpt-4`, `o1-*`, `o3-*` — requires `OPENAI_API_KEY`
     - **Google Gemini (AI Studio)**: `gemini-*` — requires `GOOGLE_API_KEY`
     - **Google Vertex AI**: Any Gemini model with `provider: vertex` — uses Application Default Credentials (ADC)
+- **Table API & SQL Engine** (`type: sql` and `type: ml`): Leverages Flink's `StreamTableEnvironment` for relational logic and native machine learning execution.
+    - **Flink ML Integration**: Embeds Flink ML estimators/transformers natively into the pipeline by mapping JSON inputs to Table API rows, executing fit/transform logic, and outputting JSON.
+    - **SQL Hybrid Engine**: Translates incoming JSON streams into temporary views, allowing high-performance SQL query executions (joins, windows, aggregations) before converting back to the DataStream wire format.
 
 ### Security Sandboxing (Zero-Trust)
 

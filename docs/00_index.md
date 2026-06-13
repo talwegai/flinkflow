@@ -38,6 +38,7 @@ Our mission is to be the **"Glue Layer"** for real-time event-driven architectur
 - **Enterprise Security**: Native support for Kubernetes Secrets (`secret:name/key`) to secure credentials without hardcoding.
 - **Schema Management**: First-class integration with Confluent/Apicurio Schema Registry for Avro-encoded streams with automatic schema fetching.
 - **Declarative Machine Learning (Flink ML)**: Embed Flink ML Estimators and Transformers (like VectorAssembler, MinMaxScaler, KMeans, etc.) directly in pipeline YAMLs via the `type: ml` step, combining low-code streaming with native ML execution.
+- **SQL/Table API Bridge**: Write ANSI SQL queries as pipeline steps with `type: sql`. Supports multi-source JOINs, windowed aggregations, event-time watermarks, and changelog output — all declared in YAML with automatic schema mapping. *(See: [SQL & ML Guide](/docs/11_SQL_AND_ML))*
 
 ---
 
@@ -51,6 +52,7 @@ Flinkflow is maintained by **[Talweg](https://talweg.ai)**. While the core engin
 | **Agentic Bridge (LLM Integration)** | ✅ | ✅ |
 | **Kafka, S3, JDBC Connectors** | ✅ | ✅ |
 | **Declarative Flink ML (Estimators/Transformers)** | ✅ | ✅ |
+| **SQL / Table API Bridge** | ✅ | ✅ |
 | **GPU-Accelerated Inference (ONNX/TensorFlow)** | ❌ | ✅ |
 | **AI-Powered Validation Assist** | ❌ | ✅ |
 | **Live Hot-Reloading** | ❌ | ✅ |

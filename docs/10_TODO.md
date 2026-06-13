@@ -14,7 +14,7 @@ This file is the **Single Source of Truth** for the Flinkflow project roadmap an
 - [x] **Flowlet System**: Parameterized reusable components with K8s CRD discovery.
 - [x] **Basic Connectors**: Kafka (Apache/Confluent), File/S3, DataGen, JDBC, HTTP Sinks.
 - [x] **Deployment Options**: Local script, Docker, and K8s (Manual, Operator, Native, and Pipeline CR).
-- [x] **Flink 2.2 Migration**: Full support for Flink 2.2.0 and the new `OpenContext` lifecycle.
+- [x] **Flink 2.2 Migration**: Full support for Flink 2.2.1 and the new `OpenContext` lifecycle.
 - [x] **Flink State V2**: Asynchronous, non-blocking managed state for AI Agents.
 - [x] **Flink ML Integration**: Native `type: ml` step that embeds Flink ML Estimators and Transformers (KMeans, LogisticRegression, VectorAssembler, MinMaxScaler, etc.) declaratively into YAML pipelines using the StreamTableEnvironment bridge. Supports algorithm short-names, reflective hyper-parameter configuration, model persistence via `modelPath`, and round-trips data as JSON strings.
 
@@ -63,6 +63,9 @@ This file is the **Single Source of Truth** for the Flinkflow project roadmap an
 - [ ] **Side Output Support**: Ability to emit to multiple streams directly from Camel logic.
 - [ ] **Join Function Support**: Bridging Flink's `ProcessJoinFunction` to the Camel YAML DSL (v2).
 - [ ] **Flink State Access**: Exposing Flink's managed state (ValueState, ListState) as Camel headers.
+
+### 📊 SQL & Table API Support (Hybrid Approach)
+- [ ] **In-stream SQL**: Add a `type: sql` step that registers incoming JSON stream data as a temporary Table view, runs custom SQL queries via Flink's `StreamTableEnvironment`, and serializes the outputs back to the universal JSON String format.
 
 ---
 

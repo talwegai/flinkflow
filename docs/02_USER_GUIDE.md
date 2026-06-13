@@ -411,6 +411,7 @@ kubectl logs -f flinkflow-app-jm-0 | grep FLINKFLOW-ERROR
 | Guide | Description |
 | :--- | :--- |
 | **[Configuration Reference](/CONFIGURATION)** | Full DSL spec for all connectors and operations |
+| **[SQL & ML Bridge](/SQL_AND_ML)** | SQL queries, Flink ML stages, and how they differ from native Flink |
 | **[Operations & Monitoring](/GUIDE_OPERATIONS)** | Performance tuning and advanced dashboard setup |
 | **[XSLT DataMapper Guide](/GUIDE_DATAMAPPER)** | Complex JSON/XML transformations using Saxon-HE |
 | **[Kubernetes Deployment Guide](/DEPLOY_K8S)** | Step-by-step K8s operator deployment |

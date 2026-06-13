@@ -16,7 +16,8 @@ spec:
   
     # 2. Secondary Source & Join: Join with Customer Profile topic
     - type: join
-      name: kafka-source
+      name: kafka-join
+      connector: kafka-source
       properties:
         # Secondary Kafka Source properties
         bootstrap.servers: "localhost:9092"

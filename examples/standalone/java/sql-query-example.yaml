@@ -1,0 +1,51 @@
+# examples/standalone/java/sql-query-example.yaml
+#
+# Standalone Flinkflow Pipeline demonstrating the Flink SQL hybrid step with a two-source DAG.
+# Registers two incoming JSON stream data sources ("orders" and "customers") as temporary views,
+# performs a SQL JOIN operation, and outputs the resulting rows as JSON strings.
+#
+# Run this example using:
+# ./scripts/run-local.sh examples/standalone/java/sql-query-example.yaml
+
+name: "Flink SQL Multi-Source Join Example"
+parallelism: 1
+steps:
+  - type: source
+    name: orders
+    connector: static-source
+    properties:
+      content: '{"orderId": "o-101", "customerId": "c-001", "amount": 150.75, "orderTime": "2026-06-13T12:00:00"}|{"orderId": "o-102", "customerId": "c-002", "amount": 42.00, "orderTime": "2026-06-13T12:05:00"}|{"orderId": "o-103", "customerId": "c-001", "amount": 89.99, "orderTime": "2026-06-13T12:10:00"}'
+
+  - type: source
+    name: customers
+    connector: static-source
+    properties:
+      content: '{"customerId": "c-001", "name": "Alice Smith", "level": "Gold"}|{"customerId": "c-002", "name": "Bob Jones", "level": "Silver"}'
+
+  - type: sql
+    name: "enrich-orders"
+    inputs: [orders, customers]
+    properties:
+      # Explicit schemas for each input table namespaced by table name
+      schema.orders.orderId: "string"
+      schema.orders.customerId: "string"
+      schema.orders.amount: "double"
+      schema.orders.orderTime: "timestamp"
+      
+      schema.customers.customerId: "string"
+      schema.customers.name: "string"
+      schema.customers.level: "string"
+      
+      # SQL query to join the two streams
+      query: |
+        SELECT 
+          o.orderId, 
+          c.name AS customer_name, 
+          c.level AS customer_level,
+          o.amount,
+          o.orderTime
+        FROM orders o
+        JOIN customers c ON o.customerId = c.customerId
+
+  - type: sink
+    name: console-sink
