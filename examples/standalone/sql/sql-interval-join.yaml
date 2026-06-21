@@ -1,0 +1,51 @@
+# examples/standalone/java/sql-interval-join.yaml
+#
+# Standalone Flinkflow Pipeline demonstrating event-time interval join between two streams in Flink SQL.
+#
+# Run this example using:
+# ./scripts/run-local.sh examples/standalone/java/sql-interval-join.yaml
+
+name: "Flink SQL Interval Join Example"
+parallelism: 1
+steps:
+  - type: source
+    name: orders
+    connector: static-source
+    properties:
+      content: '{"orderId": "o1", "userId": "u1", "orderTime": "2026-06-21T10:00:00"}|{"orderId": "o2", "userId": "u2", "orderTime": "2026-06-21T10:05:00"}'
+
+  - type: source
+    name: shipments
+    connector: static-source
+    properties:
+      content: '{"shipmentId": "s1", "orderId": "o1", "shipTime": "2026-06-21T10:02:00"}|{"shipmentId": "s2", "orderId": "o2", "shipTime": "2026-06-21T10:20:00"}'
+
+  - type: sql
+    name: interval-join
+    inputs: [orders, shipments]
+    properties:
+      schema.orders.orderId: "string"
+      schema.orders.userId: "string"
+      schema.orders.orderTime: "timestamp"
+      watermark.orders.column: "orderTime"
+      watermark.orders.delay: "5"
+
+      schema.shipments.shipmentId: "string"
+      schema.shipments.orderId: "string"
+      schema.shipments.shipTime: "timestamp"
+      watermark.shipments.column: "shipTime"
+      watermark.shipments.delay: "5"
+
+      query: |
+        SELECT 
+          o.orderId,
+          o.userId,
+          s.shipmentId,
+          o.orderTime,
+          CAST(s.shipTime AS TIMESTAMP) AS shipTime
+        FROM orders o
+        JOIN shipments s ON o.orderId = s.orderId
+        WHERE s.shipTime BETWEEN o.orderTime AND o.orderTime + INTERVAL '10' MINUTE
+
+  - type: sink
+    name: console-sink

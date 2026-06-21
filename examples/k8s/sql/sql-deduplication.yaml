@@ -1,0 +1,35 @@
+apiVersion: flinkflow.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: sql-deduplication
+spec:
+  name: "Flink SQL Deduplication Example"
+  parallelism: 1
+  steps:
+    - type: source
+      name: log_events
+      connector: static-source
+      properties:
+        content: '{"eventId": "e1", "userId": "u1", "status": "START", "eventTime": "2026-06-21T10:00:00"}|{"eventId": "e1", "userId": "u1", "status": "START_DUP", "eventTime": "2026-06-21T10:00:01"}|{"eventId": "e2", "userId": "u2", "status": "START", "eventTime": "2026-06-21T10:00:02"}'
+
+    - type: sql
+      name: deduplicate-logs
+      properties:
+        schema.eventId: "string"
+        schema.userId: "string"
+        schema.status: "string"
+        schema.eventTime: "timestamp"
+        watermark.column: "eventTime"
+        watermark.delay: "1"
+        tableName: "logs"
+        query: |
+          SELECT eventId, userId, status, eventTime
+          FROM (
+            SELECT *,
+              ROW_NUMBER() OVER (PARTITION BY eventId ORDER BY eventTime ASC) as row_num
+            FROM logs
+          )
+          WHERE row_num = 1
+
+    - type: sink
+      name: console-sink

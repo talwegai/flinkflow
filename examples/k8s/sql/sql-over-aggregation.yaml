@@ -1,0 +1,37 @@
+apiVersion: flinkflow.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: sql-over-aggregation
+spec:
+  name: "Flink SQL Over Aggregation Example"
+  parallelism: 1
+  steps:
+    - type: source
+      name: sensor_readings
+      connector: static-source
+      properties:
+        content: '{"sensorId": "temp-1", "reading": 22.5, "eventTime": "2026-06-21T10:00:00"}|{"sensorId": "temp-1", "reading": 23.0, "eventTime": "2026-06-21T10:00:02"}|{"sensorId": "temp-1", "reading": 24.5, "eventTime": "2026-06-21T10:00:04"}'
+
+    - type: sql
+      name: running-averages
+      properties:
+        schema.sensorId: "string"
+        schema.reading: "double"
+        schema.eventTime: "timestamp"
+        watermark.column: "eventTime"
+        watermark.delay: "2"
+        tableName: "sensors"
+        query: |
+          SELECT 
+            sensorId,
+            eventTime,
+            reading,
+            AVG(reading) OVER (
+              PARTITION BY sensorId 
+              ORDER BY eventTime 
+              RANGE BETWEEN INTERVAL '10' SECOND PRECEDING AND CURRENT ROW
+            ) AS moving_avg_10s
+          FROM sensors
+
+    - type: sink
+      name: console-sink

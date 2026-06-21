@@ -59,6 +59,16 @@ Unlike the standalone YAML examples, these files are formatted as Kubernetes obj
 | **[`java/window-example.yaml`](java/window-example.yaml)** | Time Windows | Tumbling time-window aggregation. |
 | **[`java/datamapper-example.yaml`](java/datamapper-example.yaml)** | Data Mapping | XSLT 3.0 structural transformations. |
 
+### 📊 SQL & Table API (Flink SQL)
+| File | Description | Features |
+| :--- | :--- | :--- |
+| **[`sql/sql-query-example.yaml`](sql/sql-query-example.yaml)** | Flink SQL Join | **[NEW]** Multi-source stream joins in Flink SQL. |
+| **[`sql/sql-aggregation-example.yaml`](sql/sql-aggregation-example.yaml)** | Flink SQL Aggregation | **[NEW]** Multi-source UNION ALL and GROUP BY aggregation. |
+| **[`sql/sql-window-aggregation.yaml`](sql/sql-window-aggregation.yaml)** | Tumbling Windows | **[NEW]** Event-time tumbling window aggregations. |
+| **[`sql/sql-interval-join.yaml`](sql/sql-interval-join.yaml)** | Interval Joins | **[NEW]** Event-time stream-to-stream interval joins. |
+| **[`sql/sql-deduplication.yaml`](sql/sql-deduplication.yaml)** | Deduplication | **[NEW]** Event-time log deduplication using `ROW_NUMBER()`. |
+| **[`sql/sql-over-aggregation.yaml`](sql/sql-over-aggregation.yaml)** | Over Windows | **[NEW]** Rolling averages using `OVER` window aggregate functions. |
+
 ---
 
 ## 💡 How to Run

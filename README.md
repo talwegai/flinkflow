@@ -285,7 +285,7 @@ The **NiceGUI-based dashboard** provides real-time visibility into your Flink me
 ## 💡 Examples Catalog
 
 *   **[Standalone Pipelines](examples/standalone/README.md)**: Explore joins, windowing, JDBC, and more.
-*   **[SQL Query Example](examples/standalone/java/sql-query-example.yaml)**: Multi-source SQL JOIN with schema mapping.
+*   **[SQL Query Example](examples/standalone/sql/sql-query-example.yaml)**: Multi-source SQL JOIN with schema mapping.
 *   **[Kubernetes CRDs](examples/k8s/README.md)**: Ready-to-apply `Pipeline` resources.
 
 ---

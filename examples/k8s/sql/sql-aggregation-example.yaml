@@ -1,0 +1,96 @@
+apiVersion: flinkflow.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: sql-aggregation-example
+spec:
+  name: "Flink SQL Continuous Streaming Aggregation Example (Python)"
+  parallelism: 1
+  steps:
+    # -- Click Generator Source --
+    - type: source
+      name: web_clicks_source
+      connector: datagen-source
+      properties:
+        rowsPerSecond: "2"
+        payload: "click"
+
+    # -- Transform into Click JSON events (Python) --
+    - type: process
+      name: web_clicks
+      language: python
+      code: |
+        import json
+        import random
+        from datetime import datetime
+        
+        users = ["user-1", "user-2", "user-3", "user-4"]
+        pages = ["homepage", "products", "checkout", "cart"]
+        
+        payload = {
+            "userId": random.choice(users),
+            "eventType": "click",
+            "page": random.choice(pages),
+            "eventTime": datetime.now().isoformat()
+        }
+        return json.dumps(payload)
+
+    # -- Impression Generator Source --
+    - type: source
+      name: web_impressions_source
+      connector: datagen-source
+      properties:
+        rowsPerSecond: "5"
+        payload: "impression"
+
+    # -- Transform into Impression JSON events (Python) --
+    - type: process
+      name: web_impressions
+      language: python
+      code: |
+        import json
+        import random
+        from datetime import datetime
+        
+        users = ["user-1", "user-2", "user-3", "user-4"]
+        pages = ["homepage", "products", "checkout", "cart"]
+        
+        payload = {
+            "userId": random.choice(users),
+            "eventType": "impression",
+            "page": random.choice(pages),
+            "eventTime": datetime.now().isoformat()
+        }
+        return json.dumps(payload)
+
+    # -- Flink SQL Merge and Group By Aggregation --
+    - type: sql
+      name: "merge-and-aggregate"
+      inputs: [web_clicks, web_impressions]
+      properties:
+        # Schema for web_clicks
+        schema.web_clicks.userId: "string"
+        schema.web_clicks.eventType: "string"
+        schema.web_clicks.page: "string"
+        schema.web_clicks.eventTime: "string"
+
+        # Schema for web_impressions
+        schema.web_impressions.userId: "string"
+        schema.web_impressions.eventType: "string"
+        schema.web_impressions.page: "string"
+        schema.web_impressions.eventTime: "string"
+
+        query: |
+          SELECT 
+            userId, 
+            COUNT(eventType) AS totalEvents,
+            SUM(CASE WHEN eventType = 'click' THEN 1 ELSE 0 END) AS clickCount,
+            SUM(CASE WHEN eventType = 'impression' THEN 1 ELSE 0 END) AS impressionCount
+          FROM (
+            SELECT userId, eventType FROM web_clicks
+            UNION ALL
+            SELECT userId, eventType FROM web_impressions
+          )
+          GROUP BY userId
+
+    - type: sink
+      name: console-sink
