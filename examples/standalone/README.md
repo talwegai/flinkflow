@@ -51,7 +51,12 @@ Unlike the Kubernetes examples, these are plain YAML files that should be run us
 
 ### 📊 SQL & Table API (Flink SQL)
 *Best for: Declarative relational streaming query logic (projections, filtering, joining).*
-- **[`java/sql-query-example.yaml`](java/sql-query-example.yaml)**: **[NEW]** Demonstrates how to register in-stream JSON data as a temporary table view and run custom SQL projections, CASE/WHEN statements, and filtering natively.
+- **[`sql/sql-query-example.yaml`](sql/sql-query-example.yaml)**: **[NEW]** Demonstrates how to register in-stream JSON data as a temporary table view and run custom SQL projections, CASE/WHEN statements, and filtering natively.
+- **[`sql/sql-aggregation-example.yaml`](sql/sql-aggregation-example.yaml)**: **[NEW]** Combines records from two sources using a SQL `UNION ALL` and groups/aggregates them using a SQL `GROUP BY` entirely in Flink SQL.
+- **[`sql/sql-window-aggregation.yaml`](sql/sql-window-aggregation.yaml)**: **[NEW]** Demonstrates event-time watermarking and tumbling window aggregations.
+- **[`sql/sql-interval-join.yaml`](sql/sql-interval-join.yaml)**: **[NEW]** Demonstrates event-time stream-to-stream interval joins between two sources.
+- **[`sql/sql-deduplication.yaml`](sql/sql-deduplication.yaml)**: **[NEW]** Demonstrates event-time log deduplication using `ROW_NUMBER()`.
+- **[`sql/sql-over-aggregation.yaml`](sql/sql-over-aggregation.yaml)**: **[NEW]** Demonstrates rolling averages with `OVER` window aggregate functions.
 
 ### 🤖 Machine Learning (Flink ML)
 *Best for: Feature engineering, normalisation, and real-time ML inference on streaming data.*

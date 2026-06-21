@@ -1,11 +1,11 @@
-# examples/standalone/java/sql-query-example.yaml
+# examples/standalone/sql/sql-query-example.yaml
 #
 # Standalone Flinkflow Pipeline demonstrating the Flink SQL hybrid step with a two-source DAG.
 # Registers two incoming JSON stream data sources ("orders" and "customers") as temporary views,
 # performs a SQL JOIN operation, and outputs the resulting rows as JSON strings.
 #
 # Run this example using:
-# ./scripts/run-local.sh examples/standalone/java/sql-query-example.yaml
+# ./scripts/run-local.sh examples/standalone/sql/sql-query-example.yaml
 
 name: "Flink SQL Multi-Source Join Example"
 parallelism: 1

@@ -1,0 +1,41 @@
+# examples/standalone/java/sql-window-aggregation.yaml
+#
+# Standalone Flinkflow Pipeline demonstrating event-time watermarking and tumbling window aggregation
+# using Flink SQL.
+#
+# Run this example using:
+# ./scripts/run-local.sh examples/standalone/java/sql-window-aggregation.yaml
+
+name: "Flink SQL Tumbling Window Example"
+parallelism: 1
+steps:
+  - type: source
+    name: click_events
+    connector: static-source
+    properties:
+      # Injecting records with ISO-8601 timestamps
+      content: '{"userId": "u1", "eventTime": "2026-06-21T10:00:01", "click": 1}|{"userId": "u2", "eventTime": "2026-06-21T10:00:03", "click": 1}|{"userId": "u1", "eventTime": "2026-06-21T10:00:07", "click": 1}|{"userId": "u2", "eventTime": "2026-06-21T10:00:12", "click": 1}'
+
+  - type: sql
+    name: window-clicks
+    properties:
+      schema.userId: "string"
+      schema.click: "int"
+      schema.eventTime: "timestamp"
+      
+      # Configure Watermarks: use eventTime with a 2-second allowed lag
+      watermark.column: "eventTime"
+      watermark.delay: "2"
+      
+      tableName: "clicks"
+      query: |
+        SELECT 
+          userId,
+          TUMBLE_START(eventTime, INTERVAL '10' SECOND) AS window_start,
+          TUMBLE_END(eventTime, INTERVAL '10' SECOND) AS window_end,
+          SUM(click) AS total_clicks
+        FROM clicks
+        GROUP BY userId, TUMBLE(eventTime, INTERVAL '10' SECOND)
+
+  - type: sink
+    name: console-sink
