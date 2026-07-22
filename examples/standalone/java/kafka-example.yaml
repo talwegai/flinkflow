@@ -4,7 +4,7 @@ steps:
   - type: source
     name: kafka-source
     properties:
-      bootstrap.servers: "localhost:9092"
+      bootstrap.servers: "localhost:8080"
       topic: "source-topic"
       group.id: "flinkflow-group"
 
@@ -18,5 +18,5 @@ steps:
   - type: sink
     name: kafka-sink
     properties:
-      bootstrap.servers: "localhost:9092"
+      bootstrap.servers: "localhost:8080"
       topic: "sink-topic"

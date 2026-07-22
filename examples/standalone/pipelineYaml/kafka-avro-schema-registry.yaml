@@ -16,7 +16,8 @@ steps:
       bootstrap.servers: "localhost:9092"
       topic: "users-avro"
       group.id: "avro-consumer-group"
-      schema.registry.url: "http://localhost:8081"
+      schema.registry.url: "http://localhost:8084"
+      schema.subject: "users-avro-value"
 
   - type: process
     name: enrich-user
@@ -29,5 +30,5 @@ steps:
       format: "avro"
       bootstrap.servers: "localhost:9092"
       topic: "users-processed-avro"
-      schema.registry.url: "http://localhost:8081"
+      schema.registry.url: "http://localhost:8084"
       schema.subject: "users-processed-avro-value"
