@@ -16,6 +16,7 @@
   "dependencies": {
     "@babel/plugin-transform-modules-systemjs": "^7.29.4",
     "@docusaurus/core": "^3.9.2",
+    "@docusaurus/faster": "^3.10.2",
     "@docusaurus/preset-classic": "^3.9.2",
     "@docusaurus/theme-mermaid": "^3.9.2",
     "@mdx-js/react": "^3.0.0",
