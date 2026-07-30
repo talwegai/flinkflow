@@ -16,7 +16,7 @@ If you haven't already, install the Flink Operator using Helm. This operator wil
 
 ```bash
 # Add the Helm repository
-helm repo add flink-operator-repo https://downloads.apache.org/flink/flink-kubernetes-operator-1.7.0/
+helm repo add flink-operator-repo https://downloads.apache.org/flink/flink-kubernetes-operator-1.15.0/
 
 # Install the operator and its CRDs
 helm install flink-kubernetes-operator flink-operator-repo/flink-kubernetes-operator \
@@ -51,20 +51,22 @@ Ensure the service account `flink-service-account` exists and has the necessary 
 kubectl apply -f deploy/k8s/rbac.yaml
 ```
 
-### Pipeline Configuration (Optional)
-The default `Dockerfile` bakes a sample pipeline into `/opt/flink/conf/pipeline.yaml`. If you want to use a custom pipeline without rebuilding the image, you can create a ConfigMap:
+### Pipeline Configuration (CRD)
+To run pipelines natively from Kubernetes without building them into the image or managing ConfigMaps, you must install the Flinkflow Custom Resource Definitions (CRDs) and apply your pipeline directly to the cluster:
 
 ```bash
-kubectl create configmap my-pipeline --from-file=pipeline.yaml=../examples/standalone/simple-transform-example.yaml
-```
+# Install Flinkflow CRDs
+kubectl apply -f deploy/k8s/crds/
 
-And then update the `FlinkDeployment` to mount this ConfigMap.
+# Apply your Pipeline custom resource
+kubectl apply -f examples/k8s/camel/fraud-detection-camel.yaml
+```
 
 ## 4. Deploy the Application
 
 ### Using Flink Operator
 
-The recommended way to run Flinkflow is using the **Flink Kubernetes Operator**.
+The recommended way to run Flinkflow is using the **Flink Kubernetes Operator**. Now that your `Pipeline` CR is installed in Kubernetes, you can configure the `FlinkDeployment` to execute it natively.
 
 1. **Configure your manifest** (`deploy/k8s/flink-operator-deployment.yaml`):
 
@@ -77,10 +79,23 @@ spec:
   image: ghcr.io/talwegai/flinkflow:0.9.6
   flinkVersion: v2_2
   serviceAccount: flink-service-account
+  jobManager:
+    resource:
+      memory: "2048m"
+      cpu: 1
+  taskManager:
+    resource:
+      memory: "2048m"
+      cpu: 1
   job:
     jarURI: local:///opt/flink/usrlib/flinkflow.jar
     entryClass: ai.talweg.flinkflow.FlinkflowApp
-    args: ["/opt/flink/conf/pipeline.yaml"]
+    args: 
+      - "--k8s-pipeline"
+      - "fraud-detection-yaml-dsl"
+      - "--enable-k8s-flowlets"
+      - "--k8s-namespace"
+      - "default"
     parallelism: 2
 ```
 
@@ -90,31 +105,7 @@ spec:
 kubectl apply -f deploy/k8s/flink-operator-deployment.yaml
 ```
 
-### Advanced: GitOps Mode (Pipeline CRDs)
-
-For a pure GitOps experience, you can define your pipeline as a **Pipeline** Custom Resource. This allows you to update your streaming logic by simply applying a new YAML, without modifying the underlying `FlinkDeployment`.
-
-1. **Install the CRDs**:
-   ```bash
-   kubectl apply -f deploy/k8s/crds/crd-pipeline.yaml
-   kubectl apply -f deploy/k8s/crds/crd-flowlet.yaml
-   ```
-
-2. **Deploy your Pipeline resource**:
-   ```bash
-   kubectl apply -f examples/k8s/java/simple-transform-example.yaml
-   ```
-
-3. **Update FlinkDeployment** to fetch from the CRD:
-   Update the `args` in your `FlinkDeployment` manifest:
-   ```yaml
-   args: ["--pipeline-name", "simple-transform", "--enable-k8s-flowlets"]
-   ```
-
-The Flink Operator will detect this resource and automatically:
-1. Start the JobManager.
-2. Start the TaskManagers.
-3. Submit the Flink job defined in the `spec.job` section.
+The Flink Operator will detect this resource and automatically start the JobManager and TaskManagers to execute the pipeline discovered from the Kubernetes API.
 
 ## 5. Monitor the Deployment
 
@@ -136,13 +127,13 @@ kubectl logs -f flinkflow-app-jm-0
 
 ## 6. Accessing the Flink UI
 
-The operator usually creates a service for the JobManager. You can port-forward to access the dashboard:
+The operator creates a REST service for the JobManager. You can port-forward this service to your local machine to access the official Flink Dashboard, where you can view your running jobs, resource usage, and pipeline graphs:
 
 ```bash
 kubectl port-forward svc/flinkflow-app-rest 8081:8081
 ```
 
-Open `http://localhost:8081` in your browser.
+Open `http://localhost:8081` in your browser to view the running jobs!
 
 ## 7. Cleanup
 
