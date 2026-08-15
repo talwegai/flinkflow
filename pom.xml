@@ -4,7 +4,7 @@
 
   <groupId>ai.talweg</groupId>
   <artifactId>flinkflow</artifactId>
-  <version>0.9.6</version>
+  <version>0.9.7</version>
   <packaging>jar</packaging>
 
   <name>flinkflow</name>
@@ -47,7 +47,7 @@
     <scala.binary.version>2.12</scala.binary.version>
     <app.args></app.args>
     <maven.compiler.release>${target.java.version}</maven.compiler.release>
-    <log4j.version>2.25.4</log4j.version>
+    <log4j.version>2.26.1</log4j.version>
     <netty.version>4.1.136.Final</netty.version>
   </properties>
 
@@ -589,6 +589,22 @@
         <groupId>io.vertx</groupId>
         <artifactId>vertx-core</artifactId>
         <version>4.5.27</version>
+      </dependency>
+      <!-- Apache HttpComponents Core 5 (CVE-2026-54399, CVE-2026-54428) -->
+      <dependency>
+        <groupId>org.apache.httpcomponents.core5</groupId>
+        <artifactId>httpcore5</artifactId>
+        <version>5.4.3</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.httpcomponents.core5</groupId>
+        <artifactId>httpcore5-h2</artifactId>
+        <version>5.4.3</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.httpcomponents.client5</groupId>
+        <artifactId>httpclient5</artifactId>
+        <version>5.6.3</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

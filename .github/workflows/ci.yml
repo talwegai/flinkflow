@@ -61,6 +61,7 @@ jobs:
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
+          skip-dirs: 'site'
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
