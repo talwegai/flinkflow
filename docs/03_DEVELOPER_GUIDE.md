@@ -75,7 +75,7 @@ The project uses the `maven-shade-plugin` to create a "fat JAR" containing all d
 ```bash
 mvn clean package
 ```
-Output: `target/flinkflow-0.9.6.jar`
+Output: `target/flinkflow-0.9.7.jar`
 
 ### Docker Images
 The **[Dockerfile](https://github.com/talwegai/flinkflow/blob/main/Dockerfile)** is based on the official Flink image and includes all necessary environment variables for the Python evaluator.
@@ -102,7 +102,7 @@ The **[Dockerfile](https://github.com/talwegai/flinkflow/blob/main/Dockerfile)**
 mvn clean package
 ```
 
-This will produce a shaded JAR in `target/flinkflow-0.9.6.jar`.
+This will produce a shaded JAR in `target/flinkflow-0.9.7.jar`.
 
 ### 🧪 Smoke Testing
 
