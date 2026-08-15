@@ -12,7 +12,7 @@ spec:
     Writes records to a Confluent Cloud, Confluent Platform, or CFK-managed
     Kafka topic.  SASL_SSL/PLAIN authentication is wired automatically.
   type: sink
-  version: "1.0"
+  version: "1.0.0"
   labels:
     group: kafka
     provider: confluent

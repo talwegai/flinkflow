@@ -12,7 +12,7 @@ spec:
     prefix and passes the record unchanged downstream.  Useful for debugging
     pipelines without modifying the data.
   type: action
-  version: "1.0"
+  version: "1.0.0"
   labels:
     group: utilities
   parameters:

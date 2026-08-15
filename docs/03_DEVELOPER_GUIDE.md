@@ -189,6 +189,23 @@ Flinkflow supports several arguments to aid local development and validation:
 ```bash
 mvn exec:exec -P local-run -Dapp.args="examples/standalone/java/complex-enrichment-example.yaml --dry-run --flowlet-dir deploy/k8s/flowlets"
 ```
+
+### 🧩 Testing Flowlets
+
+Testing reusable Flowlets in Flinkflow is straightforward and doesn't require a running Kubernetes cluster.
+
+1. **Dry Run Validation (Syntax & Resolution):**
+   Use the `--dry-run` and `--flowlet-dir` arguments to expand your Flowlets and print the final, compiled pipeline without spinning up a Flink job.
+   ```bash
+   ./scripts/run-local.sh examples/standalone/java/flowlet-example.yaml --dry-run --flowlet-dir deploy/k8s/flowlets
+   ```
+2. **Functional Testing (Local MiniCluster):**
+   To actually run data through your Flowlet and verify its logic, omit the `--dry-run` flag.
+   ```bash
+   ./scripts/run-local.sh examples/standalone/java/flowlet-example.yaml --flowlet-dir deploy/k8s/flowlets
+   ```
+3. **Automated Unit Tests:**
+   For robust programmatic testing, use `FlowletRegistryTest.java` patterns to load mock YAML files and assert proper resolution and Semantic Versioning.
 #### Building Locally
 
 1. Build the Docker image:

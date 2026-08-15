@@ -59,4 +59,38 @@ public class FlowletRegistryTest {
         FlowletRegistry registry = new FlowletRegistry("/path/to/nowhere/that/does/not/exist", null, false);
         assertEquals(0, registry.size());
     }
+    @Test
+    public void testFlowletVersioning(@TempDir Path tempDir) throws Exception {
+        // v1.0.0
+        File f1 = tempDir.resolve("flowlet-v1.yaml").toFile();
+        try (FileWriter writer = new FileWriter(f1)) {
+            writer.write("apiVersion: flinkflow.io/v1\nkind: Flowlet\nmetadata:\n  name: versioned-flowlet\nspec:\n  version: \"1.0.0\"\n");
+        }
+        
+        // v1.2.0
+        File f2 = tempDir.resolve("flowlet-v12.yaml").toFile();
+        try (FileWriter writer = new FileWriter(f2)) {
+            writer.write("apiVersion: flinkflow.io/v1\nkind: Flowlet\nmetadata:\n  name: versioned-flowlet\nspec:\n  version: \"1.2.0\"\n");
+        }
+        
+        // v2.0.0
+        File f3 = tempDir.resolve("flowlet-v2.yaml").toFile();
+        try (FileWriter writer = new FileWriter(f3)) {
+            writer.write("apiVersion: flinkflow.io/v1\nkind: Flowlet\nmetadata:\n  name: versioned-flowlet\nspec:\n  version: \"2.0.0\"\n");
+        }
+
+        FlowletRegistry registry = new FlowletRegistry(tempDir.toFile().getAbsolutePath(), null, false);
+        
+        // Should resolve to latest (2.0.0) if no requirement
+        FlowletSpec latest = registry.get("versioned-flowlet");
+        assertEquals("2.0.0", latest.getVersion());
+        
+        // Should resolve to 1.2.0 for ^1.0.0
+        FlowletSpec v1 = registry.get("versioned-flowlet", "^1.0.0");
+        assertEquals("1.2.0", v1.getVersion());
+        
+        // Should resolve exact
+        FlowletSpec v1exact = registry.get("versioned-flowlet", "1.0.0");
+        assertEquals("1.0.0", v1exact.getVersion());
+    }
 }

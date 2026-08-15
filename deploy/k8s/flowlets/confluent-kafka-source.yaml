@@ -13,7 +13,7 @@ spec:
     Kafka topic.  SASL_SSL/PLAIN authentication is wired automatically from
     the `apiKey` and `apiSecret` parameters — no boilerplate required.
   type: source
-  version: "1.0"
+  version: "1.0.0"
   labels:
     group: kafka
     provider: confluent

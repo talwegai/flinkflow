@@ -13,7 +13,7 @@ spec:
     Any additional Kafka producer properties (SSL, SASL, etc.) can be supplied
     as extra `with:` keys and will be forwarded to the Flink Kafka connector.
   type: sink
-  version: "1.0"
+  version: "1.0.0"
   labels:
     group: kafka
     provider: apache

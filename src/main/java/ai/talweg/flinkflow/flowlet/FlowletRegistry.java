@@ -18,6 +18,8 @@
 package ai.talweg.flinkflow.flowlet;
 
 import ai.talweg.flinkflow.flowlet.k8s.FlowletKubernetesLoader;
+import com.vdurmont.semver4j.Requirement;
+import com.vdurmont.semver4j.Semver;
 
 import java.util.*;
 import java.util.logging.Level;
@@ -62,7 +64,7 @@ public class FlowletRegistry {
 
     private static final Logger LOG = Logger.getLogger(FlowletRegistry.class.getName());
 
-    private final Map<String, FlowletSpec> catalog = new LinkedHashMap<>();
+    private final Map<String, List<FlowletSpec>> catalog = new LinkedHashMap<>();
 
     // ------------------------------------------------------------------ //
     // Constructors
@@ -113,12 +115,63 @@ public class FlowletRegistry {
      * @throws IllegalArgumentException if no Flowlet with that name is registered
      */
     public FlowletSpec get(String name) {
-        FlowletSpec spec = catalog.get(name.toLowerCase(Locale.ROOT));
-        if (spec == null) {
+        return get(name, null);
+    }
+
+    public FlowletSpec get(String name, String versionRequirement) {
+        String key = name.toLowerCase(Locale.ROOT);
+        List<FlowletSpec> versions = catalog.get(key);
+        if (versions == null || versions.isEmpty()) {
             throw new IllegalArgumentException(
                     "Unknown Flowlet: '" + name + "'. Available: " + catalog.keySet());
         }
-        return spec;
+
+        Requirement req = null;
+        if (versionRequirement != null && !versionRequirement.isBlank()) {
+            try {
+                req = Requirement.buildNPM(versionRequirement);
+            } catch (Exception e) {
+                // If invalid requirement, try strict exact match as fallback
+            }
+        }
+
+        FlowletSpec bestMatch = null;
+        Semver bestSemver = null;
+
+        for (FlowletSpec spec : versions) {
+            String v = spec.getVersion();
+            if (v == null || v.isBlank()) {
+                v = "0.0.0";
+            }
+            Semver sv;
+            try {
+                sv = new Semver(v, Semver.SemverType.LOOSE);
+            } catch (Exception e) {
+                // ignore unparseable versions
+                continue;
+            }
+            
+            boolean satisfies = true;
+            if (req != null) {
+                satisfies = req.isSatisfiedBy(sv);
+            } else if (versionRequirement != null && !versionRequirement.isBlank()) {
+                satisfies = v.equals(versionRequirement);
+            }
+
+            if (satisfies) {
+                if (bestSemver == null || sv.isGreaterThan(bestSemver)) {
+                    bestSemver = sv;
+                    bestMatch = spec;
+                }
+            }
+        }
+
+        if (bestMatch == null) {
+             throw new IllegalArgumentException(
+                    "No Flowlet '" + name + "' satisfies version requirement '" + versionRequirement + "'.");
+        }
+
+        return bestMatch;
     }
 
     /** Returns {@code true} if a Flowlet with the given name is registered. */
@@ -128,7 +181,15 @@ public class FlowletRegistry {
 
     /** Returns an unmodifiable view of the entire catalog. */
     public Map<String, FlowletSpec> getCatalog() {
-        return Collections.unmodifiableMap(catalog);
+        Map<String, FlowletSpec> latestMap = new LinkedHashMap<>();
+        for (String key : catalog.keySet()) {
+            try {
+                latestMap.put(key, get(key, null));
+            } catch (Exception e) {
+                // Ignore
+            }
+        }
+        return Collections.unmodifiableMap(latestMap);
     }
 
     /** Returns the number of registered Flowlets. */
@@ -206,11 +267,13 @@ public class FlowletRegistry {
             return;
         }
         String key = spec.getName().toLowerCase(Locale.ROOT);
-        if (catalog.containsKey(key)) {
-            LOG.info("Overriding Flowlet '" + key + "' with version from: " + source);
-        } else {
-            LOG.info("Registered Flowlet '" + key + "' from: " + source);
-        }
-        catalog.put(key, spec);
+        String v = spec.getVersion() != null ? spec.getVersion() : "unversioned";
+        
+        catalog.putIfAbsent(key, new ArrayList<>());
+        List<FlowletSpec> versions = catalog.get(key);
+        
+        versions.removeIf(s -> Objects.equals(s.getVersion(), spec.getVersion()));
+        LOG.info("Registered Flowlet '" + key + "' (version: " + v + ") from: " + source);
+        versions.add(spec);
     }
 }

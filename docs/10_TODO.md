@@ -57,7 +57,7 @@ This file is the **Single Source of Truth** for the Flinkflow project roadmap an
 - [ ] **Universal Wrap**: Re-implement all core connectors as standard templates in the Flowlet catalog.
 
 ### 📦 Management & State
-- [ ] **Flowlet Versioning**: Support for semver pinning in pipeline definitions (e.g., `version: "1.2.0"`).
+- [x] **Flowlet Versioning**: Support for semver pinning in pipeline definitions (e.g., `version: "1.2.0"`).
 
 ### 🐫 Advanced Camel Features
 - [ ] **Side Output Support**: Ability to emit to multiple streams directly from Camel logic.
@@ -65,7 +65,7 @@ This file is the **Single Source of Truth** for the Flinkflow project roadmap an
 - [ ] **Flink State Access**: Exposing Flink's managed state (ValueState, ListState) as Camel headers.
 
 ### 📊 SQL & Table API Support (Hybrid Approach)
-- [ ] **In-stream SQL**: Add a `type: sql` step that registers incoming JSON stream data as a temporary Table view, runs custom SQL queries via Flink's `StreamTableEnvironment`, and serializes the outputs back to the universal JSON String format.
+- [x] **In-stream SQL**: Add a `type: sql` step that registers incoming JSON stream data as a temporary Table view, runs custom SQL queries via Flink's `StreamTableEnvironment`, and serializes the outputs back to the universal JSON String format.
 
 ---
 

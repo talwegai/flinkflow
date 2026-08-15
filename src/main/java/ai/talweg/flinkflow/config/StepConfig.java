@@ -53,6 +53,11 @@ public class StepConfig implements java.io.Serializable {
     private String connector;
 
     /**
+     * Optional semver version requirement for flowlet steps (e.g., "^1.2.0" or "1.0.0").
+     */
+    private String version;
+
+    /**
      * A map of properties specific to the step type (e.g., connection details,
      * configuration parameters).
      */
@@ -141,6 +146,14 @@ public class StepConfig implements java.io.Serializable {
      */
     public void setProperties(Map<String, String> properties) {
         this.properties = properties;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
     }
 
     /**
