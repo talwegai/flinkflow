@@ -288,6 +288,7 @@ name: "Production Kafka Pipeline"
 steps:
   - type: flowlet
     name: confluent-kafka-source
+    version: "^1.2.0"  # Optional: semantic version pinning
     with:
       bootstrapServers: "pkc-xxx.confluent.cloud:9092"
       topic: "raw-orders"

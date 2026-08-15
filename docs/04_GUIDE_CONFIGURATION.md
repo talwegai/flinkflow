@@ -25,6 +25,7 @@ This guide provides a detailed specification of the Flinkflow YAML DSL, includin
 - `inputs`: (Optional) List of named input streams for multi-input steps (e.g., SQL JOINs).
 - `properties`: Key-value configuration map. Values can reference Kubernetes Secrets using `secret:name/key`.
 - `with`: (For `flowlet` steps) Mapping of parameters passed to a reusable Flowlet.
+- `version`: (For `flowlet` steps) Optional Semantic Version requirement (e.g. `^1.0.0`).
 
 ---
 
@@ -205,6 +206,7 @@ Flowlets are parameterized, pre-built components (inspired by **Apache Camel Kam
 steps:
   - type: flowlet
     name: confluent-kafka-source
+    version: "^1.2.0" # Supports NPM style semantic version matching
     with:
       bootstrapServers: "pkc-xxx.confluent.cloud:9092"
       topic: "orders"

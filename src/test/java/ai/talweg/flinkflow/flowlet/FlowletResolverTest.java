@@ -62,8 +62,8 @@ public class FlowletResolverTest {
             java.lang.reflect.Field catalogField = FlowletRegistry.class.getDeclaredField("catalog");
             catalogField.setAccessible(true);
             @SuppressWarnings("unchecked")
-            Map<String, FlowletSpec> catalog = (Map<String, FlowletSpec>) catalogField.get(registry);
-            catalog.put("test-source", spec);
+            Map<String, java.util.List<FlowletSpec>> catalog = (Map<String, java.util.List<FlowletSpec>>) catalogField.get(registry);
+            catalog.put("test-source", new java.util.ArrayList<>(java.util.Arrays.asList(spec)));
         } catch (Exception e) {
             fail("Failed to inject mock spec into registry");
         }
@@ -111,8 +111,8 @@ public class FlowletResolverTest {
             java.lang.reflect.Field catalogField = FlowletRegistry.class.getDeclaredField("catalog");
             catalogField.setAccessible(true);
             @SuppressWarnings("unchecked")
-            Map<String, FlowletSpec> catalog = (Map<String, FlowletSpec>) catalogField.get(registry);
-            catalog.put("strict-flowlet", spec);
+            Map<String, java.util.List<FlowletSpec>> catalog = (Map<String, java.util.List<FlowletSpec>>) catalogField.get(registry);
+            catalog.put("strict-flowlet", new java.util.ArrayList<>(java.util.Arrays.asList(spec)));
         } catch (Exception e) {
             fail("Failed to inject mock spec into registry");
         }
@@ -153,8 +153,8 @@ public class FlowletResolverTest {
             java.lang.reflect.Field catalogField = FlowletRegistry.class.getDeclaredField("catalog");
             catalogField.setAccessible(true);
             @SuppressWarnings("unchecked")
-            Map<String, FlowletSpec> catalog = (Map<String, FlowletSpec>) catalogField.get(registry);
-            catalog.put("type-flowlet", spec);
+            Map<String, java.util.List<FlowletSpec>> catalog = (Map<String, java.util.List<FlowletSpec>>) catalogField.get(registry);
+            catalog.put("type-flowlet", new java.util.ArrayList<>(java.util.Arrays.asList(spec)));
         } catch (Exception e) {
             fail("Failed to inject mock spec into registry");
         }
@@ -236,9 +236,9 @@ public class FlowletResolverTest {
             java.lang.reflect.Field catalogField = FlowletRegistry.class.getDeclaredField("catalog");
             catalogField.setAccessible(true);
             @SuppressWarnings("unchecked")
-            Map<String, FlowletSpec> catalog = (Map<String, FlowletSpec>) catalogField.get(registry);
-            catalog.put("flowlet-a", specA);
-            catalog.put("flowlet-b", specB);
+            Map<String, java.util.List<FlowletSpec>> catalog = (Map<String, java.util.List<FlowletSpec>>) catalogField.get(registry);
+            catalog.put("flowlet-a", new java.util.ArrayList<>(java.util.Arrays.asList(specA)));
+            catalog.put("flowlet-b", new java.util.ArrayList<>(java.util.Arrays.asList(specB)));
         } catch (Exception e) {
             fail("Failed to inject mock spec into registry");
         }

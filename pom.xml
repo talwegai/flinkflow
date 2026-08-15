@@ -168,6 +168,12 @@
       <version>2.18.9</version>
     </dependency>
     
+    <!-- Semver for Flowlet Versioning -->
+    <dependency>
+      <groupId>com.vdurmont</groupId>
+      <artifactId>semver4j</artifactId>
+      <version>3.1.0</version>
+    </dependency>
     <!-- Lombok -->
     <dependency>
         <groupId>org.projectlombok</groupId>

@@ -88,7 +88,7 @@ public class FlowletResolver {
                             + "'. Resolution path: " + callStack);
         }
 
-        FlowletSpec spec = registry.get(flowletName);
+        FlowletSpec spec = registry.get(flowletName, step.getVersion());
 
         // ---------- Build effective parameter map ----------
         Map<String, String> effective = buildEffectiveParams(spec, step.getWith());

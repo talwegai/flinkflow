@@ -14,7 +14,7 @@ spec:
     as extra `with:` keys — they are forwarded directly to the Flink Kafka
     connector builder.
   type: source
-  version: "1.0"
+  version: "1.0.0"
   labels:
     group: kafka
     provider: apache
