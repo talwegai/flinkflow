@@ -120,18 +120,24 @@ jobs:
           for file in $DOC_FILES; do
             if [ -f "$file" ]; then
               echo "Updating $file..."
-              # Update JAR filename reference (matches flinkflow-X.Y.Z.jar or flinkflow-{version}.jar)
+              # Update JAR filename reference
               sed -i "s/flinkflow-\([0-9.]*[-A-Z0-9]*\|{version}\)\.jar/flinkflow-${VERSION}.jar/g" "$file"
-              # Update Docker pull command reference (matches flinkflow:X.Y.Z or flinkflow:X.Y.Z{version} or flinkflow:{version})
+              # Update Docker pull command reference
               sed -i "s|ghcr.io/talwegai/flinkflow:[a-zA-Z0-9.-]*\({\?version}\?\)\?|ghcr.io/talwegai/flinkflow:${VERSION}|g" "$file"
             fi
           done
-          
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add $DOC_FILES
-          git commit -m "docs: sync version to ${VERSION} [skip ci]" || echo "No changes to commit"
-          git push
+
+      - name: Create Pull Request for Docs Version Update
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "docs: sync version to ${{ steps.project_version.outputs.version }}"
+          branch: "chore/docs-version-update"
+          delete-branch: true
+          title: "docs: sync documentation version to ${{ steps.project_version.outputs.version }}"
+          body: "Automated PR to sync the documentation with the latest version in `pom.xml`."
+          labels: "documentation"
 
   # ──────────────────────────────────────────────────────────────────
   # Job 2: Build the Docusaurus documentation site
