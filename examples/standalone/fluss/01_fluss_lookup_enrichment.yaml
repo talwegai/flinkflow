@@ -1,0 +1,27 @@
+# ==============================================================================
+# Apache Fluss Zero-State Stream Enrichment (Lookup Join)
+# ==============================================================================
+name: "fluss-lookup-enrichment"
+parallelism: 1
+
+steps:
+  # 1. Incoming Event Stream (e.g. Orders)
+  - type: source
+    name: orders-in
+    properties:
+      content: '{"orderId": "ord-101", "userId": "usr-1", "amount": 99.50}|{"orderId": "ord-102", "userId": "usr-2", "amount": 149.00}'
+
+  # 2. Sub-millisecond Point Lookup on Fluss TabletServer KV layer
+  # Offloads RocksDB state caching from Flink TaskManagers to Fluss storage.
+  - type: fluss-lookup
+    name: enrich-user-profile
+    properties:
+      table: "default.user_profiles"
+      key: "userId"
+      outputField: "userProfile"
+      cacheTtlSec: "60"
+      cacheSize: "10000"
+
+  # 3. Output Enriched Stream
+  - type: sink
+    name: console-sink

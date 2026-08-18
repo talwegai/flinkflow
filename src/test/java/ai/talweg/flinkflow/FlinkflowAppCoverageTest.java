@@ -220,7 +220,7 @@ public class FlinkflowAppCoverageTest {
             writer.write("  - type: sink\n");
             writer.write("    name: file-sink\n");
             writer.write("    properties:\n");
-            writer.write("      path: \"" + outputDir.getAbsolutePath() + "\"\n");
+            writer.write("      path: \"" + outputDir.getAbsolutePath().replace("\\", "/") + "\"\n");
         }
 
         assertDoesNotThrow(() -> {
@@ -279,7 +279,7 @@ public class FlinkflowAppCoverageTest {
             writer.write("  - type: datamapper\n");
             writer.write("    name: mapper-step\n");
             writer.write("    properties:\n");
-            writer.write("      xsltPath: \"" + xslFile.getAbsolutePath() + "\"\n");
+            writer.write("      xsltPath: \"" + xslFile.getAbsolutePath().replace("\\", "/") + "\"\n");
             writer.write("  - type: sink\n");
             writer.write("    name: console-sink\n");
         }
