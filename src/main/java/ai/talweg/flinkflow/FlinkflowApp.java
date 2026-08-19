@@ -239,13 +239,26 @@ public class FlinkflowApp {
         }
 
         // Resolve Kubernetes secrets starting with 'secret:' in all steps
-        try (SecretResolver secretResolver = new SecretResolver()) {
-            for (StepConfig step : resolvedSteps) {
-                secretResolver.resolveStepSecrets(step, k8sNamespace);
+        boolean hasSecrets = false;
+        for (StepConfig step : resolvedSteps) {
+            if (step.getProperties() != null && step.getProperties().values().stream().anyMatch(v -> v != null && v.startsWith("secret:"))) {
+                hasSecrets = true;
+                break;
             }
-        } catch (Exception e) {
-            System.err.println("Error: Secret resolution failed: " + e.getMessage());
-            return 1;
+            if (step.getWith() != null && step.getWith().values().stream().anyMatch(v -> v != null && v.startsWith("secret:"))) {
+                hasSecrets = true;
+                break;
+            }
+        }
+        if (hasSecrets) {
+            try (SecretResolver secretResolver = new SecretResolver()) {
+                for (StepConfig step : resolvedSteps) {
+                    secretResolver.resolveStepSecrets(step, k8sNamespace);
+                }
+            } catch (Exception e) {
+                System.err.println("Error: Secret resolution failed: " + e.getMessage());
+                return 1;
+            }
         }
 
         // Validate the structure of the resolved job pipeline graph and parameters.
@@ -270,8 +283,7 @@ public class FlinkflowApp {
 
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(jobConfig.getParallelism());
-        org.apache.flink.table.api.bridge.java.StreamTableEnvironment tEnv =
-            org.apache.flink.table.api.bridge.java.StreamTableEnvironment.create(env);
+        org.apache.flink.table.api.bridge.java.StreamTableEnvironment tEnv = null;
 
         DataStream<String> stream = null;
         java.util.Map<String, DataStream<String>> streams = new java.util.LinkedHashMap<>();
@@ -378,6 +390,18 @@ public class FlinkflowApp {
                         throw new RuntimeException("Stream not initialized. Source step missing.");
                     stream = applyHttpLookup(stream, step);
                     break;
+                case "fluss-lookup":
+                    if (stream == null)
+                        throw new RuntimeException("Stream not initialized. Source step missing.");
+                    long flussTimeoutMs = Long.parseLong(step.getProperties() != null ? step.getProperties().getOrDefault("timeoutMs", "3000") : "3000");
+                    int flussCapacity = Integer.parseInt(step.getProperties() != null ? step.getProperties().getOrDefault("capacity", "100") : "100");
+                    stream = AsyncDataStream.unorderedWait(
+                            stream,
+                            new ai.talweg.flinkflow.core.DynamicFlussLookupFunction(step.getProperties()),
+                            flussTimeoutMs,
+                            TimeUnit.MILLISECONDS,
+                            flussCapacity).name(step.getName());
+                    break;
                 case "agent":
                     if (stream == null)
                         throw new RuntimeException("Stream not initialized. Source step missing.");
@@ -396,6 +420,7 @@ public class FlinkflowApp {
                 case "ml": {
                     if (stream == null)
                         throw new RuntimeException("Stream not initialized. Source step missing.");
+                    tEnv = getOrCreateTableEnv(env, tEnv, jobConfig);
                     
                     // Extract schema from properties (keys starting with "schema.")
                     java.util.Map<String, String> schemaMap = ai.talweg.flinkflow.core.SchemaHelper.extractSchema(step.getProperties());
@@ -455,6 +480,7 @@ public class FlinkflowApp {
                     break;
                 }
                 case "sql": {
+                    tEnv = getOrCreateTableEnv(env, tEnv, jobConfig);
                     java.util.List<String> inputs = step.getInputs();
                     if (inputs != null && !inputs.isEmpty()) {
                         // Multi-table mode
@@ -671,6 +697,10 @@ public class FlinkflowApp {
             
             // Map GenericRecord to JSON String to maintain our String wire format
             return avroStream.map(record -> record.toString());
+        } else if ("fluss-source".equalsIgnoreCase(sourceName) || "fluss".equalsIgnoreCase(sourceName)) {
+            String tablePath = props != null ? props.getOrDefault("table", props.get("table.path")) : "table";
+            return env.addSource(new ai.talweg.flinkflow.core.fluss.DynamicFlussSourceFunction(props))
+                    .name("Fluss Source: " + tablePath);
         } else {
             throw new RuntimeException("Unsupported source: " + sourceName);
         }
@@ -817,6 +847,9 @@ public class FlinkflowApp {
                     .buildAtLeastOnce(connectionOptionsBuilder.build());
 
             stream.sinkTo(jdbcSink).name(step.getName());
+        } else if ("fluss-sink".equalsIgnoreCase(sinkName) || "fluss".equalsIgnoreCase(sinkName)) {
+            Map<String, String> props = step.getProperties();
+            stream.addSink(new ai.talweg.flinkflow.core.fluss.DynamicFlussSinkFunction(props)).name(step.getName());
         } else {
             throw new RuntimeException("Unsupported sink: " + sinkName);
         }
@@ -950,5 +983,25 @@ public class FlinkflowApp {
         }
         schemaBuilder.watermark(wmColumn, wmColumn + " - INTERVAL '" + wmDelay + "' SECOND");
         return schemaBuilder.build();
+    }
+
+    private static org.apache.flink.table.api.bridge.java.StreamTableEnvironment getOrCreateTableEnv(
+            StreamExecutionEnvironment env,
+            org.apache.flink.table.api.bridge.java.StreamTableEnvironment existingTEnv,
+            JobConfig jobConfig) {
+        if (existingTEnv != null) {
+            return existingTEnv;
+        }
+        org.apache.flink.table.api.bridge.java.StreamTableEnvironment tEnv =
+                org.apache.flink.table.api.bridge.java.StreamTableEnvironment.create(env);
+        String flussBootstrap = ai.talweg.flinkflow.core.fluss.FlussManager.resolveBootstrapServers(null);
+        if (flussBootstrap != null && !flussBootstrap.isEmpty()) {
+            try {
+                tEnv.executeSql("CREATE CATALOG IF NOT EXISTS fluss WITH ('type' = 'fluss', 'bootstrap.servers' = '" + flussBootstrap + "')");
+            } catch (Throwable ignored) {
+                // Non-fatal if cluster is offline during non-fluss local runs
+            }
+        }
+        return tEnv;
     }
 }

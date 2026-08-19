@@ -1,0 +1,23 @@
+# ==============================================================================
+# Apache Fluss Wide Table Materialization (Partial Update Sink)
+# ==============================================================================
+name: "fluss-partial-update-sink"
+parallelism: 1
+
+steps:
+  # 1. Incoming Partial Event Stream (e.g. Payment Status)
+  - type: source
+    name: payments-in
+    connector: static-source
+    properties:
+      content: '{"orderId": "ord-101", "paymentStatus": "COMPLETED", "paidAt": "2026-08-18T12:00:00Z"}'
+
+  # 2. Sink to Fluss Primary Key Table with Partial-Update Merge Engine
+  # Merges columns directly in Fluss storage without multi-way stateful joins in Flink.
+  - type: sink
+    connector: fluss-sink
+    name: orders-wide-sink
+    properties:
+      table: "default.orders_wide"
+      primary-key: "orderId"
+      merge-engine: "partial-update"

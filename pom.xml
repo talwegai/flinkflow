@@ -49,6 +49,8 @@
     <maven.compiler.release>${target.java.version}</maven.compiler.release>
     <log4j.version>2.26.1</log4j.version>
     <netty.version>4.1.136.Final</netty.version>
+    <fluss.version>0.9.1-incubating</fluss.version>
+    <argLine></argLine>
   </properties>
 
   <repositories>
@@ -108,6 +110,18 @@
         <groupId>org.postgresql</groupId>
         <artifactId>postgresql</artifactId>
         <version>42.7.12</version>
+    </dependency>
+
+    <!-- Apache Fluss Streaming Storage & Connectors -->
+    <dependency>
+      <groupId>org.apache.fluss</groupId>
+      <artifactId>fluss-client</artifactId>
+      <version>${fluss.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.fluss</groupId>
+      <artifactId>fluss-flink-1.20</artifactId>
+      <version>${fluss.version}</version>
     </dependency>
 
     <!-- Flink ML compatibility shims (bridges Flink ML 2.2.0 → Flink 2.2.0 runtime) -->
@@ -655,6 +669,7 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>3.5.4</version>
         <configuration>
+          <argLine>@{argLine} -XX:+IgnoreUnrecognizedVMOptions --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.time=ALL-UNNAMED --add-opens java.base/java.lang.reflect=ALL-UNNAMED --add-opens java.base/java.nio=ALL-UNNAMED --add-opens java.base/sun.nio.ch=ALL-UNNAMED --add-opens java.base/sun.net.util=ALL-UNNAMED</argLine>
           <forkCount>1</forkCount>
           <reuseForks>false</reuseForks>
         </configuration>

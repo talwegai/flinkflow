@@ -111,6 +111,9 @@ public class PipelineValidator {
             case "http-lookup":
                 validateHttpLookupStep(step, errors);
                 break;
+            case "fluss-lookup":
+                validateFlussLookupStep(step, errors);
+                break;
             case "agent":
                 break;
             case "ml":
@@ -147,6 +150,12 @@ public class PipelineValidator {
             if (isAvro) {
                 validateRequiredProperty(step, "schema.registry.url", props, errors);
             }
+        } else if (normConnector.startsWith("fluss-source") || normConnector.equals("fluss")) {
+            boolean hasTable = props != null && ((props.containsKey("table") && props.get("table") != null && !props.get("table").trim().isEmpty())
+                    || (props.containsKey("table.path") && props.get("table.path") != null && !props.get("table.path").trim().isEmpty()));
+            if (!hasTable) {
+                errors.add(String.format("Source step '%s' (fluss) requires 'table' or 'table.path' property.", step.getName()));
+            }
         } else if (normConnector.startsWith("file-source") || normConnector.startsWith("s3-source")) {
             validateRequiredProperty(step, "path", props, errors);
         } else if (normConnector.startsWith("static-source")) {
@@ -155,7 +164,7 @@ public class PipelineValidator {
             // parameters have defaults
         } else {
             boolean matched = false;
-            String[] validSources = {"kafka-source", "kafka-avro-source", "file-source", "s3-source", "static-source", "datagen", "datagen-source"};
+            String[] validSources = {"kafka-source", "kafka-avro-source", "fluss", "fluss-source", "file-source", "s3-source", "static-source", "datagen", "datagen-source"};
             for (String v : validSources) {
                 if (v.equalsIgnoreCase(normConnector)) {
                     matched = true;
@@ -188,6 +197,12 @@ public class PipelineValidator {
             if (isAvro) {
                 validateRequiredProperty(step, "schema.registry.url", props, errors);
             }
+        } else if (normConnector.startsWith("fluss-sink") || normConnector.equals("fluss")) {
+            boolean hasTable = props != null && ((props.containsKey("table") && props.get("table") != null && !props.get("table").trim().isEmpty())
+                    || (props.containsKey("table.path") && props.get("table.path") != null && !props.get("table.path").trim().isEmpty()));
+            if (!hasTable) {
+                errors.add(String.format("Sink step '%s' (fluss) requires 'table' or 'table.path' property.", step.getName()));
+            }
         } else if (normConnector.startsWith("file-sink") || normConnector.startsWith("s3-sink")) {
             validateRequiredProperty(step, "path", props, errors);
         } else if (normConnector.startsWith("http-sink") || normConnector.startsWith("webhook-sink")) {
@@ -206,7 +221,7 @@ public class PipelineValidator {
             // no required properties
         } else {
             boolean matched = false;
-            String[] validSinks = {"console", "console-sink", "kafka-sink", "kafka-avro-sink", "file-sink", "s3-sink", "http-sink", "webhook-sink", "jdbc-sink"};
+            String[] validSinks = {"console", "console-sink", "fluss", "fluss-sink", "kafka-sink", "kafka-avro-sink", "file-sink", "s3-sink", "http-sink", "webhook-sink", "jdbc-sink"};
             for (String v : validSinks) {
                 if (v.equalsIgnoreCase(normConnector)) {
                     matched = true;
@@ -217,6 +232,20 @@ public class PipelineValidator {
                 errors.add(String.format("Sink step '%s' specifies an unsupported connector: '%s'. Supported: %s", 
                         step.getName(), connector, String.join(", ", validSinks)));
             }
+        }
+    }
+
+    private static void validateFlussLookupStep(StepConfig step, List<String> errors) {
+        Map<String, String> props = step.getProperties();
+        boolean hasTable = props != null && ((props.containsKey("table") && props.get("table") != null && !props.get("table").trim().isEmpty())
+                || (props.containsKey("table.path") && props.get("table.path") != null && !props.get("table.path").trim().isEmpty()));
+        if (!hasTable) {
+            errors.add(String.format("Fluss lookup step '%s' requires 'table' or 'table.path' property.", step.getName()));
+        }
+        boolean hasKey = props != null && ((props.containsKey("key") && props.get("key") != null && !props.get("key").trim().isEmpty())
+                || (props.containsKey("lookupKey") && props.get("lookupKey") != null && !props.get("lookupKey").trim().isEmpty()));
+        if (!hasKey) {
+            errors.add(String.format("Fluss lookup step '%s' requires 'key' or 'lookupKey' property.", step.getName()));
         }
     }
 
