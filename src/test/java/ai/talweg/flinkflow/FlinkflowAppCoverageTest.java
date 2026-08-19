@@ -442,7 +442,56 @@ public class FlinkflowAppCoverageTest {
             writer.write("      schema.literal: '{\"type\":\"record\",\"name\":\"User\",\"fields\":[{\"name\":\"name\",\"type\":\"string\"}]}'\n");
         }
         assertDoesNotThrow(() -> {
-            FlinkflowApp.main(new String[]{configFile.getAbsolutePath(), "--dry-run"});
+            FlinkflowApp.main(new String[]{configFile.getAbsolutePath().replace("\\", "/"), "--dry-run"});
+        });
+    }
+
+    @Test
+    public void testFlussSourcesAndSinks(@TempDir Path tempDir) throws Exception {
+        File configFile = tempDir.resolve("fluss.yaml").toFile();
+        try (FileWriter writer = new FileWriter(configFile)) {
+            writer.write("name: \"Fluss Pipeline\"\n");
+            writer.write("steps:\n");
+            writer.write("  - type: source\n");
+            writer.write("    name: fluss-source-step\n");
+            writer.write("    connector: fluss-source\n");
+            writer.write("    properties:\n");
+            writer.write("      table: \"orders\"\n");
+            writer.write("      bootstrap.servers: \"localhost:9123\"\n");
+            writer.write("  - type: sink\n");
+            writer.write("    name: fluss-sink-step\n");
+            writer.write("    connector: fluss-sink\n");
+            writer.write("    properties:\n");
+            writer.write("      table: \"orders\"\n");
+            writer.write("      merge-engine: \"partial-update\"\n");
+            writer.write("      bootstrap.servers: \"localhost:9123\"\n");
+        }
+        assertDoesNotThrow(() -> {
+            FlinkflowApp.main(new String[]{configFile.getAbsolutePath().replace("\\", "/"), "--dry-run"});
+        });
+    }
+
+    @Test
+    public void testFlussLookupPipeline(@TempDir Path tempDir) throws Exception {
+        File configFile = tempDir.resolve("fluss-lookup.yaml").toFile();
+        try (FileWriter writer = new FileWriter(configFile)) {
+            writer.write("name: \"Fluss Lookup Pipeline\"\n");
+            writer.write("steps:\n");
+            writer.write("  - type: source\n");
+            writer.write("    name: static-source\n");
+            writer.write("  - type: fluss-lookup\n");
+            writer.write("    name: fluss-lookup-step\n");
+            writer.write("    properties:\n");
+            writer.write("      table: \"user_profiles\"\n");
+            writer.write("      key: \"userId\"\n");
+            writer.write("      outputField: \"userProfile\"\n");
+            writer.write("      cacheTtlSec: \"30\"\n");
+            writer.write("      bootstrap.servers: \"localhost:9123\"\n");
+            writer.write("  - type: sink\n");
+            writer.write("    name: console-sink\n");
+        }
+        assertDoesNotThrow(() -> {
+            FlinkflowApp.main(new String[]{configFile.getAbsolutePath().replace("\\", "/"), "--dry-run"});
         });
     }
 
