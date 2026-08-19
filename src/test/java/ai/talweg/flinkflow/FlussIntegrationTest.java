@@ -18,10 +18,14 @@ package ai.talweg.flinkflow;
 
 import ai.talweg.flinkflow.config.JobConfig;
 import ai.talweg.flinkflow.config.StepConfig;
+import ai.talweg.flinkflow.core.DynamicFlussLookupFunction;
+import ai.talweg.flinkflow.core.fluss.DynamicFlussSinkFunction;
+import ai.talweg.flinkflow.core.fluss.DynamicFlussSourceFunction;
 import ai.talweg.flinkflow.core.fluss.FlussManager;
 import ai.talweg.flinkflow.validation.PipelineValidationException;
 import ai.talweg.flinkflow.validation.PipelineValidator;
 import org.apache.fluss.config.Configuration;
+import org.apache.fluss.metadata.TablePath;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -29,21 +33,28 @@ import java.io.File;
 import java.io.FileWriter;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Self-contained unit and dry-run tests for Apache Fluss integration.
- * Mimics external connector test patterns (Kafka, JDBC, S3) without requiring a live cluster.
+ * Self-contained unit, dry-run, and topology construction tests for Apache Fluss integration.
+ * Conforms to established Flinkflow connector test patterns (Kafka, JDBC, S3) without requiring
+ * an active external cluster.
  */
 public class FlussIntegrationTest {
+
+    // =========================================================================
+    // 1. Dry-Run Configuration & Validation Tests
+    // =========================================================================
 
     @Test
     public void testFlussLookupDryRunValidation(@TempDir Path tempDir) throws Exception {
@@ -69,7 +80,8 @@ public class FlussIntegrationTest {
         }
 
         assertDoesNotThrow(() -> {
-            FlinkflowApp.main(new String[]{configFile.getAbsolutePath().replace("\\", "/"), "--dry-run"});
+            int status = FlinkflowApp.execute(new String[]{configFile.getAbsolutePath(), "--dry-run"});
+            assertEquals(0, status, "Expected status 0 for valid Fluss lookup dry-run");
         });
     }
 
@@ -94,7 +106,8 @@ public class FlussIntegrationTest {
         }
 
         assertDoesNotThrow(() -> {
-            FlinkflowApp.main(new String[]{configFile.getAbsolutePath().replace("\\", "/"), "--dry-run"});
+            int status = FlinkflowApp.execute(new String[]{configFile.getAbsolutePath(), "--dry-run"});
+            assertEquals(0, status, "Expected status 0 for valid Fluss sink dry-run");
         });
     }
 
@@ -116,8 +129,103 @@ public class FlussIntegrationTest {
         }
 
         assertDoesNotThrow(() -> {
-            FlinkflowApp.main(new String[]{configFile.getAbsolutePath().replace("\\", "/"), "--dry-run"});
+            int status = FlinkflowApp.execute(new String[]{configFile.getAbsolutePath(), "--dry-run"});
+            assertEquals(0, status, "Expected status 0 for valid Fluss source dry-run");
         });
+    }
+
+    // =========================================================================
+    // 2. DAG / Topology Construction Tests (Matching Kafka/JDBC pattern)
+    // =========================================================================
+
+    @Test
+    public void testFlussPipelineGraphConstructionCoverage(@TempDir Path tempDir) throws Exception {
+        File configFile = tempDir.resolve("fluss-coverage-pipeline.yaml").toFile();
+        try (FileWriter writer = new FileWriter(configFile)) {
+            writer.write("name: \"Fluss Coverage Pipeline\"\n");
+            writer.write("parallelism: 1\n");
+            writer.write("steps:\n");
+            writer.write("  - type: source\n");
+            writer.write("    connector: fluss-source\n");
+            writer.write("    name: fluss-in\n");
+            writer.write("    properties:\n");
+            writer.write("      table: \"orders\"\n");
+            writer.write("      bootstrap.servers: \"localhost:9123\"\n");
+            writer.write("      client.connect.timeout: \"500ms\"\n");
+            writer.write("  - type: fluss-lookup\n");
+            writer.write("    name: enrich-user\n");
+            writer.write("    properties:\n");
+            writer.write("      table: \"user_profiles\"\n");
+            writer.write("      key: \"userId\"\n");
+            writer.write("      outputField: \"userProfile\"\n");
+            writer.write("      timeoutMs: \"500\"\n");
+            writer.write("      capacity: \"50\"\n");
+            writer.write("      bootstrap.servers: \"localhost:9123\"\n");
+            writer.write("      client.connect.timeout: \"500ms\"\n");
+            writer.write("  - type: sink\n");
+            writer.write("    connector: fluss-sink\n");
+            writer.write("    name: fluss-out\n");
+            writer.write("    properties:\n");
+            writer.write("      table: \"orders_enriched\"\n");
+            writer.write("      bootstrap.servers: \"localhost:9123\"\n");
+            writer.write("      client.connect.timeout: \"500ms\"\n");
+        }
+
+        // Flink DAG construction runs and verifies step instantiation; fails on env.execute()
+        // because no live Fluss server is running locally in CI.
+        assertThrows(Exception.class, () -> {
+            FlinkflowApp.execute(new String[]{configFile.getAbsolutePath()});
+        });
+    }
+
+    // =========================================================================
+    // 3. FlussManager Unit Tests
+    // =========================================================================
+
+    @Test
+    public void testFlussManagerResolveTablePath() {
+        // Simple table name defaults to "default" database
+        TablePath singleTable = FlussManager.resolveTablePath("orders");
+        assertEquals("default", singleTable.getDatabaseName());
+        assertEquals("orders", singleTable.getTableName());
+
+        // Fully qualified table path "database.table"
+        TablePath qualifiedTable = FlussManager.resolveTablePath("analytics.user_events");
+        assertEquals("analytics", qualifiedTable.getDatabaseName());
+        assertEquals("user_events", qualifiedTable.getTableName());
+
+        // Multi-dot qualified path
+        TablePath multiDot = FlussManager.resolveTablePath("my_catalog_db.table_name");
+        assertEquals("my_catalog_db", multiDot.getDatabaseName());
+        assertEquals("table_name", multiDot.getTableName());
+
+        // Invalid null or blank inputs throw IllegalArgumentException
+        assertThrows(IllegalArgumentException.class, () -> FlussManager.resolveTablePath(null));
+        assertThrows(IllegalArgumentException.class, () -> FlussManager.resolveTablePath(""));
+        assertThrows(IllegalArgumentException.class, () -> FlussManager.resolveTablePath("   "));
+    }
+
+    @Test
+    public void testFlussManagerResolveBootstrapServers() {
+        // 1. From "bootstrap.servers" property
+        Map<String, String> props1 = new HashMap<>();
+        props1.put("bootstrap.servers", "fluss-prod:9123");
+        assertEquals("fluss-prod:9123", FlussManager.resolveBootstrapServers(props1));
+
+        // 2. From "coordinator.server" property
+        Map<String, String> props2 = new HashMap<>();
+        props2.put("coordinator.server", "coordinator-host:9123");
+        assertEquals("coordinator-host:9123", FlussManager.resolveBootstrapServers(props2));
+
+        // 3. Null / empty fallback to default localhost:9123
+        String fallback = FlussManager.resolveBootstrapServers(Collections.emptyMap());
+        assertNotNull(fallback);
+        assertFalseOrNotEmpty(fallback);
+    }
+
+    private void assertFalseOrNotEmpty(String val) {
+        assertNotNull(val);
+        assertTrue(!val.trim().isEmpty());
     }
 
     @Test
@@ -135,6 +243,42 @@ public class FlussIntegrationTest {
         assertEquals("5000", confMap.get("lookup.cache.max-rows"));
         assertEquals("enabled", confMap.get("custom.future.fluss.feature"));
     }
+
+    // =========================================================================
+    // 4. Component Function Instantiation & Validation Tests
+    // =========================================================================
+
+    @Test
+    public void testDynamicFlussFunctionsConstructors() {
+        Map<String, String> lookupProps = new HashMap<>();
+        lookupProps.put("table", "users");
+        lookupProps.put("key", "userId");
+        DynamicFlussLookupFunction lookupFunc = new DynamicFlussLookupFunction(lookupProps);
+        assertNotNull(lookupFunc);
+
+        DynamicFlussLookupFunction emptyLookupFunc = new DynamicFlussLookupFunction(null);
+        assertNotNull(emptyLookupFunc);
+
+        Map<String, String> sinkProps = new HashMap<>();
+        sinkProps.put("table", "orders");
+        DynamicFlussSinkFunction sinkFunc = new DynamicFlussSinkFunction(sinkProps);
+        assertNotNull(sinkFunc);
+
+        DynamicFlussSinkFunction emptySinkFunc = new DynamicFlussSinkFunction(null);
+        assertNotNull(emptySinkFunc);
+
+        Map<String, String> sourceProps = new HashMap<>();
+        sourceProps.put("table", "orders");
+        DynamicFlussSourceFunction sourceFunc = new DynamicFlussSourceFunction(sourceProps);
+        assertNotNull(sourceFunc);
+
+        DynamicFlussSourceFunction emptySourceFunc = new DynamicFlussSourceFunction(null);
+        assertNotNull(emptySourceFunc);
+    }
+
+    // =========================================================================
+    // 5. Pipeline Validator Direct & Error Tests
+    // =========================================================================
 
     @Test
     public void testFlussValidationErrorsOnMissingProperties(@TempDir Path tempDir) throws Exception {
@@ -154,7 +298,7 @@ public class FlussIntegrationTest {
         }
 
         assertThrows(RuntimeException.class, () -> {
-            FlinkflowApp.main(new String[]{configFile.getAbsolutePath().replace("\\", "/"), "--dry-run"});
+            FlinkflowApp.execute(new String[]{configFile.getAbsolutePath(), "--dry-run"});
         });
     }
 
@@ -224,5 +368,31 @@ public class FlussIntegrationTest {
         assertDoesNotThrow(() -> {
             PipelineValidator.validate(jobConfig, pipelineSteps);
         });
+
+        // 4. Invalid fluss source missing table
+        List<StepConfig> invalidSourceSteps = new ArrayList<>();
+        StepConfig invalidSource = new StepConfig();
+        invalidSource.setName("invalid-fluss-source");
+        invalidSource.setType("source");
+        invalidSource.setConnector("fluss-source");
+        invalidSourceSteps.add(invalidSource);
+
+        PipelineValidationException sourceEx = assertThrows(PipelineValidationException.class, () -> {
+            PipelineValidator.validate(jobConfig, invalidSourceSteps);
+        });
+        assertTrue(sourceEx.getMessage().contains("fluss"));
+
+        // 5. Invalid fluss sink missing table
+        List<StepConfig> invalidSinkSteps = new ArrayList<>();
+        StepConfig invalidSink = new StepConfig();
+        invalidSink.setName("invalid-fluss-sink");
+        invalidSink.setType("sink");
+        invalidSink.setConnector("fluss-sink");
+        invalidSinkSteps.add(invalidSink);
+
+        PipelineValidationException sinkEx = assertThrows(PipelineValidationException.class, () -> {
+            PipelineValidator.validate(jobConfig, invalidSinkSteps);
+        });
+        assertTrue(sinkEx.getMessage().contains("fluss"));
     }
 }

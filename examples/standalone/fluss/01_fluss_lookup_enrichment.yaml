@@ -8,6 +8,7 @@ steps:
   # 1. Incoming Event Stream (e.g. Orders)
   - type: source
     name: orders-in
+    connector: static-source
     properties:
       content: '{"orderId": "ord-101", "userId": "usr-1", "amount": 99.50}|{"orderId": "ord-102", "userId": "usr-2", "amount": 149.00}'
 

@@ -8,6 +8,7 @@ steps:
   # 1. Incoming Partial Event Stream (e.g. Payment Status)
   - type: source
     name: payments-in
+    connector: static-source
     properties:
       content: '{"orderId": "ord-101", "paymentStatus": "COMPLETED", "paidAt": "2026-08-18T12:00:00Z"}'
 
