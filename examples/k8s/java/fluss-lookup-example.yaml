@@ -21,6 +21,7 @@ spec:
         cacheSize: "5000"
         timeoutMs: "3000"
         capacity: "100"
+        bootstrap.servers: "localhost:9123"
 
     - type: sink
       name: console-sink

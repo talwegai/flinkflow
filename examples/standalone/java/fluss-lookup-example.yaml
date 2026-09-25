@@ -20,6 +20,7 @@ steps:
       cacheSize: "5000"
       timeoutMs: "3000"
       capacity: "100"
+      bootstrap.servers: "localhost:9123"
 
   # 3. Output the enriched JSON stream to console
   - type: sink

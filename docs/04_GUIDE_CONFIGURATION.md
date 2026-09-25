@@ -237,10 +237,14 @@ name: "Tumbling Window Count"
 steps:
   - type: source
     name: kafka-source
-    properties: { topic: "events" }
+    properties:
+      topic: "events"
+      bootstrap.servers: "localhost:9092"
   - type: keyby
+    name: partition-by-id
     code: "return input.split(',')[0];"
   - type: window
+    name: tumble-window
     properties: { windowType: tumbling, size: 60 }
     code: |
       int count1 = Integer.parseInt(value1.split(",")[1]);
@@ -254,6 +258,7 @@ steps:
 ```yaml
 steps:
   - type: http-lookup
+    name: http-enrich
     properties:
       urlCode: 'return "https://api.my.com/user/" + input.split(",")[1];'
       timeout: "5000"
@@ -264,6 +269,7 @@ steps:
 ```yaml
 steps:
   - type: fluss-lookup
+    name: fluss-lookup
     properties:
       table: "default.users"
       key: "userId"
@@ -272,12 +278,15 @@ steps:
       cacheSize: "5000"
       timeoutMs: "3000"
       capacity: "100"
+      bootstrap.servers: "localhost:9123"
 ```
 
 ### JDBC Batch Sink
 ```yaml
 steps:
-  - type: jdbc-sink
+  - type: sink
+    connector: jdbc-sink
+    name: jdbc-events-sink
     properties:
       url: "jdbc:postgresql://localhost:5432/analytics"
       sql: "INSERT INTO events (id, payload) VALUES (?, ?)"

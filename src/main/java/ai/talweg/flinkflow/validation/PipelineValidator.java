@@ -154,7 +154,7 @@ public class PipelineValidator {
             boolean hasTable = props != null && ((props.containsKey("table") && props.get("table") != null && !props.get("table").trim().isEmpty())
                     || (props.containsKey("table.path") && props.get("table.path") != null && !props.get("table.path").trim().isEmpty()));
             if (!hasTable) {
-                errors.add(String.format("Source step '%s' (fluss-source) requires 'table' or 'table.path' property.", step.getName()));
+                errors.add(String.format("Source step '%s' (fluss-source) requires 'table' or 'table.path' property.", getSafeStepName(step)));
             }
         } else if (normConnector.startsWith("file-source") || normConnector.startsWith("s3-source")) {
             validateRequiredProperty(step, "path", props, errors);
@@ -201,7 +201,7 @@ public class PipelineValidator {
             boolean hasTable = props != null && ((props.containsKey("table") && props.get("table") != null && !props.get("table").trim().isEmpty())
                     || (props.containsKey("table.path") && props.get("table.path") != null && !props.get("table.path").trim().isEmpty()));
             if (!hasTable) {
-                errors.add(String.format("Sink step '%s' (fluss-sink) requires 'table' or 'table.path' property.", step.getName()));
+                errors.add(String.format("Sink step '%s' (fluss-sink) requires 'table' or 'table.path' property.", getSafeStepName(step)));
             }
         } else if (normConnector.startsWith("file-sink") || normConnector.startsWith("s3-sink")) {
             validateRequiredProperty(step, "path", props, errors);
@@ -235,23 +235,29 @@ public class PipelineValidator {
         }
     }
 
+    private static String getSafeStepName(StepConfig step) {
+        return (step != null && step.getName() != null && !step.getName().trim().isEmpty())
+                ? step.getName()
+                : "unknown";
+    }
+
     private static void validateFlussLookupStep(StepConfig step, List<String> errors) {
         Map<String, String> props = step.getProperties();
         boolean hasTable = props != null && ((props.containsKey("table") && props.get("table") != null && !props.get("table").trim().isEmpty())
                 || (props.containsKey("table.path") && props.get("table.path") != null && !props.get("table.path").trim().isEmpty()));
         if (!hasTable) {
-            errors.add(String.format("Fluss lookup step '%s' requires 'table' or 'table.path' property.", step.getName()));
+            errors.add(String.format("Fluss lookup step '%s' requires 'table' or 'table.path' property.", getSafeStepName(step)));
         }
         boolean hasKey = props != null && ((props.containsKey("key") && props.get("key") != null && !props.get("key").trim().isEmpty())
                 || (props.containsKey("lookupKey") && props.get("lookupKey") != null && !props.get("lookupKey").trim().isEmpty()));
         if (!hasKey) {
-            errors.add(String.format("Fluss lookup step '%s' requires 'key' or 'lookupKey' property.", step.getName()));
+            errors.add(String.format("Fluss lookup step '%s' requires 'key' or 'lookupKey' property.", getSafeStepName(step)));
         }
     }
 
     private static void validateCodeStep(StepConfig step, List<String> errors) {
         if (step.getCode() == null || step.getCode().trim().isEmpty()) {
-            errors.add(String.format("Step '%s' of type '%s' requires a 'code' snippet.", step.getName(), step.getType()));
+            errors.add(String.format("Step '%s' of type '%s' requires a 'code' snippet.", getSafeStepName(step), step.getType()));
         }
     }
 
@@ -259,7 +265,7 @@ public class PipelineValidator {
         validateCodeStep(step, errors);
         Map<String, String> props = step.getProperties();
         if (props == null) {
-            errors.add(String.format("Window step '%s' requires 'properties' containing window configuration.", step.getName()));
+            errors.add(String.format("Window step '%s' requires 'properties' containing window configuration.", getSafeStepName(step)));
             return;
         }
 
@@ -273,7 +279,7 @@ public class PipelineValidator {
             validateNumericProperty(step, "gap", props, errors);
         } else {
             errors.add(String.format("Window step '%s' has unknown windowType: '%s'. Supported: tumbling, sliding, session.", 
-                    step.getName(), props.get("windowType")));
+                    getSafeStepName(step), props.get("windowType")));
         }
     }
 

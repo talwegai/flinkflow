@@ -22,6 +22,7 @@ steps:
       outputField: "userProfile"
       cacheTtlSec: "60"
       cacheSize: "10000"
+      bootstrap.servers: "localhost:9123"
 
   # 3. Output Enriched Stream
   - type: sink

@@ -21,3 +21,4 @@ steps:
       table: "default.orders_wide"
       primary-key: "orderId"
       merge-engine: "partial-update"
+      bootstrap.servers: "localhost:9123"
