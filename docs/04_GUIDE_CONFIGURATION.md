@@ -12,7 +12,7 @@ This guide provides a detailed specification of the Flinkflow YAML DSL, includin
 - `steps`: A sequential list of pipeline steps.
 
 ### Step Config
-- `type`: The type of operation (`source`, `process`, `datamapper`, `join`, `http-lookup`, `agent`, `ml`, `sql`, `sink`, or `flowlet`).
+- `type`: The type of operation (`source`, `process`, `datamapper`, `join`, `http-lookup`, `fluss-lookup`, `agent`, `ml`, `sql`, `sink`, or `flowlet`).
 - `name`: Unique identifier for the component (e.g., `kafka-source`).
 - `code`: The logic snippet for transformation (used in `process`, `filter`, `flatmap`, etc.).
 - `language`: (Optional) The runtime for the `code` snippet:
@@ -59,6 +59,7 @@ This guide provides a detailed specification of the Flinkflow YAML DSL, includin
 | `join` | Interval join between two streams. | `left`, `right`| Java-only |
 | `agent` | Autonomous LLM agent over each record. | `input` | OpenAI / Gemini / Vertex |
 | `http-lookup`| Async enrichment via REST API. | `input`, `resp` | Java-only |
+| `fluss-lookup`| Sub-millisecond KV point lookup enrichment via Apache Fluss. | `table`, `key`, `outputField`, `cacheTtlSec`, `cacheSize`, `timeoutMs`, `capacity` | Apache Fluss |
 | `ml` | Declarative Flink ML stage (Estimator/Transformer). | `algorithm`, `schema.*`, parameters | Flink ML |
 | `sql` | Write ANSI SQL queries directly as pipeline steps. | `query`, `schema.*`, `inputs`, `outputMode`, `watermark.*` | Flink SQL |
 
@@ -257,6 +258,20 @@ steps:
       urlCode: 'return "https://api.my.com/user/" + input.split(",")[1];'
       timeout: "5000"
     code: 'return input + " | meta=" + response;'
+```
+
+### Fluss KV Point Lookup Enrichment
+```yaml
+steps:
+  - type: fluss-lookup
+    properties:
+      table: "default.users"
+      key: "userId"
+      outputField: "profile"
+      cacheTtlSec: "60"
+      cacheSize: "5000"
+      timeoutMs: "3000"
+      capacity: "100"
 ```
 
 ### JDBC Batch Sink

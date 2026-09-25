@@ -1,0 +1,26 @@
+name: "Fluss Lookup Example Pipeline"
+parallelism: 1
+
+steps:
+  # 1. Source stream emitting JSON events containing a lookup key
+  - type: source
+    name: static-source
+    properties:
+      content: '{"userId":"usr-101","action":"login"}|{"userId":"usr-102","action":"purchase"}|{"userId":"usr-103","action":"logout"}'
+
+  # 2. Async Fluss Key-Value Point Lookup against Fluss storage
+  # Sub-millisecond lookup on Fluss TabletServer Primary Key table
+  - type: fluss-lookup
+    name: fluss-lookup
+    properties:
+      table: "default.users"
+      key: "userId"
+      outputField: "profile"
+      cacheTtlSec: "60"
+      cacheSize: "5000"
+      timeoutMs: "3000"
+      capacity: "100"
+
+  # 3. Output the enriched JSON stream to console
+  - type: sink
+    name: console-sink

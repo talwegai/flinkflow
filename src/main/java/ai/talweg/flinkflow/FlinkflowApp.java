@@ -697,7 +697,7 @@ public class FlinkflowApp {
             
             // Map GenericRecord to JSON String to maintain our String wire format
             return avroStream.map(record -> record.toString());
-        } else if ("fluss-source".equalsIgnoreCase(sourceName) || "fluss".equalsIgnoreCase(sourceName)) {
+        } else if ("fluss-source".equalsIgnoreCase(sourceName)) {
             String tablePath = props != null ? props.getOrDefault("table", props.get("table.path")) : "table";
             return env.addSource(new ai.talweg.flinkflow.core.fluss.DynamicFlussSourceFunction(props))
                     .name("Fluss Source: " + tablePath);
@@ -847,7 +847,7 @@ public class FlinkflowApp {
                     .buildAtLeastOnce(connectionOptionsBuilder.build());
 
             stream.sinkTo(jdbcSink).name(step.getName());
-        } else if ("fluss-sink".equalsIgnoreCase(sinkName) || "fluss".equalsIgnoreCase(sinkName)) {
+        } else if ("fluss-sink".equalsIgnoreCase(sinkName)) {
             Map<String, String> props = step.getProperties();
             stream.addSink(new ai.talweg.flinkflow.core.fluss.DynamicFlussSinkFunction(props)).name(step.getName());
         } else {

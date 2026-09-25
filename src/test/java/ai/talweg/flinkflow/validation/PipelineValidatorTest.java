@@ -530,5 +530,36 @@ public class PipelineValidatorTest {
         );
         assertTrue(ex.getMessage().contains("must define a SQL query either in 'properties.query' or as a step 'code' body"));
     }
+
+    @Test
+    public void testFlussSourceValidation() {
+        JobConfig job = new JobConfig();
+        job.setName("Fluss Source Validation");
+
+        StepConfig step = new StepConfig();
+        step.setName("my-fluss-source");
+        step.setType("source");
+        step.setConnector("fluss-source");
+
+        List<StepConfig> steps = Collections.singletonList(step);
+        job.setSteps(steps);
+
+        PipelineValidationException ex = assertThrows(PipelineValidationException.class, () ->
+            PipelineValidator.validate(job, steps)
+        );
+        assertTrue(ex.getMessage().contains("requires 'table' or 'table.path' property"));
+
+        // Valid with table property and sink
+        Map<String, String> props = new HashMap<>();
+        props.put("table", "default.orders");
+        step.setProperties(props);
+
+        StepConfig sinkStep = new StepConfig();
+        sinkStep.setName("console");
+        sinkStep.setType("sink");
+        List<StepConfig> validSteps = Arrays.asList(step, sinkStep);
+
+        assertDoesNotThrow(() -> PipelineValidator.validate(job, validSteps));
+    }
 }
 
