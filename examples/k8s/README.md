@@ -57,6 +57,7 @@ Unlike the standalone YAML examples, these files are formatted as Kubernetes obj
 | **[`java/complex-enrichment-example.yaml`](java/complex-enrichment-example.yaml)** | Advanced | Multi-step pipeline with joins and lookups. |
 | **[`java/kafka-streaming-demo.yaml`](java/kafka-streaming-demo.yaml)** | Full Demo | Complete Kafka-to-Kafka streaming pipeline. |
 | **[`java/window-example.yaml`](java/window-example.yaml)** | Time Windows | Tumbling time-window aggregation. |
+| **[`java/fluss-lookup-example.yaml`](java/fluss-lookup-example.yaml)** | Fluss Lookup | Sub-millisecond KV point lookup enrichment via Apache Fluss. |
 | **[`java/datamapper-example.yaml`](java/datamapper-example.yaml)** | Data Mapping | XSLT 3.0 structural transformations. |
 
 ### 📊 SQL & Table API (Flink SQL)

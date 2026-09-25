@@ -51,7 +51,7 @@ public class SmokeTestSuite {
                     System.out.println("Running smoke test for: " + path);
                     
                     // We call execute with --dry-run and point to the flowlet catalog
-                    String[] args = new String[]{path.toString(), "--dry-run", "--flowlet-dir", "k8s/flowlets"};
+                    String[] args = new String[]{path.toString(), "--dry-run", "--flowlet-dir", "deploy/k8s/flowlets"};
                     
                     assertDoesNotThrow(() -> {
                         int status = FlinkflowApp.execute(args);

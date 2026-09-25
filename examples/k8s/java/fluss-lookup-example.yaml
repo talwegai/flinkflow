@@ -1,0 +1,27 @@
+apiVersion: flinkflow.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: fluss-lookup-example-pipeline
+spec:
+  name: "Fluss Lookup Example Pipeline"
+  parallelism: 1
+  steps:
+    - type: source
+      name: static-source
+      properties:
+        content: '{"userId":"usr-101","action":"login"}|{"userId":"usr-102","action":"purchase"}|{"userId":"usr-103","action":"logout"}'
+
+    - type: fluss-lookup
+      name: fluss-lookup
+      properties:
+        table: "default.users"
+        key: "userId"
+        outputField: "profile"
+        cacheTtlSec: "60"
+        cacheSize: "5000"
+        timeoutMs: "3000"
+        capacity: "100"
+        bootstrap.servers: "localhost:9123"
+
+    - type: sink
+      name: console-sink

@@ -47,7 +47,14 @@ Unlike the Kubernetes examples, these are plain YAML files that should be run us
 - **[`java/complex-enrichment-example.yaml`](java/complex-enrichment-example.yaml)**: multi-step pipeline with joins, lookups, and nested transforms.
 - **[`java/kafka-avro-schema-registry-example.yaml`](java/kafka-avro-schema-registry-example.yaml)**: Avro serialization with automatic schema resolution.
 - **[`java/jdbc-sink-example.yaml`](java/jdbc-sink-example.yaml)**: High-throughput batch inserts to PostgreSQL/MySQL.
+- **[`java/fluss-lookup-example.yaml`](java/fluss-lookup-example.yaml)**: Sub-millisecond KV point lookup enrichment using Apache Fluss tablet servers.
 - **[`java/window-example.yaml`](java/window-example.yaml)**: Time-based windowing (Tumbling, Sliding, Session).
+
+### 🌊 Apache Fluss Streaming Storage
+*Best for: Zero-state stream enrichment via KV point lookups and real-time wide-table materialization.*
+- **[`fluss/01_fluss_lookup_enrichment.yaml`](fluss/01_fluss_lookup_enrichment.yaml)**: Zero-state stream enrichment offloading RocksDB TM state to Fluss tablet server KV lookups.
+- **[`fluss/02_fluss_partial_update_sink.yaml`](fluss/02_fluss_partial_update_sink.yaml)**: High-throughput wide-table materialization using Fluss primary key partial update sink.
+- **[`java/fluss-lookup-example.yaml`](java/fluss-lookup-example.yaml)**: Standalone `fluss-lookup` point-lookup enrichment pipeline.
 
 ### 📊 SQL & Table API (Flink SQL)
 *Best for: Declarative relational streaming query logic (projections, filtering, joining).*

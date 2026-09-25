@@ -48,7 +48,10 @@
     <app.args></app.args>
     <maven.compiler.release>${target.java.version}</maven.compiler.release>
     <log4j.version>2.26.1</log4j.version>
-    <netty.version>4.1.136.Final</netty.version>
+    <netty.version>4.1.137.Final</netty.version>
+    <bouncycastle.version>1.85</bouncycastle.version>
+    <fluss.version>0.9.1-incubating</fluss.version>
+    <argLine></argLine>
   </properties>
 
   <repositories>
@@ -108,6 +111,18 @@
         <groupId>org.postgresql</groupId>
         <artifactId>postgresql</artifactId>
         <version>42.7.12</version>
+    </dependency>
+
+    <!-- Apache Fluss Streaming Storage & Connectors -->
+    <dependency>
+      <groupId>org.apache.fluss</groupId>
+      <artifactId>fluss-client</artifactId>
+      <version>${fluss.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.fluss</groupId>
+      <artifactId>fluss-flink-1.20</artifactId>
+      <version>${fluss.version}</version>
     </dependency>
 
     <!-- Flink ML compatibility shims (bridges Flink ML 2.2.0 → Flink 2.2.0 runtime) -->
@@ -229,7 +244,7 @@
     <dependency>
       <groupId>org.bouncycastle</groupId>
       <artifactId>bcpkix-jdk18on</artifactId>
-      <version>1.84</version>
+      <version>${bouncycastle.version}</version>
     </dependency>
 
     <!-- GraalVM Polyglot API and Python -->
@@ -572,6 +587,22 @@
         <artifactId>netty-codec-socks</artifactId>
         <version>${netty.version}</version>
       </dependency>
+      <!-- Bouncy Castle (Patched for CVE-2026-8763, CVE-2026-13506) -->
+      <dependency>
+        <groupId>org.bouncycastle</groupId>
+        <artifactId>bcpkix-jdk18on</artifactId>
+        <version>${bouncycastle.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.bouncycastle</groupId>
+        <artifactId>bcprov-jdk18on</artifactId>
+        <version>${bouncycastle.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.bouncycastle</groupId>
+        <artifactId>bcutil-jdk18on</artifactId>
+        <version>${bouncycastle.version}</version>
+      </dependency>
       <!-- Apache Kafka Clients (Patched for CVE-2026-35554) -->
       <dependency>
         <groupId>org.apache.kafka</groupId>
@@ -655,6 +686,7 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>3.5.4</version>
         <configuration>
+          <argLine>@{argLine} -XX:+IgnoreUnrecognizedVMOptions --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.time=ALL-UNNAMED --add-opens java.base/java.lang.reflect=ALL-UNNAMED --add-opens java.base/java.nio=ALL-UNNAMED --add-opens java.base/sun.nio.ch=ALL-UNNAMED --add-opens java.base/sun.net.util=ALL-UNNAMED</argLine>
           <forkCount>1</forkCount>
           <reuseForks>false</reuseForks>
         </configuration>

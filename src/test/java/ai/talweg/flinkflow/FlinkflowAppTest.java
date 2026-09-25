@@ -88,7 +88,7 @@ public class FlinkflowAppTest {
             writer.write("  - type: source\n");
             writer.write("    name: file-source\n");
             writer.write("    properties:\n");
-            writer.write("      path: \"" + inputFile.getAbsolutePath() + "\"\n");
+            writer.write("      path: \"" + inputFile.getAbsolutePath().replace("\\", "/") + "\"\n");
             writer.write("  - type: filter\n");
             writer.write("    name: filter-step\n");
             writer.write("    code: \"return input.contains(\\\"a\\\");\"\n");
@@ -104,7 +104,7 @@ public class FlinkflowAppTest {
             writer.write("  - type: sink\n");
             writer.write("    name: file-sink\n");
             writer.write("    properties:\n");
-            writer.write("      path: \"" + outDir.getAbsolutePath() + "\"\n");
+            writer.write("      path: \"" + outDir.getAbsolutePath().replace("\\", "/") + "\"\n");
         }
 
         assertDoesNotThrow(() -> {
