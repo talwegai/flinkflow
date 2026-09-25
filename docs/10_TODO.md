@@ -56,17 +56,29 @@ This file is the **Single Source of Truth** for the Flinkflow project roadmap an
 - [ ] **Sinks**: ClickHouse, Pinecone (Vector), ElasticSearch, OpenSearch.
 - [ ] **Universal Wrap**: Re-implement all core connectors as standard templates in the Flowlet catalog.
 
+### 🔣 Data Formats & Typing
+- [ ] **Schema Registry Integration**: Native support for Avro, Protobuf, and Confluent Schema Registry deserialization/serialization at the connector boundaries.
+
 ### 📦 Management & State
 - [x] **Flowlet Versioning**: Support for semver pinning in pipeline definitions (e.g., `version: "1.2.0"`).
+- [ ] **Declarative Checkpointing**: Expose Flink's checkpoint intervals, state backend (RocksDB), and savepoint paths natively within the `Pipeline` CRD `spec`.
+- [ ] **Native Dead Letter Queues (DLQ)**: Add a `fallback` or `dlq` parameter to processors to gracefully route scripting/parsing errors to a designated sink instead of crashing the job.
 
 ### 🐫 Advanced Camel Features
 - [ ] **Side Output Support**: Ability to emit to multiple streams directly from Camel logic.
 - [ ] **Join Function Support**: Bridging Flink's `ProcessJoinFunction` to the Camel YAML DSL (v2).
-- [ ] **Flink State Access**: Exposing Flink's managed state (ValueState, ListState) as Camel headers.
 
 ### 📊 SQL & Table API Support (Hybrid Approach)
 - [x] **In-stream SQL**: Add a `type: sql` step that registers incoming JSON stream data as a temporary Table view, runs custom SQL queries via Flink's `StreamTableEnvironment`, and serializes the outputs back to the universal JSON String format.
 
+### 🤖 AI Agents & Intelligent Pipelines
+- [x] **Agentic Bridge**: Declarative integration with LLMs via LangChain4j (`type: agent` step).
+- [x] **Agent Step Type**: Native `type: agent` with system prompt, memory toggle, and tool discovery.
+- [x] **Flowlets-as-Tools**: Automatic registration of Flinkflow Flowlets as agent-invokable tools.
+- [x] **Multi-Provider Routing**: Auto-detect provider from model name — OpenAI (`gpt-*`), Google AI Studio (`gemini-*`), Vertex AI (`provider: vertex`), Anthropic (`claude-*`), and Ollama (`ollama:*` or `llama/mistral/phi`).
+- [x] **Stateful Agent Memory**: Multi-turn conversation history stored as Flink `ValueState` per key.
+- [x] **GeminiDirectChatModel**: Custom REST client targeting `v1beta` Gemini endpoint, bypassing LangChain4j `v1beta` limitations.
+- [x] **In-stream ML (Core)**: Declarative `type: ml` step in the Apache 2.0 core supports Flink ML Estimators & Transformers (see Foundation above).
 ---
 
 ## 🎨 Milestone 3 — v2.0: Platform & Enterprise
@@ -77,16 +89,13 @@ This file is the **Single Source of Truth** for the Flinkflow project roadmap an
 - [ ] **Quota Management**: Per-namespace resource limits (parallelism, max jobs).
 
 ### 🛠️ Developer Tooling & Extensibility
+- [ ] **Local "Dry-Run" CLI**: A `flinkflow test` command to execute `pipeline.yaml` locally using a MiniCluster and dummy data to test scripts before K8s deployment.
+- [ ] **K8s Operator Enhancements**: Implement a Validating Webhook to verify Flowlet dependencies at submission time, and add lifecycle controllers to automatically restart Pipelines when their referenced Flowlets are patched.
 - [ ] **Helm Chart**: Official Helm chart packaging all Flinkflow infrastructure components (Operator CRDs, RBAC, Dashboard, Flowlet Catalog). Enables single-command install via `helm install flinkflow ./chart` and GitOps-compatible upgrades via ArgoCD/Flux. *Deferred from v1.0 — kubectl-based manifests are sufficient until the install surface stabilises.*
 - [ ] **Plugin SDK**: Java/SPI interface for third-party Sources, Sinks, and operations.
 
-### 🤖 Intelligent Features & AI (Flink Agents)
-- [x] **Agentic Bridge**: Declarative integration with LLMs via LangChain4j (`type: agent` step).
-- [x] **Agent Step Type**: Native `type: agent` with system prompt, memory toggle, and tool discovery.
-- [x] **Flowlets-as-Tools**: Automatic registration of Flinkflow Flowlets as agent-invokable tools.
-- [x] **Multi-Provider Routing**: Auto-detect provider from model name — OpenAI (`gpt-*`), Google AI Studio (`gemini-*`), Vertex AI (`provider: vertex`), Anthropic (`claude-*`), and Ollama (`ollama:*` or `llama/mistral/phi`).
-- [x] **Stateful Agent Memory**: Multi-turn conversation history stored as Flink `ValueState` per key.
-- [x] **GeminiDirectChatModel**: Custom REST client targeting `v1beta` Gemini endpoint, bypassing LangChain4j `v1beta` limitations.
+### ⚡ Advanced Runtimes
+- [ ] **WebAssembly (WASM) Runtime**: Integrate Extism or GraalWasm to allow users to compile pipeline steps in Rust, Go, or C++ and run them safely at native speeds within the JVM.
 
 ---
 
@@ -114,11 +123,7 @@ This file is the **Single Source of Truth** for the Flinkflow project roadmap an
 
 ### 🤖 Agentic AI & Machine Learning
 - [ ] **Validation Assist**: AI-powered explanations and auto-fixes for pipeline configuration errors.
-- [x] **In-stream ML (Core)**: Declarative `type: ml` step in the Apache 2.0 core supports Flink ML Estimators & Transformers (see Foundation above).
 - [ ] **In-stream ML (Enterprise)**: High-performance `model-inference` step with CPU/GPU acceleration and ONNX/TensorFlow/PyTorch runtime support.
 - [ ] **Hot-Reloading**: Live update of transformation logic and agent prompts without stopping the Flink job.
 - [ ] **Agentic Audit**: Full prompt/response debugging and token cost attribution for AI Agents.
 - [ ] **Air-Gapped Gallery**: Hardened container images with pre-loaded LLM models for offline AI.
-
----
-*Last updated: May 28, 2026*
